@@ -568,7 +568,9 @@ fn development_prior_prose() {
         let lower = out.to_lowercase();
         assert!(lower.contains("dame"), "queen sortie missing: {out}");
         assert!(
-            lower.contains("entwicklung") || lower.contains("entwickeln") || lower.contains("grundreihe"),
+            lower.contains("entwicklung")
+                || lower.contains("entwickeln")
+                || lower.contains("grundreihe"),
             "development story missing: {out}"
         );
         // Never rulebook phrasing.
@@ -576,13 +578,12 @@ fn development_prior_prose() {
         assert!(!lower.contains("rule"), "{out}");
     }
     // Coach voices the maintainer's framing on the mixed sleeper list.
-    assert!(
-        coach.contains("die Leichtfiguren"),
-        "{coach}"
-    );
+    assert!(coach.contains("die Leichtfiguren"), "{coach}");
     assert!(!coach.is_empty(), "Eine Erklärung muss ausgegeben werden");
     assert!(
-        !coach.contains("White's") && !coach.contains("Black's") && !coach.contains("Still in the book"),
+        !coach.contains("White's")
+            && !coach.contains("Black's")
+            && !coach.contains("Still in the book"),
         "Englische Vorlagen in der Erklärung: {coach}"
     );
 }
@@ -646,7 +647,10 @@ fn suggestion_closing_sentence() {
     lint_prose(&neutral);
     assert!(coach.contains("Zuerst dem Gegner zuvorkommen"), "{coach}");
     assert!(coach.contains("e4"), "{coach}");
-    assert!(neutral.contains("Zuerst den gegnerischen Plan verhindern"), "{neutral}");
+    assert!(
+        neutral.contains("Zuerst den gegnerischen Plan verhindern"),
+        "{neutral}"
+    );
     assert_ne!(coach, neutral);
 
     // A decisive or mate engine line silences the closing.
@@ -745,7 +749,10 @@ fn maintainer_case_prose() {
         assert!(!out.contains(leaked), "leak {leaked:?} in:\n{out}");
     }
     // Subject-verb agreement with two defenders.
-    assert!(out.contains("sorgen für Deckung"), "agreement bug in:\n{out}");
+    assert!(
+        out.contains("sorgen für Deckung"),
+        "agreement bug in:\n{out}"
+    );
     assert!(
         !out.contains("sorgt für Deckung"),
         "agreement bug in:\n{out}"
@@ -992,10 +999,7 @@ fn coach_voice_overlays_and_neutral_stays_plain() {
     // A phrase only the coach lead uses. "overloaded"/"comes out ahead"
     // would not do: both appear in the shared follow-on sentences, which
     // are voice-independent and must stay that way.
-    assert!(
-        coach.contains("Der Gegner kann"),
-        "coach alt lead: {coach}"
-    );
+    assert!(coach.contains("Der Gegner kann"), "coach alt lead: {coach}");
     assert!(
         !neutral.contains("Der Gegner kann"),
         "coach leak: {neutral}"
@@ -1149,7 +1153,10 @@ fn decisive_band_boundaries() {
         "engine prose stops counting pawns at the band: {at}"
     );
     let way_above = mk(910);
-    assert!(way_above.contains("Stellung ist klar gewonnen"), "{way_above}");
+    assert!(
+        way_above.contains("Stellung ist klar gewonnen"),
+        "{way_above}"
+    );
     // Mate still outranks any band.
     let mut r = tactical_record();
     if let Some(a) = r.wsui.alerts.first_mut() {
