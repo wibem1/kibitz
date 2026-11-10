@@ -1,6 +1,6 @@
 /** Privacy-first diagnostics: structured events only, never arbitrary exception text,
  * paths, FEN, PGN, user names, keys, storage dumps or network payloads.
- * In-memory bounded log. Export only after an explicit user click. */
+ * Bounded local log survives app restart. Export only after an explicit user click. */
 export type DiagnosticCode =
   | "ui_error"
   | "unhandled_rejection"
@@ -19,6 +19,9 @@ export interface DiagnosticEvent {
 }
 
 const MAX_EVENTS = 120;
+const STORAGE_KEY = "kibitz.diagnosticEvents.v1";
+type DiagnosticStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+let storage: DiagnosticStorage | null = null;
 const events: DiagnosticEvent[] = [];
 const allowedCodes = new Set<DiagnosticCode>([
   "ui_error", "unhandled_rejection", "offline_engine_request",
@@ -27,11 +30,42 @@ const allowedCodes = new Set<DiagnosticCode>([
   "offline_autosave_failure",
 ]);
 
+/** Load only validated event codes and timestamps, never arbitrary stored payloads. */
+export function initializeDiagnostics(candidate: DiagnosticStorage): void {
+  storage = candidate;
+  events.splice(0, events.length);
+  try {
+    const raw = candidate.getItem(STORAGE_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return;
+    for (const event of parsed.slice(-MAX_EVENTS)) {
+      if (typeof event !== "object" || event === null) continue;
+      const item = event as Record<string, unknown>;
+      if (typeof item.code !== "string" || !allowedCodes.has(item.code as DiagnosticCode)) continue;
+      if (typeof item.time !== "string" || !/^\\d{4}-\\d\\d-\\d\\dT/.test(item.time)) continue;
+      events.push({ code: item.code as DiagnosticCode, time: item.time });
+    }
+  } catch { /* disabled or corrupt storage: stay in-memory */ }
+}
+
+function persist(): void {
+  try { storage?.setItem(STORAGE_KEY, JSON.stringify(events)); }
+  catch { /* browser storage may be unavailable */ }
+}
+
+/** Clear both in-memory and persisted diagnostics on explicit request. */
+export function clearDiagnostics(): void {
+  events.splice(0, events.length);
+  try { storage?.removeItem(STORAGE_KEY); }
+  catch { /* browser storage may be unavailable */ }
+}
+
 /** Event codes are intentionally fixed: no uncontrolled payloads enter the log. */
 export function recordDiagnostic(code: DiagnosticCode): void {
   if (!allowedCodes.has(code)) return;
   events.push({ time: new Date().toISOString(), code });
   if (events.length > MAX_EVENTS) events.splice(0, events.length - MAX_EVENTS);
+  persist();
 }
 
 export function diagnoseEngineFailure(error: unknown): DiagnosticCode {
@@ -88,4 +122,5 @@ export function saveDiagnosticReport(doc: Document = document): void {
 /** Only for isolated unit tests: no user-facing clear control needed yet. */
 export function clearDiagnosticsForTest(): void {
   events.splice(0, events.length);
+  storage = null;
 }
