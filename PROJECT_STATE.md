@@ -1,3 +1,15 @@
+# Kibitz DE – 10.11.2026: aktuellen CI-Clippy-Fehler gezielt behoben
+
+**Nachgewiesene CI-Ergebnisse:** GitHub-Actions-Lauf [42866034166](https://github.com/wibem1/kibitz/actions/runs/42866034166) auf Commit `979d157b`: `rust (ubuntu-latest)` **success**; `app (ubuntu-latest)` **failure** im Schritt `src-tauri fmt/clippy/test`. Davor liefen **alle 611 Vitest-Einzeltests in 62 Dateien erfolgreich** sowie `tsc --noEmit && vite build` erfolgreich. Das App-Job-Log lokalisiert den anschließenden Fehler auf **drei Clippy-Meldungen `doc_lazy_continuation`** in `app/src-tauri/src/uci.rs`, Zeilen 230–232: nach einer Dokumentationsliste fehlte ein Leerabsatz. Die beiden macOS-Jobs wurden **cancelled**, also nicht bestanden.
+
+**Korrektur:** Commit `a1f70ffc` fügt eine `///`-Leerzeile zwischen Liste und nachfolgendem erklärendem Absatz ein. Keine Verhaltensänderung an der Engine-Pfadauflösung, keine Umgehung oder Abschaltung von Clippy. Über GitHub-Quelldatei nachvollzogen. **Für diesen neuen Commit liegt noch kein erfolgreich abgeschlossener Testlauf vor.**
+
+**Offene Abnahme:** Aktueller HEAD auf Ubuntu (Rust-Clippy/-Tests) und macOS erfolgreich ausführen; danach auf einem echten Intel-Mac Stockfish-Binary konfigurieren, einen Zug spielen, Rücknahme und Session-Wiederherstellung prüfen. Keine Veröffentlichung und keine Maia-2-Erweiterung bis zu dieser Bestätigung.
+
+**Nächster einzelner Schritt:** CI-Ergebnis für Commit `a1f70ffc` auswerten und weitere konkrete Fehler beheben, falls vorhanden.
+
+---
+
 # Kibitz DE – 10.11.2026: UCI-Pfadauflösung auf Intel-Mac abgesichert
 
 **Neue Korrektur:** Die bisherige automatische Engine-Suche in `app/src-tauri/src/uci.rs` bevorzugte das im Repository vorhandene Apple-Silicon-Programm `tools/stockfish/stockfish-macos-m1-apple-silicon` auf **allen** Plattformen, falls die Datei existierte. Auf einem Intel-Mac (oder Linux/Windows) ist das unbrauchbar. Commit `9fe9185f` beschränkt dieses Repo-Entwicklungsbinary nun auf macOS ARM64; Intel-Mac greift stattdessen auf einen explizit konfigurierten Pfad, `KIBITZ_STOCKFISH` oder `stockfish` im PATH zurück. Ein neuer Rust-Test für die plattformabhängige Schranke ist ergänzt. **Der Code ist statisch gegengeprüft, aber nicht neu kompiliert oder real getestet.** Diese Änderung nimmt keine Installation oder Bereitstellung einer Intel-Engine vor.
