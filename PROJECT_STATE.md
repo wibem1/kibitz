@@ -1,3 +1,23 @@
+# Kibitz DE – 10.11.2026: datensparsame Diagnosefunktion eingebaut
+
+**Nutzerauftrag:** „weiter und bitte eine Diagnosefunktion einbauen, damit wir künftige Fehler analysieren können“.
+
+**Implementiert (noch nicht durch CI verifiziert):**
+- `app/src/lib/diagnostics.ts`: begrenztes, ausschließlich flüchtiges Ereignisprotokoll (maximal 120 Ereignisse); feste Codes und Zeitstempel. Keine Speicherung freier Fehlertexte, Nutzerpfade, PGN/FEN, Datenbanken, API-Schlüssel oder Browser-Storage. JSON-Erzeugung und lokaler Download ausschließlich auf Benutzeraktion, keinerlei automatische Übertragung. Allgemeine Fensterfehler und unbehandelte Promise-Fehler werden **nur als Kategorie** erfasst. Übermäßige oder geheime Nutzlasten sind nicht zulässig.
+- `app/src/main.tsx`: installierte Ereignislistener für Oberflächen-/Promise-Fehler.
+- `app/src/OfflinePlayView.tsx`: diagnostische Ereignisse für Engine-Anforderung, gültigen/ungültigen Engine-Zug, Start-/Pfad-/Timeout-Fehler und Autosave-Probleme.
+- `app/src/SettingsView.tsx`: „DIAGNOSE“ mit Button „Diagnose speichern“, Datenschutzhinweis und manueller JSON-Dateiausgabe.
+- `app/src/lib/diagnostics.test.ts`: fünf Tests für Ereigniskategorien, Geheimnis-/Pfadschutz, Begrenzung, ungültige Codes und unveränderliche Kopie.
+- Commits: `398decbd`, `e74deb54`, `e9d3ca08`, `4b2289c1`, `285278fa`.
+
+**Begrenzung:** Das ist eine erste **Sitzungsdiagnose**, kein vollständiger Rust-Logdump und keine automatische Crash-Aufzeichnung nach einem Prozessabsturz. Bei Neustart sind die flüchtigen Ereignisse weg. Da keine sensiblen Rohdaten erfasst werden, können tiefere Fehler nach Bedarf mit einer bewusst freigegebenen Diagnosestufe ergänzt werden. Tests noch nicht ausgeführt, Produktfunktion noch nicht praktisch bestätigt.
+
+**Intel-Mac-Testbuild:** [Run 42891829598](https://github.com/wibem1/kibitz/actions/runs/42891829598) noch `queued`; [Run 42891915194](https://github.com/wibem1/kibitz/actions/runs/42891915194) bei Abfrage `in_progress`. Noch kein hochgeladenes DMG-Artefakt festgestellt. Der zuvor nachgewiesene vollständig grüne CI-Stand ist [Run 42885058472](https://github.com/wibem1/kibitz/actions/runs/42885058472), Commit `12e51613`; er prüft **nicht** die neue Diagnosefunktion.
+
+**Nächster einzelner Schritt:** CI für die Diagnosecommits prüfen, eventuelle konkrete TypeScript-/Vitest-Probleme korrigieren. Danach Diagnose-Download im realen Mac-Build mit Engine-Fehler und Wiederholungsversuch testen, DMG-Artefakt prüfen. Keine neue Release-Nummer/Freigabe vor Abnahme.
+
+---
+
 # Kibitz DE – 10.11.2026: erstmals komplette CI grün, Intel-DMG-Testworkflow hinzugefügt
 
 **Nachgewiesen:** [CI-Run 42885058472](https://github.com/wibem1/kibitz/actions/runs/42885058472) für Commit `12e51613`: Alle vier Jobs `app (macos-latest)`, `rust (macos-latest)`, `app (ubuntu-latest)`, `rust (ubuntu-latest)` **success**. Im CI-Lauf wurden **keine Download-Artefakte** erzeugt. Ein grüner App-/Rust-Test belegt noch kein DMG und keine reale Stockfish-Partie.
