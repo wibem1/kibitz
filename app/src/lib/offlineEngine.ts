@@ -12,3 +12,22 @@ export function requestOfflineEngineMove(
     userPath: userPath.trim() || null,
   });
 }
+
+/** Explain common local UCI setup failures without exposing backend English.
+ * Unexpected errors retain their original text for diagnosis. */
+export function offlineEngineError(error: unknown): string {
+  const raw = String(error);
+  if (raw.includes("No Stockfish binary found") ||
+      raw.includes("Configured engine path does not exist")) {
+    return "Kein ausführbares Stockfish-Programm gefunden. Öffne die Einstellungen unter „Engine“ und wähle eine zu deinem Computer passende Stockfish-Datei.";
+  }
+  if (raw.includes("Failed to spawn engine") ||
+      raw.includes("Permission denied") ||
+      raw.includes("Exec format error")) {
+    return "Stockfish konnte nicht gestartet werden. Prüfe in den Einstellungen unter „Engine“, ob die ausgewählte Datei ausführbar und mit deinem Computer kompatibel ist.";
+  }
+  if (raw.includes("Timed out") || raw.includes("Zeitlimit")) {
+    return "Stockfish hat nicht rechtzeitig geantwortet. Prüfe die Engine-Einstellungen und versuche den Zug erneut.";
+  }
+  return `Stockfish konnte nicht ziehen: ${raw}`;
+}
