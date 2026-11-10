@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { localLegalMoves, localPgn, localPosition, localResult, localResultText, newLocalGame, playLocalMove, playLocalUci, undoLocalMove } from "./localPlay";
+import { localLegalMoves, localPgn, localPosition, localResult, localResultText, newLocalGame, playLocalMove, playLocalUci, undoLocalMove, undoLocalTurn } from "./localPlay";
 
 describe("Offline-Partie für zwei Menschen", () => {
   it("beginnt in der Ausgangsstellung mit legalen weißen Zügen", () => {
@@ -28,6 +28,23 @@ describe("Offline-Partie für zwei Menschen", () => {
     const next = playLocalMove(g, "e2", "e4")!;
     expect(undoLocalMove(next)).toEqual(g);
     expect(undoLocalMove(g)).toEqual(g);
+  });
+  it("Stockfish: Weiß nimmt Engine und eigenen Zug zurück", () => {
+    const start = newLocalGame();
+    const human = playLocalMove(start, "e2", "e4")!;
+    const both = playLocalUci(human, "e7e5")!;
+    expect(undoLocalTurn(both, "stockfish", "white")).toEqual(start);
+    expect(undoLocalTurn(human, "stockfish", "white")).toEqual(start);
+    expect(undoLocalTurn(both, "human", "white")).toEqual(human);
+  });
+  it("Stockfish: Schwarz nimmt eigenen Zug zurück, behält Engine-Eröffnung", () => {
+    const start = newLocalGame();
+    const engine = playLocalUci(start, "e2e4")!;
+    const both = playLocalMove(engine, "e7", "e5")!;
+    expect(undoLocalTurn(engine, "stockfish", "black")).toEqual(engine);
+    expect(undoLocalTurn(both, "stockfish", "black")).toEqual(engine);
+    const engineAgain = playLocalUci(both, "g1f3")!;
+    expect(undoLocalTurn(engineAgain, "stockfish", "black")).toEqual(engine);
   });
   it("erzeugt exportierbares PGN", () => {
     let g = newLocalGame();
