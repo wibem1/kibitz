@@ -25,15 +25,15 @@ export default function OfflinePlayView({ treatment }: Props) {
   const [notice, setNotice] = useState(restored.warning ?? "");
   useEffect(() => {
     let saved = false;
-    try { saved = storeOfflineSession(window.localStorage, game, flipped); }
+    try { saved = storeOfflineSession(window.localStorage, game, flipped, opponent, humanColor); }
     catch { saved = false; }
     if (!saved) {
       setNotice("Automatisches Speichern ist auf diesem Rechner nicht verfügbar. Bitte die Partie als PGN sichern.");
     }
-  }, [game, flipped]);
+  }, [game, flipped, opponent, humanColor]);
   const [confirmNew, setConfirmNew] = useState(false);
-  const [opponent, setOpponent] = useState<"human" | "stockfish">("human");
-  const [humanColor, setHumanColor] = useState<"white" | "black">("white");
+  const [opponent, setOpponent] = useState<"human" | "stockfish">(restored.opponent);
+  const [humanColor, setHumanColor] = useState<"white" | "black">(restored.humanColor);
   const [thinking, setThinking] = useState(false);
   const [failedFen, setFailedFen] = useState<string | null>(null);
   const pos = useMemo(() => localPosition(game), [game]);
