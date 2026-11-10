@@ -1,3 +1,11 @@
+# Kibitz DE – GitHub Actions aktiviert, CI-Fortschritt (10. November 2026)
+
+**Branch:** `feat/de-simple-readable-ui`, Draft-PR [#1](https://github.com/wibem1/kibitz/pull/1). Nutzer hat Fork-Actions aktiviert, daraufhin wurde Pull-Request-CI tatsächlich gestartet.
+
+**Realer Prüfstand:** Erster Lauf [42813722131](https://github.com/wibem1/kibitz/actions/runs/42813722131) zeigte erfolgreichen Frontend-Test/Build unter macOS, aber eine Clippy-Fehlermeldung `clippy::unnecessary_sort_by` in der bereits im Upstream vorhandenen Datei `app/kibitz-db/src/bookeval.rs:1386`. Der semantisch gleichwertige Wechsel zu `pairs.sort_by_key(|a| std::cmp::Reverse(a.1))` wurde unter Commit `e222845bf25576706af2e879ef16dc46f6598360` auf dem Feature-Branch gesichert. Neuer Lauf [42814006205](https://github.com/wibem1/kibitz/actions/runs/42814006205): Stand bei der letzten Abfrage: Frontend-Tests und Web-Build **macOS und Linux SUCCESS**, Rust-Formatierung und Clippy **macOS und Linux SUCCESS**. Die folgenden Rust-Test-/Lizenz-/Name-Gates bzw. `src-tauri`-Prüfungen waren zu diesem Zeitpunkt noch in Bearbeitung; **kein vollständiger Workflow-Erfolg bestätigt**. Ein echter Desktop-Tauri-Installer wurde nicht erzeugt oder getestet.
+
+**Nächster Schritt:** Vollständigen CI-Lauf bis zum Ende beobachten, etwaige Fehler gezielt beheben, dann erst über Zusammenführung in `main` und einen gesondert beauftragten nativen Intel-Mac-Build entscheiden. Keine Releases oder Änderungen am Original-Repository.
+
 # Kibitz DE – Fortsetzung: Navigation und Tests (10. November 2026)
 
 **Branch:** `feat/de-simple-readable-ui`, Draft-PR [#1](https://github.com/wibem1/kibitz/pull/1); `main` und Upstream unverändert.
