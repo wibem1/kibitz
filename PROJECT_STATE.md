@@ -1,3 +1,15 @@
+# Kibitz DE – 10.11.2026: korrigierte Diagnose besteht CI, frisches Intel-DMG vorhanden
+
+**Verifiziert:** Der Commit `80f4c3144ce5d1207956f79e191c59e78bde1a9f` wurde in [CI-Run 42896580363](https://github.com/wibem1/kibitz/actions/runs/42896580363) geprüft: `rust` und `app` sowohl auf Ubuntu als auch macOS jeweils **success**. Darin enthalten ist der neue Regressionstest der Diagnose-Zeitstempel.
+
+**Frischer Intel-Testbuild:** [Intel-DMG-Run 42896580002](https://github.com/wibem1/kibitz/actions/runs/42896580002) **success**, Artefakt [`kibitz-de-intel-mac-unsigned-test` (13802307067)](https://github.com/wibem1/kibitz/actions/runs/42896580002/artifacts/13802307067), 11.694.444 Bytes (ZIP-Artefakt). Buildprotokoll bestätigt `Mach-O 64-bit executable x86_64` und genau ein erzeugtes DMG (`Kibitz_0.1.2_x64.dmg`). Dieses DMG basiert auf dem korrigierten Diagnose-Stand `80f4c314`, ist **unsigniert** und ausdrücklich **kein Release**.
+
+**Offen:** Installation, Engine-Start, reale Stockfish-Partie und Neustart/Diagnose-Export auf dem echten Intel-Mac sind noch **nicht** durchgeführt. CI und Build beweisen keine korrekte Interaktion mit macOS/Gatekeeper und kein Laufzeitverhalten.
+
+**Nächster einzelner Schritt:** Genau dieses aktuelle Artefakt auf Intel-Mac anhand `docs/INTEL_MAC_ACCEPTANCE.md` ausprobieren; nach etwaigem Fehler das über die Einstellungen speicherbare Diagnose-JSON auswerten. Keine neue Veröffentlichung vor echter Abnahme.
+
+---
+
 # Kibitz DE – 10.11.2026: Diagnose-Wiederherstellung korrigiert
 
 **Konkreter Fehler behoben:** In `app/src/lib/diagnostics.ts` hatte der reguläre Ausdruck für persistierte ISO-Zeitstempel versehentlich doppelt maskierte `\\d`-Klassen. Dadurch wurden beim Neustart gültige Diagnoseereignisse verworfen, obwohl das Speichern funktionierte. Commit `8ed83032` korrigiert die Zeichenklassen. Commit `2755627e` ergänzt einen gezielten Regressionstest für gültige und ungültige Zeitstempel; die zuvor vorhandene Neustart-Probe deckt den Fall ebenfalls ab.
