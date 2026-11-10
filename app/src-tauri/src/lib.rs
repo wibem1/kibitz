@@ -118,6 +118,37 @@ async fn engine_identify(user_path: Option<String>) -> Result<uci::EngineIdentit
     uci::identify(&path).await
 }
 
+/// Request one bounded move for an explicitly chosen local engine opponent.
+/// A fresh process isolates game play from the shared analysis queue/stream.
+/// Every call has its own deadline; dropping Engine kills the subprocess.
+#[tauri::command]
+async fn offline_engine_move(
+    fen: String,
+    nodes: Option<u64>,
+    user_path: Option<String>,
+) -> Result<String, String> {
+    use std::time::Duration;
+    // Avoid sending arbitrary control sequences to the UCI subprocess.
+    if fen.len() > 160 || fen.contains(['\n', '\r']) || fen.split_whitespace().count() != 6 {
+        return Err("Ungültige FEN-Stellung".to_string());
+    }
+    let path = uci::resolve_engine_path(user_path.as_deref())?;
+    let count = nodes.unwrap_or(20_000).clamp(1_000, 250_000);
+    tokio::time::timeout(Duration::from_secs(30), async move {
+        let mut engine = Engine::spawn(&path).await?;
+        let response = engine
+            .analyze(&UciPosition::Fen(fen), Some(count), |_| {})
+            .await?;
+        engine.quit().await;
+        if response.bestmove == "(none)" || response.bestmove == "0000" {
+            return Err("Die Engine hat keinen Zug geliefert.".to_owned());
+        }
+        Ok(response.bestmove)
+    })
+    .await
+    .map_err(|_| "Zeitlimit für Engine-Zug überschritten.".to_owned())?
+}
+
 /// Start `go nodes <nodes>` on `fen`. Returns as soon as the search task is
 /// launched; progress arrives via `engine-info` / `engine-done` events.
 #[tauri::command]
@@ -224,6 +255,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             resolve_engine_path,
             engine_identify,
+            offline_engine_move,
             analyze_position,
             stop_analysis,
             browse::open_database,
