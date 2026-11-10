@@ -33,6 +33,7 @@ import Help from "./Help";
 import ImportView from "./ImportView";
 import JobsView from "./JobsView";
 import PlayView from "./PlayView";
+import OfflinePlayView from "./OfflinePlayView";
 import PrepView from "./PrepView";
 import SyncsView from "./SyncsView";
 import TwicView from "./TwicView";
@@ -207,6 +208,7 @@ const VIEW_TITLES: Record<ViewId, string> = {
   tactics: "Taktik",
   endgames: "Endspiele",
   play: "Online spielen",
+  offline: "Offline spielen",
   import: "Partien importieren",
   twic: "TWIC importieren",
   syncs: "Konten abgleichen",
@@ -1151,7 +1153,8 @@ export default function App() {
     view === "prep" ||
     view === "tactics" ||
     view === "twic" ||
-    view === "play";
+    view === "play" ||
+    view === "offline";
 
   const pageView = (() => {
     switch (view) {
@@ -1254,6 +1257,8 @@ export default function App() {
         return <EndgameView treatment={gv.boardTreatment} />;
       case "play":
         return <PlayView treatment={gv.boardTreatment} onNavigate={navigate} />;
+      case "offline":
+        return <OfflinePlayView treatment={gv.boardTreatment} />;
       case "import":
         return <ImportView onLoad={doLoad} status={status} />;
       case "twic":
