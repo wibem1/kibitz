@@ -8,6 +8,7 @@ import type { BoardTreatmentChoice } from "./lib/gameView";
 import { restoreOfflineSession, storeOfflineSession } from "./lib/offlineSession";
 import { requestOfflineEngineMove, offlineEngineError } from "./lib/offlineEngine";
 import { getSavedEnginePath } from "./lib/engine";
+import { diagnoseEngineFailure, recordDiagnostic } from "./lib/diagnostics";
 import {
   localLegalMoves, localPgn, localPosition, localResultText, newLocalGame,
   playLocalMove, playLocalUci, undoLocalTurn,
@@ -33,6 +34,7 @@ export default function OfflinePlayView({ treatment }: Props) {
     try { saved = storeOfflineSession(window.localStorage, game, flipped, opponent, humanColor); }
     catch { saved = false; }
     if (!saved) {
+      recordDiagnostic("offline_autosave_failure");
       setNotice("Automatisches Speichern ist auf diesem Rechner nicht verfügbar. Bitte die Partie als PGN sichern.");
     }
   }, [game, flipped, opponent, humanColor]);
@@ -47,6 +49,7 @@ export default function OfflinePlayView({ treatment }: Props) {
     setThinking(true);
     let path = "";
     try { path = getSavedEnginePath(); } catch { /* use default binary search */ }
+    recordDiagnostic("offline_engine_request");
     requestOfflineEngineMove(fen, 20_000, path)
       .then((uci) => {
         if (cancelled) return;
@@ -54,8 +57,10 @@ export default function OfflinePlayView({ treatment }: Props) {
         const next = playLocalUci(game, uci);
         if (!next) {
           setFailedFen(fen);
+          recordDiagnostic("offline_engine_invalid_move");
           setNotice("Stockfish hat einen ungültigen Zug gemeldet.");
         } else {
+          recordDiagnostic("offline_engine_move");
           setGame(next);
           setNotice("");
         }
@@ -64,6 +69,7 @@ export default function OfflinePlayView({ treatment }: Props) {
         if (cancelled) return;
         setThinking(false);
         setFailedFen(fen);
+        recordDiagnostic(diagnoseEngineFailure(error));
         setNotice(offlineEngineError(error));
       });
     return () => { cancelled = true; };
