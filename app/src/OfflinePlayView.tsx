@@ -10,7 +10,7 @@ import { requestOfflineEngineMove } from "./lib/offlineEngine";
 import { getSavedEnginePath } from "./lib/engine";
 import {
   localLegalMoves, localPgn, localPosition, localResultText, newLocalGame,
-  playLocalMove, playLocalUci, undoLocalMove,
+  playLocalMove, playLocalUci, undoLocalTurn,
 } from "./lib/localPlay";
 
 interface Props { treatment: BoardTreatmentChoice }
@@ -129,8 +129,14 @@ export default function OfflinePlayView({ treatment }: Props) {
               </div>
               <div className="play-actions">
                 <button className="btn-secondary" onClick={() => setFlipped((v) => !v)}>Brett drehen</button>
-                <button className="btn-secondary" disabled={game.sans.length === 0 || thinking || engineTurn}
-                  onClick={() => { setGame(undoLocalMove(game)); setNotice(""); }}>
+                <button className="btn-secondary"
+                  disabled={game.sans.length === 0 || (opponent === "stockfish" && undoLocalTurn(game, opponent, humanColor) === game)}
+                  onClick={() => {
+                    setGame(undoLocalTurn(game, opponent, humanColor));
+                    setFailedFen(null);
+                    setThinking(false);
+                    setNotice("");
+                  }}>
                   Zug zurücknehmen
                 </button>
                 <button className="btn-primary" onClick={savePgn}>PGN speichern</button>
