@@ -30,22 +30,22 @@ export default function ImportView({ onLoad, status }: ImportViewProps) {
 
   return (
     <div className="page import-view">
-      <h2 className="page-title">Import PGN / SCID</h2>
+      <h2 className="page-title">Partien importieren</h2>
       <div className="panel-box">
         <div className="panel-box-title">PGN</div>
         <textarea
           className="pgn-input"
           value={pgnText}
           onChange={(e) => setPgnText(e.target.value)}
-          placeholder="Paste PGN here…"
+          placeholder="PGN-Partie hier einfügen …"
           spellCheck={false}
         />
         <div className="row-gap">
           <button className="btn" onClick={() => onLoad(pgnText)}>
-            Load
+            Partie laden
           </button>
           <button className="btn" onClick={() => fileRef.current?.click()}>
-            Open file…
+            Datei öffnen …
           </button>
           <button
             className="btn"
@@ -54,7 +54,7 @@ export default function ImportView({ onLoad, status }: ImportViewProps) {
               onLoad(SAMPLE_PGN);
             }}
           >
-            Sample game
+            Beispielpartie
           </button>
           <input
             ref={fileRef}
@@ -78,10 +78,10 @@ export default function ImportView({ onLoad, status }: ImportViewProps) {
       <div className="panel-box">
         <div className="panel-box-title">SCID (.si4)</div>
         <p className="page-prose">
-          SCID databases import through the command line for now:{" "}
-          <code>kibitz-cli import-si4 &lt;base&gt;</code> converts a .si4/.sg4/.sn4 base into the
-          SQLite database this app opens (Database in the rail). Legacy engine analysis is
-          preserved and tagged — it is never deleted, only superseded by fresh analysis.
+          SCID-Datenbanken können derzeit nur über die Kommandozeile importiert werden:{" "}
+          <code>kibitz-cli import-si4 &lt;base&gt;</code> wandelt eine .si4/.sg4/.sn4-Datenbank in die
+          SQLite-Datenbank um, die Kibitz öffnen kann. Vorhandene Engineanalysen bleiben
+          erhalten; neue Analysen ersetzen sie nicht durch Löschung.
         </p>
       </div>
     </div>
