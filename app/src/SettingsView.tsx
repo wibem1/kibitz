@@ -219,7 +219,7 @@ export default function SettingsView({
 
   return (
     <>
-      <ScreenHeader title="Settings" subtitle="Engine, coach, data and appearance" />
+      <ScreenHeader title="Einstellungen" subtitle="Darstellung, Engine und Daten" />
       <div className="page-scroll">
         <div className="settings-page">
           {/* ---- ENGINE MANAGER (own file: settings/EngineSection.tsx, run 10) ---- */}
@@ -363,17 +363,17 @@ export default function SettingsView({
 
           {/* ---- APPEARANCE ---- */}
           <div className="set-group">
-            <div className="set-group-head">APPEARANCE</div>
+            <div className="set-group-head">DARSTELLUNG</div>
             <Row
-              label="Theme"
-              help="Dark is the default; light derives from the same token roles."
-              value={<div className="set-value">{theme === "dark" ? "Dark" : "Light"}</div>}
-              action={ghost(theme === "dark" ? "Switch to Light" : "Switch to Dark", () =>
+              label="Farbschema"
+              help="Du kannst jederzeit zwischen einer hellen und einer dunklen Oberfläche wechseln."
+              value={<div className="set-value">{theme === "dark" ? "Dunkel" : "Hell"}</div>}
+              action={ghost(theme === "dark" ? "Hell verwenden" : "Dunkel verwenden", () =>
                 onTheme(theme === "dark" ? "light" : "dark"),
               )}
             />
             <Row
-              label="Board treatment"
+              label="Brettdarstellung"
               help="Studio Walnut is the approved default; Instrument is the neutral alternate."
               value={
                 <div className="set-value">
@@ -386,7 +386,7 @@ export default function SettingsView({
               )}
             />
             <Row
-              label="Annotation display"
+              label="Kommentare anzeigen"
               help="How PGN comments and variations render in the Moves panel: full, hover (dimmed until pointed at) or hidden."
               value={<div className="set-value">{annotationMode}</div>}
               action={ghost(`Switch to ${ANNOTATION_CYCLE[annotationMode]}`, () =>
@@ -394,7 +394,7 @@ export default function SettingsView({
               )}
             />
             <Row
-              label="Piece set"
+              label="Figurensatz"
               help="The chessground cburnett set — fixed for now."
               value={<div className="set-value mono">cburnett</div>}
             />
