@@ -5413,3 +5413,19 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .offline-play-page .play-side-col {
   min-width: 280px;
 }
+
+.offline-engine-help {
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+.offline-engine-help p {
+  margin: 8px 0 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.offline-engine-help code {
+  font-family: var(--font-mono);
+}
