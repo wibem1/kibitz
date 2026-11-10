@@ -143,7 +143,7 @@ export default function OfflinePlayView({ treatment }: Props) {
       <div className="page-scroll">
         <div className="play-page offline-play-page">
           <div className="play-columns">
-            <div className="play-board-col">
+            <div className="play-board-col" style={{ width: boardSize + 32, maxWidth: "100%" }}>
               <div className="play-player">
                 {thinking ? "Stockfish überlegt…" : localResultText(game)}
               </div>
