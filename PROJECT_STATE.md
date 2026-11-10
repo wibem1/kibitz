@@ -1,3 +1,11 @@
+# Ergänzung 11.11.2026 – Offline-Brett beim Ansichtswechsel oben abgeschnitten
+
+Neben der Größenkorrektur `offlineBoardSize()` wird in `OfflinePlayView.tsx` jetzt der Scrollstand der neuen Offline-Ansicht über `useLayoutEffect` auf Null zurückgesetzt. Begründung: React kann den `.page-scroll`-Knoten einer vorherigen, bereits heruntergescrollten Ansicht weiterverwenden. Dies kann die oberste Figurenreihe hinter der Kopfzeile verschwinden lassen. Commit `6f687f0c`. Die tatsächliche Reproduktion/Behebung auf Intel-Mac steht weiterhin aus.
+
+Für diesen Commit läuft [CI 42926376165](https://github.com/wibem1/kibitz/actions/runs/42926376165) und ein [Intel-DMG-Workflow 42926376043](https://github.com/wibem1/kibitz/actions/runs/42926376043). Bei letzter Abfrage waren beide nicht abgeschlossen. Kein ungeprüftes Testpaket empfehlen.
+
+---
+
 # Kibitz DE – 11.11.2026: Offline-Engine fehlt, Brett zu klein/oben abgeschnitten – konkreter Reparaturstand
 
 **Echter Intel-Mac-Screenshot:** Im Bildschirm `Offline spielen` nach dem weißen Zug `d4` meldet die App `Kein ausführbares Stockfish-Programm gefunden`; das Brett ist nur ca. 520px und der obere Rand abgeschnitten. Der Nutzer kann faktisch nicht gegen die Engine spielen. Dies ist **nicht** durch erfolgreiche GitHub-CI-Läufe widerlegt.
