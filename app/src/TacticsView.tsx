@@ -5,7 +5,7 @@
  * Five drill modes (weakness-targeted is the default), a Woodpecker cycle
  * panel of baseline bars, a 640px meta row (side to move · streak ·
  * rating · clock in timed modes only), the board at 560 flipped to the
- * solver's side with NO evidence overlays ever, and the WHY THIS PUZZLE
+ * solver's side with NO evidence overlays ever, and the WARUM DIESE AUFGABE
  * aside with the coach/neutral voice shared with Explain.
  *
  * Keyboard: H hint · S skip · G give up · ⏎ next (never inside inputs).
@@ -469,22 +469,22 @@ export default function TacticsView({
   return (
     <div className="tx2">
       <ScreenHeader
-        title="Tactics"
+        title="Taktiktraining"
         subtitle={
           st
-            ? `${st.puzzles.toLocaleString()} puzzles · rating ${st.rating.toFixed(0)} over ${st.attempts} attempts`
-            : "Five drill modes · the weakness queue is seeded from your motif matrix"
+            ? `${st.puzzles.toLocaleString("de-DE")} Aufgaben · Wertung ${st.rating.toFixed(0)} nach ${st.attempts} Versuchen`
+            : "Fünf Übungsarten · gezieltes Training anhand deiner Schwachstellen"
         }
       />
       <div className="tx2-body">
         {/* ---- mode column ---- */}
         <div className="tx2-modes">
-          <div className="tx2-modes-label">MODE</div>
+          <div className="tx2-modes-label">MODUS</div>
           {seededMotif && (
-            <div className="tx2-seed" title="Seeded by Train this weakness">
-              <span className="tx2-seed-label">SEEDED</span>
+            <div className="tx2-seed" title="Aus Spielerprofil übernommen">
+              <span className="tx2-seed-label">ÜBERNOMMEN</span>
               <span className="tx2-seed-motif">{seededMotif}</span>
-              <button className="tx2-seed-clear" onClick={() => setSeededMotif(null)} title="Clear the seed">
+              <button className="tx2-seed-clear" onClick={() => setSeededMotif(null)} title="Auswahl zurücksetzen">
                 ×
               </button>
             </div>
@@ -517,9 +517,9 @@ export default function TacticsView({
           </div>
           {mode === "motif" && (
             <label className="tx2-theme-pick">
-              theme
+              Motiv
               <select value={theme} onChange={(e) => setTheme(e.target.value)}>
-                <option value="">— pick —</option>
+                <option value="">— wählen —</option>
                 {(st?.themes ?? []).slice(0, 60).map((t) => (
                   <option key={t.theme} value={t.theme}>
                     {t.theme} ({t.puzzles})
@@ -536,12 +536,12 @@ export default function TacticsView({
             {latestSet ? (
               <>
                 {setStats.length === 0 ? (
-                  <div className="tx2-wood-empty">No cycles finished yet.</div>
+                  <div className="tx2-wood-empty">Noch kein Durchgang abgeschlossen.</div>
                 ) : (
                   <div className="tx2-wood-bars">
                     {setStats.slice(-3).map((c) => (
                       <div key={c.cycleId} className="tx2-wood-row">
-                        <span className="tx2-wood-label">cycle {c.cycleNo}</span>
+                        <span className="tx2-wood-label">Durchgang {c.cycleNo}</span>
                         <span className="tx2-wood-bar">
                           <BaselineBar fraction={c.accuracyPct / 100} tone="good" />
                         </span>
@@ -557,18 +557,18 @@ export default function TacticsView({
                   disabled={cycle !== null || (st?.puzzles ?? 0) === 0}
                   onClick={() => void doStartCycle(latestSet)}
                 >
-                  {cycle ? `Cycle running · ${Math.min(cycle.idx + 1, cycle.queue.length)}/${cycle.queue.length}` : "Start next cycle"}
+                  {cycle ? `Durchgang läuft · ${Math.min(cycle.idx + 1, cycle.queue.length)}/${cycle.queue.length}` : "Nächsten Durchgang starten"}
                 </button>
               </>
             ) : (
               <>
                 <div className="tx2-wood-empty">
-                  No sets yet — a set is a fixed batch you re-solve, faster each cycle.
+                  Noch keine Übungsgruppe. Eine Gruppe enthält Aufgaben, die du mehrfach und immer schneller löst.
                 </div>
                 <div className="tx2-wood-create">
                   <input
                     type="text"
-                    placeholder="set name"
+                    placeholder="Name der Übungsgruppe"
                     value={setName}
                     onChange={(e) => setSetName(e.target.value)}
                   />
@@ -583,7 +583,7 @@ export default function TacticsView({
                     onClick={() => void doCreateSet()}
                     disabled={!st || st.puzzles === 0}
                   >
-                    Create
+                    Erstellen
                   </button>
                 </div>
               </>
@@ -596,8 +596,8 @@ export default function TacticsView({
           {st && st.puzzles === 0 ? (
             <div className="tx2-import">
               <p className="tx2-import-prose">
-                No puzzles imported yet. The Lichess puzzle database is CC0 — download
-                lichess_db_puzzle.csv from database.lichess.org and import it here.
+                Noch keine Taktikaufgaben importiert. Die Lichess-Aufgabendatenbank steht unter CC0.
+                Lade lichess_db_puzzle.csv von database.lichess.org und importiere sie hier.
               </p>
               <div className="tx2-import-row">
                 <input
@@ -607,7 +607,7 @@ export default function TacticsView({
                   placeholder={DEFAULT_CSV}
                 />
                 <button className="btn-primary" onClick={() => void doImport()} disabled={importing}>
-                  {importing ? "Importing…" : "Import CSV"}
+                  {importing ? "Import läuft …" : "CSV importieren"}
                 </button>
               </div>
               {status && <div className="tx2-status">{status}</div>}
@@ -617,10 +617,10 @@ export default function TacticsView({
               <div className="tx2-meta">
                 <span className="tx2-meta-side">{sideToMove}</span>
                 <span className="tx2-meta-spacer" />
-                {streak > 0 && <span className="tx2-meta-streak">STREAK {streak}</span>}
+                {streak > 0 && <span className="tx2-meta-streak">SERIE {streak}</span>}
                 {st && (
                   <span className="tx2-meta-rating">
-                    RATING {st.rating.toFixed(0)}{" "}
+                    WERTUNG {st.rating.toFixed(0)}{" "}
                     {sessionDelta !== 0 && (
                       <span className={sessionDelta > 0 ? "up" : "down"}>
                         {sessionDelta > 0 ? "+" : ""}
@@ -655,7 +655,7 @@ export default function TacticsView({
               {outcomeText && (
                 <div className={`tx2-outcome ${phase}`} role="status">
                   <span className="tx2-outcome-head">
-                    {phase === "solved" ? "Solved ✓ " : phase === "failed" ? "Failed ✗ " : ""}
+                    {phase === "solved" ? "Gelöst ✓ " : phase === "failed" ? "Fehlgeschlagen ✗ " : ""}
                   </span>
                   {outcomeText}
                 </div>
@@ -664,20 +664,20 @@ export default function TacticsView({
                 {phase === "solving" ? (
                   <>
                     <button className="btn-secondary" onClick={doHint} disabled={!solvingNow}>
-                      Hint <span className="tx2-key">H</span>
+                      Hinweis <span className="tx2-key">H</span>
                     </button>
                     <button className="btn-secondary" onClick={doSkip} disabled={!solvingNow}>
-                      Skip <span className="tx2-key">S</span>
+                      Überspringen <span className="tx2-key">S</span>
                     </button>
                     <button className="btn-primary" onClick={doGiveUp} disabled={!solvingNow}>
-                      Give up <span className="tx2-key">G</span>
+                      Aufgeben <span className="tx2-key">G</span>
                     </button>
-                    <span className="tx2-kbd-hint">H hint · S skip · G give up.</span>
+                    <span className="tx2-kbd-hint">H Hinweis · S Überspringen · G Aufgeben</span>
                   </>
                 ) : (
                   <>
                     <button className="btn-primary" onClick={() => void serve()} disabled={!canNext || !st}>
-                      {served ? "Next puzzle" : "Start solving"}{" "}
+                      {served ? "Nächste Aufgabe" : "Training starten"}{" "}
                       <span className="tx2-key">⏎ / N</span>
                     </button>
                     {finished && model && (
@@ -697,7 +697,7 @@ export default function TacticsView({
                           ▶
                         </button>
                         <span className="tx2-kbd-hint">
-                          ◀ ▶ replay the solution · ⏎ or N for the next puzzle
+                          ◀ ▶ Lösung durchspielen · ⏎ oder N: nächste Aufgabe
                         </span>
                       </span>
                     )}
@@ -712,11 +712,11 @@ export default function TacticsView({
         {/* ---- reasoning aside ---- */}
         <aside className="tx2-aside">
           <div className="tx2-aside-head">
-            <span className="tx2-aside-title">WHY THIS PUZZLE</span>
+            <span className="tx2-aside-title">WARUM DIESE AUFGABE</span>
             <span className="tx2-aside-spacer" />
-            <div className="seg" role="tablist" aria-label="Narration voice">
+            <div className="seg" role="tablist" aria-label="Erklärstil">
               <button className={voice === "coach" ? "cur" : ""} onClick={() => onVoice("coach")}>
-                Coach
+                Trainer
               </button>
               <button className={voice === "neutral" ? "cur" : ""} onClick={() => onVoice("neutral")}>
                 Neutral
@@ -728,15 +728,15 @@ export default function TacticsView({
             <p className="tx2-why-body">{why.body}</p>
             <div className="tx2-facts">
               <div className="tx2-fact">
-                <span className="tx2-fact-label">MOTIF</span>
+                <span className="tx2-fact-label">MOTIV</span>
                 <span className="tx2-fact-value">{motifFact(mode, served, finished)}</span>
               </div>
               <div className="tx2-fact">
-                <span className="tx2-fact-label">SOURCE</span>
+                <span className="tx2-fact-label">QUELLE</span>
                 <span className="tx2-fact-value">{sourceFact(mode, served)}</span>
               </div>
               <div className="tx2-fact">
-                <span className="tx2-fact-label">RATING</span>
+                <span className="tx2-fact-label">WERTUNG</span>
                 <span className="tx2-fact-value mono">
                   {served ? served.puzzle.rating : "—"}
                 </span>
@@ -748,21 +748,21 @@ export default function TacticsView({
                   {WEAKNESS_LOCKED_REASON}{" "}
                   {onNavigate && (
                     <button className="tx2-footnote-link" onClick={() => onNavigate("profile")}>
-                      Build your profile →
+                      Spielprofil erstellen →
                     </button>
                   )}
                 </>
               ) : mode === "weakness" ? (
-                "Queue order comes from your motif matrix, not a generic ladder. Solve or fail, the result feeds straight back into your rating."
+                "Die Aufgaben folgen deinen erkannten Schwächen statt einem festen Schwierigkeitsplan. Jede Antwort beeinflusst deine Wertung."
               ) : (
-                "Solve or fail, the result feeds straight back into your rating."
+                "Jede Antwort beeinflusst deine Wertung."
               )}
             </div>
           </div>
           <div className="tx2-aside-footer">
             {mode === "woodpecker" && cycle ? (
               <>
-                <span className="tx2-fact-label">QUEUE</span>
+                <span className="tx2-fact-label">AUFGABEN</span>
                 <span className="tx2-queue-bar">
                   <BaselineBar
                     fraction={cycle.queue.length === 0 ? 0 : cycle.idx / cycle.queue.length}
@@ -775,9 +775,9 @@ export default function TacticsView({
               </>
             ) : (
               <>
-                <span className="tx2-fact-label">SESSION</span>
+                <span className="tx2-fact-label">SITZUNG</span>
                 <span className="tx2-queue-count">
-                  {session.solved} / {session.attempts} solved
+                  {session.solved} / {session.attempts} gelöst
                 </span>
               </>
             )}
