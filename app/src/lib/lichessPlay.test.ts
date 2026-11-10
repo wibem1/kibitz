@@ -131,19 +131,19 @@ describe("resultLine", () => {
   });
   it("names the ending and the winner, from the player's side", () => {
     expect(resultLine(snap({ status: "mate", winner: "white" }))).toBe(
-      "Checkmate · SomeUser wins — you won",
+      "Schachmatt · SomeUser gewinnt — du hast gewonnen",
     );
     expect(resultLine(snap({ status: "resign", winner: "black" }))).toBe(
-      "Resignation · Opponent wins — you lost",
+      "Aufgabe · Opponent gewinnt — du hast verloren",
     );
-    expect(resultLine(snap({ status: "draw" }))).toBe("Draw");
-    expect(resultLine(snap({ status: "aborted" }))).toBe("Aborted");
+    expect(resultLine(snap({ status: "draw" }))).toBe("Remis");
+    expect(resultLine(snap({ status: "aborted" }))).toBe("Abgebrochen");
   });
 });
 
 describe("fair-play notice", () => {
   it("states that assistance is disabled during play, citing lichess ToS", () => {
-    expect(FAIR_PLAY_NOTICE).toMatch(/Engine assistance is disabled/);
-    expect(FAIR_PLAY_NOTICE).toMatch(/lichess Terms of Service/);
+    expect(FAIR_PLAY_NOTICE).toMatch(/Engine-Hilfe/);
+    expect(FAIR_PLAY_NOTICE).toMatch(/Lichess-Fair-Play-Regeln/);
   });
 });
