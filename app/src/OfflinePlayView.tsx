@@ -14,12 +14,18 @@ import {
 interface Props { treatment: BoardTreatmentChoice }
 
 export default function OfflinePlayView({ treatment }: Props) {
-  const [restored] = useState(() => restoreOfflineSession(window.localStorage));
+  const [restored] = useState(() => {
+    try { return restoreOfflineSession(window.localStorage); }
+    catch { return restoreOfflineSession({ getItem: () => { throw Error("blocked"); }, setItem: () => {} }); }
+  });
   const [game, setGame] = useState(restored.game);
   const [flipped, setFlipped] = useState(restored.flipped);
   const [notice, setNotice] = useState(restored.warning ?? "");
   useEffect(() => {
-    if (!storeOfflineSession(window.localStorage, game, flipped)) {
+    let saved = false;
+    try { saved = storeOfflineSession(window.localStorage, game, flipped); }
+    catch { saved = false; }
+    if (!saved) {
       setNotice("Automatisches Speichern ist auf diesem Rechner nicht verfügbar. Bitte die Partie als PGN sichern.");
     }
   }, [game, flipped]);
