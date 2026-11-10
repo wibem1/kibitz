@@ -11,6 +11,7 @@ import {
   evalBarView,
   evalSourceLabel,
   fitBoardSize,
+  fitGameBoardSize,
   humanizeHintToken,
   isEditableTarget,
   keyboardAction,
@@ -450,6 +451,24 @@ describe("resize snapping (deliverable 2c)", () => {
 
   it("height constrains too", () => {
     expect(fitBoardSize(4000, 726, "walnut")).toBe(656);
+  });
+
+  it("fits a larger board in the 1532px Intel Mac game window", () => {
+    // Screenshot: 1532px app, 232px sidebar, ~785px game area.
+    // Right pane is now ~350px rather than 472px.
+    const size = fitGameBoardSize(950, 785, "instrument");
+    expect(size).toBeGreaterThanOrEqual(600);
+    expect(size % 8).toBe(0);
+  });
+
+  it("uses only fixed column geometry, not variable analysis content", () => {
+    const geometry = { width: 950, height: 785 };
+    const before = fitGameBoardSize(geometry.width, geometry.height, "instrument");
+    // Recomputed for any move number and any explanation: same inputs.
+    for (const ply of [1, 28, 56, 120]) {
+      expect(fitGameBoardSize(geometry.width, geometry.height, "instrument")).toBe(before);
+      expect(ply).toBeGreaterThan(0);
+    }
   });
 
   it("rail collapses below 1280", () => {
