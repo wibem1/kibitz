@@ -8,6 +8,7 @@ import type { BoardTreatmentChoice } from "./lib/gameView";
 import { restoreOfflineSession, storeOfflineSession } from "./lib/offlineSession";
 import { requestOfflineEngineMove, offlineEngineError } from "./lib/offlineEngine";
 import { getSavedEnginePath } from "./lib/engine";
+import { offlineBoardSize } from "./lib/offlineLayout";
 import { diagnoseEngineFailure, recordDiagnostic } from "./lib/diagnostics";
 import {
   localLegalMoves, localPgn, localPosition, localResultText, newLocalGame,
@@ -41,13 +42,7 @@ export default function OfflinePlayView({ treatment }: Props) {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
-  const boardSize = Math.max(496, Math.min(
-    720,
-    Math.floor(Math.min(
-      windowSize.width - (windowSize.width >= 1140 ? 204 + 340 + 70 : 204 + 52),
-      windowSize.height - 195,
-    ) / 8) * 8,
-  ));
+  const boardSize = offlineBoardSize(windowSize.width, windowSize.height);
   useEffect(() => {
     let saved = false;
     try { saved = storeOfflineSession(window.localStorage, game, flipped, opponent, humanColor); }
