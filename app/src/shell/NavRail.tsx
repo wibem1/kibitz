@@ -45,7 +45,7 @@ export default function NavRail({
 }: NavRailProps) {
   // Standard navigation stays focused; advanced tools remain available.
   const [advanced, setAdvanced] = useState(false);
-  const important = new Set(["home","database","game","explain","profile","tactics","endgames","import"]);
+  const important = new Set(["home","database","game","explain","profile","tactics","endgames","import","play","offline"]);
   const item = (it: RailItem) => {
     const badge = railBadge(it.id, data);
     const isActive = it.id === active;
