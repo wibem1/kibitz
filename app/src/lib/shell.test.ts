@@ -17,10 +17,10 @@ describe("rail structure", () => {
   it("carries every capability a home (the discoverability fix)", () => {
     const ids = RAIL_GROUPS.flatMap((g) => g.items.map((i) => i.id));
     expect(RAIL_GROUPS.map((g) => g.heading)).toEqual([
-      "STUDY",
-      "COACH",
-      "TRAIN",
-      "DATA IN / OUT",
+      "PARTIEN",
+      "ANALYSE",
+      "TRAINING",
+      "VERWALTUNG",
     ]);
     expect(ids).toEqual([
       "database",
@@ -43,6 +43,11 @@ describe("rail structure", () => {
       "jobs",
     ]);
     expect(RAIL_FOOTER.map((i) => i.id)).toEqual(["settings", "help"]);
+    // The simplified rail may hide advanced items, but the capability model retains them.
+    expect(RAIL_GROUPS.find((g) => g.heading === "VERWALTUNG")?.items.map((i) => i.id)).toContain("twic");
+    expect(RAIL_GROUPS.find((g) => g.heading === "TRAINING")?.items.map((i) => i.id)).toContain("lab");
+    expect(RAIL_FOOTER.find((i) => i.id === "settings")?.label).toBe("Einstellungen");
+
   });
 });
 
