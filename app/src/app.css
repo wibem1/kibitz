@@ -5386,3 +5386,30 @@ button, input, select, textarea, .btn, .btn-primary, .btn-secondary, .btn-ghost,
 button:focus-visible, input:focus-visible, select:focus-visible {
   outline: 3px solid var(--info); outline-offset: 2px;
 }
+
+/* Offline chess: board and opponent settings stay side by side on desktop.
+   Do not let a long missing-engine message enlarge the board column and wrap
+   the settings underneath it. Leave top padding so rank eight is visible. */
+.offline-play-page {
+  width: 100%;
+  max-width: none;
+  padding: 18px 20px 28px;
+  box-sizing: border-box;
+  overflow-anchor: none;
+}
+.offline-play-page .play-columns {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.offline-play-page .play-board-col {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.offline-play-page .play-board-col [role="status"] {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.offline-play-page .play-side-col {
+  min-width: 280px;
+}
