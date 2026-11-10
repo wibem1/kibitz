@@ -129,7 +129,7 @@ async fn offline_engine_move(
 ) -> Result<String, String> {
     use std::time::Duration;
     // Avoid sending arbitrary control sequences to the UCI subprocess.
-    if fen.len() > 160 || fen.contains(['\n', '\r']) || fen.split_whitespace().count() != 6 {
+    if fen.len() > 160 || fen.contains('\n') || fen.contains('\r') || fen.split_whitespace().count() != 6 {
         return Err("Ungültige FEN-Stellung".to_string());
     }
     let path = uci::resolve_engine_path(user_path.as_deref())?;
