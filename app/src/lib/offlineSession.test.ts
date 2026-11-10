@@ -10,15 +10,17 @@ describe("Offline-Partie automatisch sichern", () => {
     let game = newLocalGame();
     game = playLocalMove(game, "e2", "e4")!;
     game = playLocalMove(game, "e7", "e5")!;
-    const restored = decodeOfflineSave(encodeOfflineSave(game, true));
+    const restored = decodeOfflineSave(encodeOfflineSave(game, true, "stockfish", "black"));
     expect(restored.warning).toBeNull();
     expect(restored.flipped).toBe(true);
+    expect(restored.opponent).toBe("stockfish");
+    expect(restored.humanColor).toBe("black");
     expect(restored.game).toEqual(game);
   });
 
   it("leerer Speicher beginnt eine neue Partie", () => {
     expect(decodeOfflineSave(null)).toEqual({
-      game: newLocalGame(), flipped: false, warning: null,
+      game: newLocalGame(), flipped: false, opponent: "human", humanColor: "white", warning: null,
     });
   });
 
@@ -29,6 +31,8 @@ describe("Offline-Partie automatisch sichern", () => {
       JSON.stringify({ version: 1, moves: ["e2e5"], flipped: false }),
       JSON.stringify({ version: 1, moves: ["e2e4", "e2e4"], flipped: false }),
       JSON.stringify({ version: 1, moves: [], flipped: "yes" }),
+      JSON.stringify({ version: 1, moves: [], flipped: false, opponent: "bot" }),
+      JSON.stringify({ version: 1, moves: [], flipped: false, humanColor: "blue" }),
     ];
     for (const data of bad) {
       const restored = decodeOfflineSave(data);
