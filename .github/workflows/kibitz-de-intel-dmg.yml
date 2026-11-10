@@ -1,11 +1,8 @@
 # Isolated unsigned Intel-macOS build for the Kibitz DE UI fork.
-# PR-only; no tags, no release creation, no signing keys, no updater output.
+# Manually triggered only; no tags, no releases, no signing keys or updater output.
 name: Kibitz DE Intel test DMG
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/kibitz-de-intel-dmg.yml'
   workflow_dispatch:
 
 permissions:
