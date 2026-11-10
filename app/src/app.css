@@ -516,6 +516,12 @@ textarea {
   border-bottom: 1px solid var(--line);
   flex: none;
 }
+/* The narrower comments pane must wrap rather than overflow its actions. */
+.explain-panel .panel-header {
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+}
 .panel-label {
   font: 700 10.5px var(--font-mono);
   letter-spacing: 0.18em;
