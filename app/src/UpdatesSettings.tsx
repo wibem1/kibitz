@@ -18,14 +18,14 @@ import {
 } from "./lib/updates";
 
 function describe(check: StoredCheck | null, checking: boolean): string {
-  if (checking) return "checking…";
-  if (!check) return "not checked yet";
+  if (checking) return "Prüfung läuft …";
+  if (!check) return "Noch nicht geprüft";
   const r = check.result;
-  const when = new Date(check.at).toLocaleString("en-US");
-  if (!r.configured) return "Updater not configured — pre-release build without a signing key.";
-  if (r.error) return `${r.error} (last tried ${when})`;
-  if (r.available) return `Update available: ${r.version ?? "?"} (you have ${r.current})`;
-  return `Up to date (${r.current}, checked ${when})`;
+  const when = new Date(check.at).toLocaleString("de-DE");
+  if (!r.configured) return "Aktualisierungen nicht eingerichtet – Testversion ohne Signaturschlüssel.";
+  if (r.error) return `${r.error} (zuletzt versucht: ${when})`;
+  if (r.available) return `Aktualisierung verfügbar: ${r.version ?? "?"} (installiert: ${r.current})`;
+  return `Aktuell (${r.current}, geprüft: ${when})`;
 }
 
 export default function UpdatesSettings() {
@@ -54,21 +54,21 @@ export default function UpdatesSettings() {
 
   return (
     <div className="set-group">
-      <div className="set-group-head">UPDATES</div>
+      <div className="set-group-head">AKTUALISIERUNGEN</div>
       <div className="set-row">
         <div>
-          <div className="set-label">Check for updates</div>
+          <div className="set-label">Auf Aktualisierungen prüfen</div>
           <div className="set-help">
-            One check against the GitHub release feed at launch — nothing polls in the background.
-            Installing an update is always a separate, explicit step.
+            Beim Start kann einmalig nach einer neuen Version gesucht werden. Es gibt keine laufende Hintergrundprüfung.
+            Eine Installation erfolgt nur nach ausdrücklicher Bestätigung.
           </div>
         </div>
         <div className="set-value-cell">
-          <div className="set-value">{enabled ? "On at launch" : "Off"}</div>
+          <div className="set-value">{enabled ? "Beim Start" : "Aus"}</div>
         </div>
         <div className="set-actions">
           <button className="btn-ghost" onClick={toggle}>
-            {enabled ? "Turn off" : "Turn on"}
+            {enabled ? "Ausschalten" : "Einschalten"}
           </button>
         </div>
       </div>
@@ -76,8 +76,8 @@ export default function UpdatesSettings() {
         <div>
           <div className="set-label">Status</div>
           <div className="set-help">
-            Result of the most recent check. Signed update feeds ship once the release pipeline has
-            its keys; until then this row states so.
+            Ergebnis der letzten Prüfung. Signierte Aktualisierungen sind erst verfügbar, wenn
+            die erforderlichen Schlüssel eingerichtet wurden.
           </div>
         </div>
         <div className="set-value-cell">
@@ -85,7 +85,7 @@ export default function UpdatesSettings() {
         </div>
         <div className="set-actions">
           <button className="btn-ghost" onClick={() => void checkNow()} disabled={checking}>
-            {checking ? "Checking…" : "Check now"}
+            {checking ? "Prüfung läuft …" : "Jetzt prüfen"}
           </button>
         </div>
       </div>
