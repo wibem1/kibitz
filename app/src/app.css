@@ -335,20 +335,19 @@ textarea {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 18px;
   padding: 22px 26px;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
-/* The box the board is fitted to. It owns the space the strips below it
-   do not, so the board is sized to what actually exists rather than to a
-   guess — and can never be cropped by `overflow: hidden` on the column. */
+/* The board stays anchored at the top; conditional rows below it
+   may change height without moving or resizing the board. */
 .board-stage {
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 auto;
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 }
 .board-row {
