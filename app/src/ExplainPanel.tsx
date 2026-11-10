@@ -21,17 +21,17 @@ import {
 import { visibleChips, type VerificationState } from "./lib/verifyChips";
 
 const KIND_LABEL: Record<ExplainBlockKind, string> = {
-  alert: "TACTICAL ALERT",
-  imbalance: "IMBALANCE",
+  alert: "TAKTISCHER HINWEIS",
+  imbalance: "UNGLEICHGEWICHT",
   plan: "PLAN",
-  scheme: "LONG-TERM PLAN",
+  scheme: "LANGFRISTIGER PLAN",
 };
 
 /** Section headings for the horizon groups, in reading order. */
 const HORIZON_ORDER: { horizon: Horizon; label: string }[] = [
-  { horizon: "now", label: "NOW" },
-  { horizon: "next", label: "NEXT" },
-  { horizon: "long", label: "LONG-TERM" },
+  { horizon: "now", label: "JETZT" },
+  { horizon: "next", label: "ALS NÄCHSTES" },
+  { horizon: "long", label: "LANGFRISTIG" },
 ];
 
 interface ExplainPanelProps {
@@ -95,11 +95,11 @@ export default function ExplainPanel({
   const meta = explanation
     ? [
         verification?.kind === "done"
-          ? "Static screen · candidates engine-checked"
+          ? "Stellungsprüfung · Kandidaten mit Engine geprüft"
           : verifying
-            ? "Static screen · checking candidates…"
-            : "Static screen · no engine spawned",
-        `${voice === "coach" ? "Coach" : "Neutral"} voice · templates`,
+            ? "Stellungsprüfung · Kandidaten werden geprüft …"
+            : "Stellungsprüfung · ohne Engine",
+        `${voice === "coach" ? "Trainer" : "Neutral"} voice · templates`,
         selectionNote(selectedSquare),
       ].join(" · ")
     : null;
@@ -107,9 +107,9 @@ export default function ExplainPanel({
   return (
     <section className={`explain-panel${collapsed ? " collapsed" : ""}`}>
       <header className="panel-header">
-        <span className="panel-label">EXPLAIN</span>
+        <span className="panel-label">ERKLÄRUNG</span>
         {pill && <span className={`verdict-pill${pillBad ? " bad" : ""}`}>{pill}</span>}
-        <span className="seg" role="group" aria-label="Narration voice">
+        <span className="seg" role="group" aria-label="Erklärstil">
           {(["coach", "neutral"] as const).map((v) => (
             <button
               key={v}
@@ -122,7 +122,7 @@ export default function ExplainPanel({
         </span>
         <button
           className="explain-collapse"
-          title={collapsed ? "Show the explanation" : "Collapse — evidence stays on the board"}
+          title={collapsed ? "Erklärung anzeigen" : "Erklärung einklappen – Markierungen bleiben auf dem Brett"}
           aria-expanded={!collapsed}
           onClick={onToggleCollapsed}
         >
@@ -165,8 +165,8 @@ export default function ExplainPanel({
               })}
               {chips.length > 0 && (
                 <div className="consider-block">
-                  <span className="consider-label">CONSIDER</span>
-                  {verifying && <span className="consider-verifying">verifying…</span>}
+                  <span className="consider-label">ZUGKANDIDATEN</span>
+                  {verifying && <span className="consider-verifying">Prüfung läuft …</span>}
                   <div className="consider-chips">
                     {chips.map(({ s, index: j, pending }, pos) => {
                       const idx = explanation.blocks.length + j;
@@ -192,8 +192,8 @@ export default function ExplainPanel({
               {moreCount > 0 && (
                 <button className="explain-expander" onClick={onToggleFindings}>
                   {findingsExpanded
-                    ? "▴ summary only"
-                    : `▾ ${moreCount} more finding${moreCount === 1 ? "" : "s"} — evidence is already on the board`}
+                    ? "▴ Nur Zusammenfassung"
+                    : `▾ ${moreCount} weitere Hinweise – bereits auf dem Brett markiert`}
                 </button>
               )}
               {meta && <div className="explain-meta">{meta}</div>}
@@ -202,11 +202,11 @@ export default function ExplainPanel({
         ) : (
           <div className="explain-body explain-empty">
             <p className="explain-empty-prose">
-              No screen has fired on this position. Kibitz keeps the engine cold until you ask, or
-              until a tactical screen actually trips.
+              Zu dieser Stellung gibt es noch keine Erklärung. Die Engine bleibt aus,
+              bis ein taktischer Hinweis eine Prüfung auslöst.
             </p>
             <button className="btn-primary" onClick={onExplain} disabled={explaining}>
-              {explaining ? "Explaining…" : "Explain position"}
+              {explaining ? "Erklärung wird erstellt …" : "Stellung erklären"}
               <span className="btn-key">E</span>
             </button>
             {explainedPlies.length > 0 && (
