@@ -122,7 +122,6 @@ import {
   isEditableTarget,
   keyboardAction,
   openingOrientation,
-  railCollapsed,
   reduceGameView,
   type EditableTargetLike,
   type ExplanationJson,
@@ -1122,7 +1121,7 @@ export default function App() {
   }, [jobs]);
 
   /* ---- shell chrome data ---- */
-  const collapsed = railCollapsed(winWidth);
+  const collapsed = winWidth < 840; // retain readable navigation on normal desktop windows
   const dbLine = dbSummary
     ? `${dbSummary.path.split(/[\\/]/).pop() ?? dbSummary.path} · ${dbSummary.games.toLocaleString()} games`
     : null;
