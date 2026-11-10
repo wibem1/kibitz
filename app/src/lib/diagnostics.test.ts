@@ -1,11 +1,50 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
-  clearDiagnosticsForTest, diagnoseEngineFailure, diagnosticsReport,
+  clearDiagnostics, clearDiagnosticsForTest, diagnoseEngineFailure, diagnosticsReport,
+  initializeDiagnostics,
   recordDiagnostic,
 } from "./diagnostics";
 
 describe("Diagnose ohne vertrauliche Inhalte", () => {
   beforeEach(clearDiagnosticsForTest);
+
+  it("bewahrt Ereignisse über einen simulierten Neustart auf und löscht sie auf Wunsch", () => {
+    const memory = new Map<string, string>();
+    const store = {
+      getItem: (key: string) => memory.get(key) ?? null,
+      setItem: (key: string, value: string) => { memory.set(key, value); },
+      removeItem: (key: string) => { memory.delete(key); },
+    };
+    initializeDiagnostics(store);
+    recordDiagnostic("offline_engine_timeout");
+    clearDiagnosticsForTest(); // simulates a new process with fresh memory
+    initializeDiagnostics(store);
+    expect(diagnosticsReport().events.map((event) => event.code))
+      .toEqual(["offline_engine_timeout"]);
+    clearDiagnostics();
+    expect(diagnosticsReport().events).toHaveLength(0);
+    expect(memory.size).toBe(0);
+  });
+
+  it("verwirft fremde Nutzdaten beim Wiederherstellen", () => {
+    const memory = new Map<string, string>([[
+      "kibitz.diagnosticEvents.v1",
+      JSON.stringify([
+        { code: "api_key=secret", time: "2026-11-10T12:00:00Z", token: "secret" },
+        { code: "ui_error", time: "2026-11-10T12:00:00Z", extra: "/Users/private" },
+      ]),
+    ]]);
+    initializeDiagnostics({
+      getItem: (key) => memory.get(key) ?? null,
+      setItem: (key, value) => { memory.set(key, value); },
+      removeItem: (key) => { memory.delete(key); },
+    });
+    const report = JSON.stringify(diagnosticsReport());
+    expect(report).toContain("ui_error");
+    expect(report).not.toContain("api_key");
+    expect(report).not.toContain("token");
+    expect(report).not.toContain("/Users/private");
+  });
 
   it("speichert nur feste Ereigniscodes ohne Fehlertext", () => {
     const raw = "Configured engine path does not exist: /Users/private/secret-key";
