@@ -1,3 +1,19 @@
+# Kibitz DE – 10.11.2026: UCI-Test in Ubuntu-CI grün, Stockfish-Fehlermeldungen verbessert
+
+**Belegter Prüfstand:** Für Commit `eb630e83` mit dem simulierten `scripted_engine_returns_a_bounded_bestmove` sind in [GitHub-Actions-Lauf 42872367592](https://github.com/wibem1/kibitz/actions/runs/42872367592) die Jobs `rust (ubuntu-latest)` und `app (ubuntu-latest)` **success**. Auch für den nachfolgenden Dokumentationscommit `2398307f` sind in [Lauf 42872452261](https://github.com/wibem1/kibitz/actions/runs/42872452261) beide Ubuntu-Jobs **success**. Damit ist der neue UCI-Protokolltest auf Ubuntu tatsächlich durch den Rust-Job ausgeführt und akzeptiert worden. Beide macOS-Jobs standen bei Abfrage weiterhin `queued`; daraus folgt **kein** Mac-Testnachweis.
+
+**Kleiner Folgeschritt für den Intel-Mac-Einstieg (noch nicht getestet):**
+- `app/src/lib/offlineEngine.ts` übersetzt die bekannten Backend-Fehler »kein Stockfish gefunden«, »konfigurierter Engine-Pfad existiert nicht«, »Prozess kann nicht starten« und »Timeout« in konkrete, verständliche deutsche Hinweise. Für unbekannte Fehler bleibt die rohe Diagnose erhalten.
+- `app/src/OfflinePlayView.tsx` nutzt die Erklärfunktion statt der technischen englischen Fehlermeldung.
+- `app/src/lib/offlineEngine.test.ts` prüft fünf Fehlersituationen. Commits: `85ee885a`, `1c06bb66`, `39592c81`.
+- Produktive Engine-Suche, Zugreihenfolge und Speicherung unverändert. Für die neuen UI-Meldungen liegen **noch keine grünen Testläufe** vor.
+
+**Noch offen:** macOS-CI-Jobs abschließen lassen oder ihre Runner-Verfügbarkeit nachweisbar prüfen. Auf echtem Intel-Mac Stockfish auswählen, einen UCI-Zug spielen, Rücknahme und Autosave/PGN prüfen. Keine Freigabe oder Maia-2-Erweiterung.
+
+**Nächster einzelner Schritt:** CI des neuen Testcommits prüfen, danach Mac-Runner- und Praxistests.
+
+---
+
 # Kibitz DE – 10.11.2026: CI-Korrektur erfolgreich, UCI-Ende-zu-Ende-Test ergänzt
 
 **Nachgewiesener Stand:** GitHub-Actions-Lauf [42869075650](https://github.com/wibem1/kibitz/actions/runs/42869075650) für Commit `a1f70ffc`: `app (ubuntu-latest)` **success** einschließlich Frontend-Tests, TypeScript/Vite-Build sowie src-tauri fmt/clippy/test; `rust (ubuntu-latest)` **success**. Die drei Clippy-Dokumentationsfehler vom vorherigen Lauf sind damit nachweislich korrigiert. `app (macos-latest)` und `rust (macos-latest)` wurden vor Ausführung **cancelled**; diese Jobs haben keine aufgezeichneten Steps, und Job-Logs sind nicht verfügbar (BlobNotFound). Ursache der macOS-Abbrüche nicht belegt; keine Aussage über Mac-Quellcode-Kompilierung möglich. Die bestehende CI-Workflow-Datei enthält bereits `macos-latest` mit `fail-fast: false`; **kein ungezielter Workflow-Umbau**.
