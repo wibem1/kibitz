@@ -1,3 +1,13 @@
+# Kibitz DE – 10.11.2026: Intel-Mac-Freigabeprüfung dokumentiert
+
+**Geprüft:** Der gezielt wiederholte macOS-App-Job in [Run 42873364058](https://github.com/wibem1/kibitz/actions/runs/42873364058), aktuelle Job-ID `130064395642`, war bei der erneuten Abfrage weiterhin `queued`. Der aktuellere Workflow für Dokumentationscommit `44a13469`, Run `42883296054`, war ebenfalls noch `queued`. Ein erfolgreiches macOS-App-Paket ist damit nicht belegt.
+
+**Neuer überprüfbarer Schritt:** `docs/INTEL_MAC_ACCEPTANCE.md` (Commit `5ec28399`) dokumentiert den frischen Build auf Intel-Mac, Architekturprüfung der erzeugten Tauri-App, Auswahl der zum Prozessor passenden Stockfish-Engine, echten Spielzug, Rücknahme während/nach Berechnung, Schwarz/Weiß, Wiederherstellung und PGN-Export sowie Fehlerfall und Freigabeschranken. Der Ablauf ist eine **noch auszuführende Prüfanleitung**, kein bestandener Praxistest und keine Installation. Keine Version, kein Tag, kein Release.
+
+**Nächster einzelner Schritt:** Erst macOS-Job-Ergebnis und tatsächlich erzeugten Intel-DMG feststellen; dann die Testfälle mit dem genau zu veröffentlichenden Artefakt ausführen. Bei abgebrochenem/weiter blockiertem macOS-Runner keine erneute unkontrollierte Retry-Schleife.
+
+---
+
 # Kibitz DE – 10.11.2026: Veröffentlichungsprüfung und gezielter macOS-Retry
 
 **Nutzerauftrag:** »weiter und veröffentlichen«. Release-Voraussetzungen aus `DEVELOPMENT_STANDARDS.md`, `AGENTS.md`, `docs/RELEASING.md`, `docs/RELEASE_CHECKLIST.md` und `.github/release-targets.json` überprüft. **Keine neue Version, kein Tag, kein öffentlicher Release**, weil die verlangte reale Mac-Abnahme/Installerprüfung noch aussteht.
