@@ -1,3 +1,15 @@
+# Kibitz DE – 11.11.2026: korrigierter Layoutstand CI-grün, Intel-Mac-DMG liegt vor
+
+**Quellstand der verifizierten Layoutkorrektur:** `a8221d1873d7c90b16fd35336fd7f87a9409445f`, Branch `feat/de-simple-readable-ui`.
+
+**CI vollständig erfolgreich:** [Run 42920832981](https://github.com/wibem1/kibitz/actions/runs/42920832981) `completed/success`; alle 4 Jobs `app (ubuntu-latest)`, `app (macos-latest)`, `rust (ubuntu-latest)` und `rust (macos-latest)` bestanden. Die neue Größenberechnung und ihre ergänzten Frontendtests sind enthalten.
+
+**Passendes Intel-x86_64-Test-DMG erfolgreich gebaut:** [Run 42920832978](https://github.com/wibem1/kibitz/actions/runs/42920832978) `completed/success`, Artefakt [`kibitz-de-intel-mac-unsigned-test` ID 13812715680](https://github.com/wibem1/kibitz/actions/runs/42920832978/artifacts/13812715680) (ZIP 11.693.699 Bytes). Enthält `Kibitz_0.1.2_x64.dmg`; das Protokoll bestätigt die `Mach-O 64-bit executable x86_64`-Architektur sowie genau ein DMG. **Keine macOS-GUI-Laufzeitabnahme und kein Release, sondern unsignierter Testbuild.**
+
+**Offener konkreter Abnahmepunkt:** Im gleichen Fenster und mit `EgorSN – wibem` Halbzug 56/137 prüfen, dass das Brett beim Vor-/Zurückblättern nicht mehr in Größe oder Bildschirmposition springt und größer als zuvor dargestellt wird. Sollte es weiterhin springen, vor/nach einem Klick die vertikale Koordinate der Brettoberkante und seine Pixelgröße erfassen, bevor weitere Layoutänderungen erfolgen. Die Layoutursachen stehen im unmittelbar folgenden Abschnitt dieses Dokuments.
+
+---
+
 # Kibitz DE – 11.11.2026: Brett springt weiterhin / Kommentarspalte zu breit – Layoutkorrektur zur Abnahme
 
 **Realer Nutzertest am Intel-Mac:** Der Testbuild zu `6b6d8f6` wurde in einem 1532 × 934 Pixel großen macOS-Fenster mit Partie `EgorSN – wibem` bei Halbzug 56/137 fotografiert. Das Brett ist dort etwa 545 px breit und springt beim Vor-/Zurückblättern noch immer. Die Kommentarspalte ist mit 472 px zu breit. Damit ist die bisherige Layoutkorrektur **nicht abgenommen und nicht erfolgreich**; den alten Build nicht als Lösung empfehlen.
