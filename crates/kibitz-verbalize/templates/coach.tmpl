@@ -15,172 +15,172 @@
 # seeded phrasing variety; base .alt variants do not mix into coach prose.
 
 # --- Tactical alert leads (see alerts.tmpl for slots) ---
-coach.alert.Undefended.high = {subject} has been abandoned — not one defender is watching over it.
-coach.alert.Undefended.medium = {subject} stands alone — nobody has taken the job of defending it.
-coach.alert.Undefended.medium.alt = Nobody is looking after {subject} — it has been left to fend for itself.
-coach.alert.Undefended.low = {subject} is on its own for the moment — don't forget about it.
-coach.alert.Undefended.loose = {subject} has lost its bodyguard — keep half an eye on it.
-coach.alert.Undefended.attacked-and-undefended = {subject} hangs — it stands under attack with no friend in sight.
+coach.alert.Undefended.high = {subject} wurde regelrecht im Stich gelassen: Keine Figur deckt es.
+coach.alert.Undefended.medium = {subject} steht ganz allein; niemand übernimmt die Deckung.
+coach.alert.Undefended.medium.alt = Um {subject} kümmert sich zurzeit keine eigene Figur.
+coach.alert.Undefended.low = {subject} ist momentan auf sich gestellt. Behalte es im Auge.
+coach.alert.Undefended.loose = {subject} hat seinen Schutz verloren. Das könnte wichtig werden.
+coach.alert.Undefended.attacked-and-undefended = {subject} ist angegriffen, doch kein Verteidiger hilft.
 
 # See the note in alerts.tmpl: this alert means the exchange on the square
 # wins material, so the coach voice names the threat and the three replies
 # to it rather than admiring the defence.
-coach.alert.InadequatelyDefended.high = {subject} is there for the taking — move it, defend it properly, or take the attacker first.
-coach.alert.InadequatelyDefended.high.alt = They can just take {subject} and come out ahead. Move it, back it up, or remove the attacker.
-coach.alert.InadequatelyDefended.medium = {subject} costs material if it is taken — move it, add a defender, or capture the attacker.
-coach.alert.InadequatelyDefended.medium.alt = The trade on {subject} goes their way. Move it, bring another defender, or take the attacker off.
-coach.alert.InadequatelyDefended.low = The exchange on {subject} is slightly in the attacker's favour as it stands — worth a look before committing elsewhere.
+coach.alert.InadequatelyDefended.high = {subject} ist eine leichte Beute. Zieh die Figur weg, decke sie oder beseitige den Angreifer.
+coach.alert.InadequatelyDefended.high.alt = Der Gegner kann {subject} mit Materialgewinn schlagen. Wegziehen, verstärken oder den Angreifer beseitigen.
+coach.alert.InadequatelyDefended.medium = Ein Schlag auf {subject} kostet Material. Ziehe die Figur weg, verstärke die Deckung oder schlage den Angreifer.
+coach.alert.InadequatelyDefended.medium.alt = Beim Schlagabtausch um {subject} steht der Gegner besser da. Sorge für zusätzliche Deckung.
+coach.alert.InadequatelyDefended.low = Der Schlagabtausch um {subject} begünstigt den Angreifer etwas. Prüfe das vor dem nächsten Zug.
 
-coach.alert.overloaded = {subject} is wearing two hats — it alone is holding {defenders} together.
+coach.alert.overloaded = {subject} muss zu viele Aufgaben übernehmen und deckt allein {defenders}.
 
-coach.alert.TrappedPiece.high = {subject} is caged — it dreams of open squares and cannot reach a single safe one.
-coach.alert.TrappedPiece.medium = {subject} is running out of air — its list of safe squares is nearly empty.
-coach.alert.TrappedPiece.low = {subject} is starting to feel the walls — it has very little room to move.
-coach.alert.TrappedPiece.trapped-and-attacked = {subject} is trapped — the cage is shut, and there is no safe square left.
-coach.alert.TrappedPiece.trapped-attackable = {subject} has nowhere to run — the cage is built, and the door is about to close.
+coach.alert.TrappedPiece.high = {subject} sitzt in der Falle und erreicht kein einziges sicheres Feld mehr.
+coach.alert.TrappedPiece.medium = {subject} hat kaum noch Luft; die sicheren Felder werden knapp.
+coach.alert.TrappedPiece.low = {subject} wird eingeengt und hat nur wenig Bewegungsfreiheit.
+coach.alert.TrappedPiece.trapped-and-attacked = {subject} ist angegriffen und gefangen. Ein sicherer Rückzug ist nicht mehr möglich.
+coach.alert.TrappedPiece.trapped-attackable = {subject} hat keinen Ausweg; die Falle kann jederzeit zuschnappen.
 
-coach.alert.WeakKing.high = {subject} is standing in a gale{target_clause} — its shelter has fallen apart.
-coach.alert.WeakKing.medium = {subject} is feeling a draft{target_clause} — the shelter is thinner than it would like.
-coach.alert.WeakKing.low = {subject} feels a slight draft{target_clause} — nothing serious yet, but keep it in mind.
+coach.alert.WeakKing.high = {subject} steht schwer unter Druck{target_clause}; sein Schutz ist zusammengebrochen.
+coach.alert.WeakKing.medium = {subject} ist verwundbar{target_clause}; seine Deckung weist Lücken auf.
+coach.alert.WeakKing.low = {subject} hat leichte Sicherheitsprobleme{target_clause}. Behalte sie im Auge.
 
 # --- Section-level lines (common.tmpl) ---
-coach.tactics.quiet = No tactics are shouting for attention; the pieces are settling in for a long positional argument.
-coach.empty = Nothing here is complaining and nothing is dreaming big — a level position. Find your worst-placed piece and give it a better life.
+coach.tactics.quiet = Keine unmittelbare Taktik drängt sich auf. Jetzt zählen die langfristigen Stellungsmerkmale.
+coach.empty = Keine akute Gefahr und keine deutlichen Vorteile. Such die am schlechtesten stehende Figur und verbessere ihre Stellung.
 
 # --- Known alert detail follow-ons (common.tmpl) ---
-coach.detail.overloaded-defender = That defender is overloaded — no piece can be in two places at once.
+coach.detail.overloaded-defender = Diese Verteidigungsfigur ist überlastet; sie kann nicht an zwei Orten zugleich helfen.
 
 # --- Imbalance headlines (imbalances.tmpl; slots {beneficiary}, {aspect}) ---
-coach.imbalance.PawnStructure.minor = {beneficiary}'s pawn structure has a little less to complain about.
-coach.imbalance.PawnStructure.clear = {beneficiary}'s pawn structure is the happier one — the opponent's carries scars that will not heal by themselves.
-coach.imbalance.PawnStructure.winning = {beneficiary}'s pawn structure should win the game on its own; the opponent's weaknesses are not going anywhere.
+coach.imbalance.PawnStructure.minor = Die Bauernstruktur von {beneficiary} hat etwas weniger Schwächen.
+coach.imbalance.PawnStructure.clear = Die Bauernstruktur von {beneficiary} ist deutlich gesünder. Die gegnerischen Schwächen bleiben bestehen.
+coach.imbalance.PawnStructure.winning = Die Bauernstruktur von {beneficiary} könnte allein den Ausschlag geben; die Schwächen des Gegners verschwinden nicht.
 
-coach.imbalance.MinorPieces.minor = {beneficiary}'s minor pieces are a touch happier with their squares.
-coach.imbalance.MinorPieces.clear = {beneficiary}'s minor pieces have found real work; their counterparts are still waiting for a career.
-coach.imbalance.MinorPieces.winning = {beneficiary}'s minor pieces own this board — their rivals can only stand and watch.
+coach.imbalance.MinorPieces.minor = Die Leichtfiguren von {beneficiary} haben etwas angenehmere Felder gefunden.
+coach.imbalance.MinorPieces.clear = Die Leichtfiguren von {beneficiary} sind aktiv, während ihre Gegenstücke noch nach Aufgaben suchen.
+coach.imbalance.MinorPieces.winning = Die Leichtfiguren von {beneficiary} beherrschen das Brett; der Gegner kann kaum dagegenhalten.
 
-coach.imbalance.Material.winning = {beneficiary} has won enough material to decide the game; the rest is care and technique.
+coach.imbalance.Material.winning = {beneficiary} hat genug Material gewonnen, um die Partie bei sauberem Spiel zu entscheiden.
 
-coach.imbalance.FilesDiagonals.clear = {beneficiary}'s heavy pieces have the open lines to themselves.
-coach.imbalance.FilesDiagonals.winning = every line that matters belongs to {beneficiary}, and the opponent's pieces are pressed against the wall.
+coach.imbalance.FilesDiagonals.clear = Die Schwerfiguren von {beneficiary} verfügen über die wichtigen offenen Linien.
+coach.imbalance.FilesDiagonals.winning = Alle entscheidenden Linien gehören {beneficiary}; die gegnerischen Figuren sind stark eingeschränkt.
 
-coach.imbalance.SquaresOutposts.minor = {beneficiary} is winning the quiet fight for the squares both sides dream about.
-coach.imbalance.SquaresOutposts.clear = {beneficiary} owns the squares that matter, and pieces that own squares soon find homes on them.
-coach.imbalance.SquaresOutposts.winning = {beneficiary}'s grip on the key squares is total — the opponent's pieces have nowhere good left to live.
+coach.imbalance.SquaresOutposts.minor = {beneficiary} gewinnt langsam den Kampf um die wichtigen Felder.
+coach.imbalance.SquaresOutposts.clear = {beneficiary} beherrscht die entscheidenden Felder und kann seine Figuren dort dauerhaft aufstellen.
+coach.imbalance.SquaresOutposts.winning = {beneficiary} kontrolliert die Schlüsselfelder vollständig; dem Gegner fehlen gute Standorte.
 
-coach.imbalance.Space.minor = {beneficiary}'s pieces have a little more elbow room.
-coach.imbalance.Space.clear = {beneficiary}'s army breathes freely while the opponent's pieces queue for the same few squares.
-coach.imbalance.Space.winning = {beneficiary}'s space advantage is a slow strangle — the opponent's pieces are stepping on each other's toes.
+coach.imbalance.Space.minor = Die Figuren von {beneficiary} haben etwas mehr Bewegungsfreiheit.
+coach.imbalance.Space.clear = Die Figuren von {beneficiary} können frei spielen, während sich die gegnerischen Figuren gegenseitig behindern.
+coach.imbalance.Space.winning = Der Raumvorteil von {beneficiary} schnürt den Gegner immer weiter ein.
 
-coach.imbalance.Development.clear = {beneficiary}'s pieces are up and working while the opponent's are still putting their boots on.
-coach.imbalance.Development.winning = {beneficiary}'s whole army is in the game — the opponent's is still at home, and that bill is coming due.
+coach.imbalance.Development.clear = Die Figuren von {beneficiary} sind schon im Spiel; die des Gegners stehen noch auf ihren Ausgangsfeldern.
+coach.imbalance.Development.winning = {beneficiary} hat die Entwicklung weitgehend abgeschlossen, während der Gegner noch zurückliegt.
 
 # Development prior (run 11): dreams under uncertainty, never a rulebook.
-coach.imbalance.Development.todo.minor = {beneficiary}'s army is nearly awake — a piece or two still waits for a purpose.
-coach.imbalance.Development.todo.clear = Half of {beneficiary}'s army is still dreaming on the back rank — development first.
+coach.imbalance.Development.todo.minor = Die Figuren von {beneficiary} sind fast alle entwickelt. Einzelne warten noch auf eine Aufgabe.
+coach.imbalance.Development.todo.clear = Bei {beneficiary} stehen noch viele Figuren auf der Grundreihe. Zuerst entwickeln!
 
-coach.imbalance.Initiative.clear = {beneficiary} is asking the questions; the opponent is stuck finding answers.
-coach.imbalance.Initiative.winning = {beneficiary}'s initiative has become a stampede — every move arrives with a new demand.
+coach.imbalance.Initiative.clear = {beneficiary} stellt die Fragen; der Gegner muss Antworten finden.
+coach.imbalance.Initiative.winning = Die Initiative von {beneficiary} ist überwältigend. Jeder Zug schafft neue Drohungen.
 
 # --- Selected evidence clauses (evidence.tmpl; no terminal period) ---
-coach.evidence.bad_bishop = {side}'s {square}-bishop is biting on granite — its own pawns on {pawns} block every road it wants to travel
-coach.evidence.bad_bishop.bare = {side}'s {square}-bishop is biting on granite, staring at its own pawns
-coach.evidence.established_outpost = {side}'s knight has found a permanent home on {items} and has no intention of leaving
-coach.evidence.holes = there is a hole on {items} in {side}'s camp — a square that dreams of hosting an enemy piece
-coach.evidence.holes.plural = there are holes on {items} in {side}'s camp — squares that dream of hosting enemy pieces
+coach.evidence.bad_bishop = der Läufer von {side} auf {square} beißt auf Granit; eigene Bauern auf {pawns} versperren seine Wege
+coach.evidence.bad_bishop.bare = der Läufer von {side} auf {square} ist durch die eigene Bauernkette eingesperrt
+coach.evidence.established_outpost = der Springer von {side} hat auf {items} einen dauerhaften Vorposten gefunden
+coach.evidence.holes = auf {items} klafft in der Stellung von {side} ein schwaches Feld, das der Gegner besetzen könnte
+coach.evidence.holes.plural = auf {items} gibt es in der Stellung von {side} schwache Felder, die gegnerischen Figuren als Vorposten dienen könnten
 
 # --- Development-prior evidence (run 11) ---
-coach.evidence.sleeping_minors.mixed = among the sleepers on {items}, the knights already know where they are going — the bishops are waiting to find out
-coach.evidence.sleeping_minors.knights = {side}'s knights on {items} are still asleep, and a knight always knows where it wants to go
-coach.evidence.sleeping_minors.bishops = {side}'s bishops on {items} are still waiting for the pawns to tell them which diagonals will open
-coach.evidence.sleeping_minors.one_knight = {side}'s knight on {items} is the last one still dreaming at home
-coach.evidence.sleeping_minors.one_bishop = {side}'s bishop on {items} is the last one still dreaming at home
-coach.evidence.king_in_center.available = {side}'s king is still standing in the middle of the road, and castling is right there waiting
-coach.evidence.king_in_center.lost = {side}'s king has lost the right to castle and must weather the storm in the center
-coach.evidence.queen_sortie = {side}'s queen has marched out to {items} ahead of her army — every enemy developing move may ask her to move again
-coach.evidence.wanderer = the piece on {square} has done all of {side}'s walking — it has moved {times} while its friends sleep
-coach.evidence.center_unclaimed = the center is still there for the taking — {side}'s advance to {items} would stake the claim
-coach.evidence.center_unclaimed.plural = the center is still there for the taking — {side}'s advances to {items} would stake the claim
+coach.evidence.sleeping_minors.mixed = die Leichtfiguren auf {items} warten noch auf ihre Entwicklung; vor allem die Läufer brauchen offene Diagonalen
+coach.evidence.sleeping_minors.knights = die Springer von {side} auf {items} warten noch darauf, ins Spiel zu kommen
+coach.evidence.sleeping_minors.bishops = die Läufer von {side} auf {items} warten noch auf offene Diagonalen
+coach.evidence.sleeping_minors.one_knight = der Springer von {side} auf {items} steht noch auf seinem Ausgangsfeld
+coach.evidence.sleeping_minors.one_bishop = der Läufer von {side} auf {items} steht noch auf seinem Ausgangsfeld
+coach.evidence.king_in_center.available = der König von {side} steht noch mitten im Zentrum; die Rochade ist aber möglich
+coach.evidence.king_in_center.lost = der König von {side} hat das Rochaderecht verloren und muss im Zentrum ausharren
+coach.evidence.queen_sortie = die Dame von {side} ist bereits nach {items} gezogen; gegnerische Entwicklungszüge könnten sie mit Tempo angreifen
+coach.evidence.wanderer = die Figur von {side} auf {square} wurde schon {times} gezogen, während andere Figuren noch auf der Grundreihe stehen
+coach.evidence.center_unclaimed = das Zentrum ist noch unbesetzt; {side} kann mit dem Vorstoß nach {items} Einfluss gewinnen
+coach.evidence.center_unclaimed.plural = das Zentrum ist noch unbesetzt; {side} kann mit Vorstößen nach {items} Einfluss gewinnen
 
 # --- Plan leads and selected plan phrases (plans.tmpl) ---
-coach.plan.lead.side = Here is what {side} should be dreaming about: {plan}{squares_clause}.
-coach.plan.lead.side.more = Another dream for {side}: {plan}{squares_clause}.
-coach.plan.lead.neutral = A plan worth taking to heart: {plan}{squares_clause}.
-coach.plan.lead.neutral.more = And tuck this idea away too: {plan}{squares_clause}.
+coach.plan.lead.side = Darauf sollte {side} hinarbeiten: {plan}{squares_clause}.
+coach.plan.lead.side.more = Ein weiterer Gedanke für {side}: {plan}{squares_clause}.
+coach.plan.lead.neutral = Diesen Plan solltest du beachten: {plan}{squares_clause}.
+coach.plan.lead.neutral.more = Eine weitere Idee für später: {plan}{squares_clause}.
 
-coach.plan.BlockadeThenPressure = park a piece in front of the weak pawn so it can never move again, then pile on it at your leisure
-coach.plan.OpenThePosition = look for the break that throws the position open
-coach.plan.EscortThePasser = walk the king up as an escort and let the passed pawn chase its dream of the last rank
-coach.plan.PushThePasser = push the passed pawn — it has somewhere important to be
-coach.plan.ManeuverKnight = find the knight the square it has been dreaming of
-coach.plan.ManeuverKnightToOutpost = steer the knight toward the outpost — it would love a permanent home there
-coach.plan.UndermineDefender = that square is only theirs because one pawn says so — go and hit that pawn
-coach.plan.CreatePassedPawn = that majority outnumbers what stands against it; roll it forward and one of those pawns will come through
-coach.plan.HuntBishopPair = the two bishops are worth having because their owner picks the moment to trade one — so take that choice away and buy one with a knight
-coach.plan.TradeSquareDefender = one piece is all that stands between you and that square — go and trade it off
-coach.plan.TargetWeakPawn = no pawn of theirs will ever come to that pawn's rescue — so make it the thing you attack
-coach.plan.AttackWhereYouAreStronger = count the pieces that can actually reach that wing, not the ones on the board — you have more of them there, so that is where to play
-coach.plan.KeepBestPiece = that is your best piece; whatever else gets traded, it stays
-coach.plan.TradeOffAttacker = one enemy piece is doing all the work against your king — take it off and the attack goes with it
-coach.plan.OverprotectStrongPoint = that point is the heart of the position; give it more defenders than it strictly needs, and it will never fall
-coach.plan.ManeuverBishopToSupportPoint = the bishop wants the square your own pawn is holding open for it — walk it round
-coach.plan.ManeuverRookToOpenFile = the rook is bored where it stands; the open file is the road it has been waiting for
-coach.plan.TradePieces = trade pieces and let the cramped position breathe
-coach.plan.PrepareBreak = prepare the freeing pawn break and give the position air
-coach.plan.KeepPositionClosed = keep the position closed — this is knight country, and the bishops know it
-coach.plan.OpenPositionForBishops = open the position and let the bishops finally stretch their diagonals
-coach.plan.AdvanceQueensideMajority = march the queenside majority — those pawns outnumber their opposition and they know it
-coach.plan.BlockadeWhitePasser = put a piece in front of White's passer and put its dreams on hold
-coach.plan.BlockadeBlackPasser = put a piece in front of Black's passer and put its dreams on hold
-coach.plan.DoubleOnOpenFile = double the heavy pieces on the open file and make it their private highway
-coach.plan.UseSpaceAvoidExchanges = keep the extra space and refuse trades — cramped pieces suffer most when nobody leaves the room
-coach.plan.OpenPositionBeforeOpponentCompletes = open the position while half the opponent's army is still asleep at home
-coach.plan.WingPawnStormClosedCenter = the center is bolted shut, so send the wing pawns forward — there is no counterpunch coming through the middle
-coach.plan.MinorityAttack = send the two pawns against their three — the minority attack wants to leave a lasting weakness behind
-coach.plan.RookToSeventh = the rook dreams of the seventh rank, where every enemy pawn lives at its mercy
-coach.plan.RookBehindPasser = tuck the rook behind the passed pawn — from there it pushes as the pawn walks
-coach.plan.PressureBackwardPawn = lean on the backward pawn — it can never advance, and its friends can never defend it
-coach.plan.PressureDoubledPawn = lean on the front doubled pawn; no friendly pawn can ever come to its rescue
-coach.plan.TradeOrActivateBadBishop = the bad bishop wants a new life — trade it off, or walk it outside the chain before the door shuts
-coach.plan.ActivateKingInEndgame = wake the king — in the endgame it is a fighting piece, and it belongs in the middle of the story
-coach.plan.RestrictKnight = the enemy knight is homeless — keep every stable square swept out from under it
-coach.plan.ActivateEntombedPiece = that piece has no future where it stands — dig it out or trade it, because a piece with nowhere to go is a piece you do not have
-coach.plan.KeepPieceEntombed = leave that piece buried — every pawn move that opens the position hands it back to its owner
-coach.plan.UprootBlockader = the passer is only as stuck as its blockader — change the blockader, and the pawn remembers how to run
-coach.plan.ChooseBlockader = pick your blockader like a tenant, not a doorstop — the knight lives well on that square and hits back from it; trading it away for a bishop is a bad bargain
-coach.plan.AlternateTargets = one weakness defends itself; two weaknesses defend each other badly — keep changing the question until the defense gives a wrong answer
-coach.plan.OutsidePasserDecoy = the outside passer is a bribe, not a hero — it exists to be chased, and the king that chases it leaves the real game behind
-coach.plan.AdvanceCentralMajority = the extra central pawn wants to march; roll the majority and let it become a passer
-coach.plan.OpenLinesTowardWeakKing = the enemy king is feeling the draft — open a line and let the heavy pieces through
-coach.plan.CompleteDevelopment = wake the rest of the army — the pieces still at home are missing the story
-coach.plan.CastleIntoSafety = tuck the king into its corner — it dreams of a quiet life, and the rook it trades places with gets a real job
-coach.plan.ClaimTheCenter = the center pawns want to stand tall — claim the ground while it is still free
-coach.plan.QueenAheadOfHerArmy = walk the queen back toward her army — out this early she is a target for every developing piece, not a threat
-coach.plan.SamePieceWandering = give the much-traveled piece a rest — spend the next move on a piece that has never moved
+coach.plan.BlockadeThenPressure = eine Figur vor den schwachen Bauern stellen, ihn blockieren und dann mehrfach angreifen
+coach.plan.OpenThePosition = einen Bauernhebel suchen, der die Stellung öffnet
+coach.plan.EscortThePasser = den König als Begleiter des Freibauern heranführen
+coach.plan.PushThePasser = den Freibauern vorantreiben, solange der Weg frei ist
+coach.plan.ManeuverKnight = dem Springer sein bestes Feld verschaffen
+coach.plan.ManeuverKnightToOutpost = den Springer auf seinen dauerhaften Vorposten führen
+coach.plan.UndermineDefender = den Bauern angreifen, der das gewünschte Feld schützt
+coach.plan.CreatePassedPawn = die Bauernmehrheit vorziehen und daraus einen Freibauern bilden
+coach.plan.HuntBishopPair = dem Gegner einen Läufer im Tausch gegen einen Springer abnehmen
+coach.plan.TradeSquareDefender = die Figur abtauschen, die das gewünschte Feld bewacht
+coach.plan.TargetWeakPawn = den schwachen Bauern zum Angriffsziel machen, da kein anderer Bauer ihn decken kann
+coach.plan.AttackWhereYouAreStronger = dort angreifen, wo tatsächlich mehr eigene Figuren eingreifen können
+coach.plan.KeepBestPiece = die beste eigene Figur behalten und den Plan auf sie ausrichten
+coach.plan.TradeOffAttacker = die gefährlichste gegnerische Angriffsfigur abtauschen
+coach.plan.OverprotectStrongPoint = den wichtigen Stützpunkt stärker decken, als unmittelbar nötig scheint
+coach.plan.ManeuverBishopToSupportPoint = den Läufer zu dem Stützpunkt führen, den der eigene Bauer sichert
+coach.plan.ManeuverRookToOpenFile = den Turm auf die offene Linie stellen; dort kann er aktiv werden
+coach.plan.TradePieces = Figuren abtauschen, damit die beengte Stellung wieder Luft bekommt
+coach.plan.PrepareBreak = einen befreienden Bauernhebel vorbereiten
+coach.plan.KeepPositionClosed = die Stellung geschlossen halten, damit die Springer die Läufer übertreffen
+coach.plan.OpenPositionForBishops = die Stellung öffnen, damit die Läufer ihre Diagonalen nutzen können
+coach.plan.AdvanceQueensideMajority = die Bauernmehrheit am Damenflügel vorantreiben
+coach.plan.BlockadeWhitePasser = dem weißen Freibauern mit einer Blockadefigur den Weg versperren
+coach.plan.BlockadeBlackPasser = dem schwarzen Freibauern mit einer Blockadefigur den Weg versperren
+coach.plan.DoubleOnOpenFile = die Schwerfiguren auf der offenen Linie verdoppeln und dort Druck entwickeln
+coach.plan.UseSpaceAvoidExchanges = den Raumvorteil bewahren und Figurentausch vermeiden
+coach.plan.OpenPositionBeforeOpponentCompletes = die Stellung öffnen, solange der Gegner seine Entwicklung noch nicht abgeschlossen hat
+coach.plan.WingPawnStormClosedCenter = bei geschlossenem Zentrum die Flügelbauern zum Angriff vorziehen
+coach.plan.MinorityAttack = mit der Bauernminderheit angreifen, um eine bleibende Schwäche zu schaffen
+coach.plan.RookToSeventh = den Turm auf die siebte Reihe bringen, wo er die gegnerischen Bauern angreift
+coach.plan.RookBehindPasser = den Turm hinter den Freibauern stellen und seinen Vormarsch unterstützen
+coach.plan.PressureBackwardPawn = den rückständigen Bauern dauerhaft unter Druck setzen
+coach.plan.PressureDoubledPawn = den vorderen Doppelbauern angreifen, den kein anderer Bauer decken kann
+coach.plan.TradeOrActivateBadBishop = den schlechten Läufer abtauschen oder außerhalb der Bauernkette aktivieren
+coach.plan.ActivateKingInEndgame = den König im Endspiel aktivieren und ins Zentrum führen
+coach.plan.RestrictKnight = dem gegnerischen Springer jeden dauerhaften Vorposten verwehren
+coach.plan.ActivateEntombedPiece = die eingeschlossene Figur befreien oder abtauschen
+coach.plan.KeepPieceEntombed = die gegnerische Figur eingeschlossen lassen und keine befreienden Bauernzüge erlauben
+coach.plan.UprootBlockader = die Blockadefigur angreifen und vertreiben; dann kann der Freibauer wieder laufen
+coach.plan.ChooseBlockader = den Springer als Blockadefigur wählen, denn von dort bleibt er aktiv
+coach.plan.AlternateTargets = abwechselnd zwei Schwächen angreifen, bis die gegnerische Verteidigung überfordert ist
+coach.plan.OutsidePasserDecoy = den entfernten Freibauern als Ablenkung einsetzen, damit der gegnerische König den anderen Flügel verlassen muss
+coach.plan.AdvanceCentralMajority = die zentrale Bauernmehrheit vorziehen und möglichst einen Freibauern bilden
+coach.plan.OpenLinesTowardWeakKing = Linien zum gefährdeten König öffnen und die Schwerfiguren einsetzen
+coach.plan.CompleteDevelopment = die übrigen Figuren entwickeln, bevor ein Angriff beginnt
+coach.plan.CastleIntoSafety = den König durch Rochade sichern und den Turm aktivieren
+coach.plan.ClaimTheCenter = das Zentrum mit den eigenen Bauern besetzen, solange es möglich ist
+coach.plan.QueenAheadOfHerArmy = die früh entwickelte Dame zurückführen, bevor der Gegner sie mit Tempo angreift
+coach.plan.SamePieceWandering = die bereits oft gezogene Figur ruhen lassen und endlich eine andere entwickeln
 
 # --- Composite plans (plans.tmpl; slots {target}, {clauses}, {side}) ---
-coach.plan.composite.lead = The whole position is pointing at {target} — every signpost reads the same: {clauses}.
-coach.plan.composite.runner_up = {side} has a second dream worth keeping alive around {target}.
+coach.plan.composite.lead = Die Stellung weist auf ein Ziel: {target}. Dafür sprechen {clauses}.
+coach.plan.composite.runner_up = {side} hat rund um {target} noch eine weitere Möglichkeit.
 
 # --- Candidate-move closing (run 10; plans.tmpl slots) ---
-coach.suggest.close = If I had the move: {first} — one move, {n} promises kept. {second} is the backup.
-coach.suggest.close.solo = If I had the move: {first} — one move, {n} promises kept.
-coach.suggest.close.one = If I had the move: {first} — it gets the main plan moving. {second} is the backup.
-coach.suggest.close.one.solo = If I had the move: {first} — it gets the main plan moving.
-coach.suggest.prophylactic = First, deny the opponent: they dream of nothing more than to {their_plan} — {first} takes that dream away before it starts.
+coach.suggest.close = Mein Vorschlag: {first}. Dieser Zug unterstützt {n} Pläne; {second} ist die Alternative.
+coach.suggest.close.solo = Mein Vorschlag: {first}. Dieser Zug unterstützt {n} Pläne.
+coach.suggest.close.one = Mein Vorschlag: {first} bringt den Hauptplan voran; {second} ist die Alternative.
+coach.suggest.close.one.solo = Mein Vorschlag: {first} bringt den Hauptplan voran.
+coach.suggest.prophylactic = Zuerst dem Gegner zuvorkommen: Er will {their_plan}; {first} verhindert diese Idee.
 
 # --- Openings-book line (run 11; common.tmpl base key) ---
-coach.book.in_theory = Still in the book — theory has walked this road.
+coach.book.in_theory = Diese Stellung ist noch aus der Eröffnungstheorie bekannt.
 
 # --- Scheme leads and stages (schemes.tmpl) ---
-coach.scheme.lead = Here is the long game for {side}: {target} is the square worth owning{horizon_clause} — {steps}.
-coach.scheme.lead.more = {side} has a slower idea too, around {target}{horizon_clause} — {steps}.
-coach.scheme.step.clear = the {targets} has to disappear first
-coach.scheme.step.clear.by = the {targets} is the one thing in the way, and the {piece} on {agent} can go and trade it off{via_clause}
-coach.scheme.step.clear.nobody = the {targets} would have to go first, and right now nothing of ours can lay a finger on it
-coach.scheme.step.maneuver = then the {piece} takes up residence on {to} ({route})
-coach.scheme.step.maneuver.alt = or the {piece} from {agent} takes the job instead ({route})
-coach.scheme.step.exploit = and with that settled, {plan}
-coach.maneuver.lead = {side} has one move worth knowing: {clause}.
-coach.maneuver.opposition = step the king to {to} and take the opposition — whoever must move first gives ground
-coach.maneuver.generic = the {piece} on {from} wants to be on {to}
+coach.scheme.lead = Der langfristige Plan für {side}: das Feld {target} besetzen{horizon_clause} — {steps}.
+coach.scheme.lead.more = {side} kann auch langfristig um {target} spielen{horizon_clause}: {steps}.
+coach.scheme.step.clear = zunächst müssen {targets} verschwinden
+coach.scheme.step.clear.by = zunächst {targets} beseitigen; die Figur {piece} auf {agent} kann das übernehmen{via_clause}
+coach.scheme.step.clear.nobody = zunächst müssten {targets} verschwinden; momentan kann keine eigene Figur sie angreifen
+coach.scheme.step.maneuver = anschließend den {piece} auf {to} aufstellen ({route})
+coach.scheme.step.maneuver.alt = alternativ {piece} von {agent} einsetzen ({route})
+coach.scheme.step.exploit = danach {plan}
+coach.maneuver.lead = Ein wichtiger Zug für {side}: {clause}.
+coach.maneuver.opposition = den König nach {to} stellen und die Opposition übernehmen
+coach.maneuver.generic = {piece} von {from} nach {to} führen
