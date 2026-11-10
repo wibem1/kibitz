@@ -1,3 +1,13 @@
+# 2026-11-10 – Intel-DMG nachgewiesen; Partieansicht lokalisiert
+
+**Bestätigter Stand:** GitHub-CI [42818687565](https://github.com/wibem1/kibitz/actions/runs/42818687565) vollständig erfolgreich. Intel-DMG-Build [42818370629](https://github.com/wibem1/kibitz/actions/runs/42818370629) erfolgreich, Artifact `kibitz-de-macos-intel-unsigned-test` (ca. 11,7 MB; im GitHub-Actions-Lauf unter Artifacts; 14 Tage Aufbewahrung). Die DMG ist unsigniert und **noch nicht auf einem realen Intel-Mac gestartet**.
+
+**Neue Änderung:** In `app/src/GameView.tsx` 38 sichtbare Texte/Bedienelemente der Partie- und Analyseansicht ins Deutsche übertragen (Zugnavigation, Brettorientierung, Erläutern, Neuberechnung, Live-Analyse, Variantenansicht, PGN-Export, Tooltips). Commit `5c87f51dc613a6ee17b6f8105bd7198aa80bdc56`. Es handelt sich um UI-Texte, keine Änderung der Engine. Weitere Unterbereiche, Meldungen und Hilfe sind **noch nicht vollständig übersetzt**.
+
+**Prüfung des neuen Code-Standes:** GitHub-CI [42820315008](https://github.com/wibem1/kibitz/actions/runs/42820315008) und Intel-DMG-Build [42820314883](https://github.com/wibem1/kibitz/actions/runs/42820314883) gestartet; bei Eintrag noch nicht abgeschlossen. Das bestätigte alte DMG enthält diese GameView-Änderung nicht. **Keine Release-Freigabe**, `main` unangetastet, Draft-PR #1 offen.
+
+**Nächster Schritt:** Ergebnisse der neuen CI-/DMG-Läufe prüfen, bei Erfolg DMG auf echtem Intel-Mac installieren und Oberflächenfehler aufnehmen; dann weitere Übersetzung in kleinen Schritten.
+
 # 2026-11-10 – TWIC-Test korrigiert und Intel-Mac-Testbuild gestartet
 
 **Code:** Der CI-Fehler des bestehenden Tauri-Tests `netops::tests::auto_sync_worker_probes_then_downloads_newest_first_within_the_cap` beruhte auf einer veralteten Erwartung (`"imported TWIC 1506–1510 (newest first)"` statt des tatsächlich von der Anwendung verwendeten Meldungstexts `"imported 5 issues · 2 games from TWIC 1506–1510"`). Nur die Testassertion in `app/src-tauri/src/netops.rs` wurde an das bestehende korrekte Importergebnis angepasst. Commit `e5f89e76239f4742dba28fd036176ce47c1218f5`. Kein Eingriff in die Synchronisationslogik.
