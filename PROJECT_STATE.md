@@ -1,3 +1,19 @@
+# Kibitz DE – 10.11.2026: Ubuntu-CI grün und Stockfish-Zugrücknahme verbessert
+
+**Nachgewiesener CI-Stand:** GitHub-Actions-Lauf [42851869692](https://github.com/wibem1/kibitz/actions/runs/42851869692) auf Commit `ab92e8cb`: `app (ubuntu-latest)` **success** und `rust (ubuntu-latest)` **success**. Die beiden macOS-Jobs waren bei der Abfrage noch `queued`. Damit sind die vorherigen 11 fehlgeschlagenen Übersetzungs-Tests durch Updates der UI-Erwartungen behoben, jedoch **kein** macOS-Erfolg und **kein** realer Stockfish-Spieltest belegt.
+
+**Neuer Entwicklungsschritt im Branch (noch nicht durch CI verifiziert):**
+- `app/src/lib/localPlay.ts`: `undoLocalTurn(game, opponent, humanColor)` nimmt gegen einen Menschen weiterhin einen Halbzug zurück; gegen Stockfish so viele Halbzüge (max. zwei), bis der menschliche Spieler wieder am Zug ist. Bei Schwarz bleibt der erste Stockfish-Zug bestehen, solange noch kein schwarzer Zug erfolgt ist.
+- `app/src/OfflinePlayView.tsx`: Zugrücknahme nun auch bei laufender Engine-Suche möglich, um den gerade gespielten eigenen Zug zurückzunehmen. Bei Stellungswechsel verwirft das bestehende Effekt-Cleanup ausstehende Engine-Antworten; die UI wird wieder freigegeben.
+- `app/src/lib/localPlay.test.ts`: Zwei neue Regressionstests für Weiß-/Schwarz-Rücknahme einschließlich wartender Engine.
+- Commits: `aeebd199`, `3d2941d1`, `f78085b0`.
+
+**Prüfstatus:** Änderungen in GitHub gespeichert und anhand des Codes überprüft. Die neuen Tests wurden zum Zeitpunkt dieses Eintrags noch nicht erfolgreich ausgeführt; keine vollständige CI-Bestätigung für den aktuellen Branch-Head. Vor Veröffentlichung: macOS-Job-Ergebnis, echte Intel-Mac-Stockfish-Partie samt Undo, Autosave und PGN prüfen. Keine neue Version/DMG und keine Maia-2-Integration.
+
+**Nächster einzelner Schritt:** Aktuellen CI-Lauf einschließlich macOS nachverfolgen; neue Undo-Tests auswerten und ggf. Fehler gezielt beheben. Erst danach Maia-2-UCI-Kompabilität und Installation auf Intel-Mac absichern.
+
+---
+
 # Kibitz DE – 10.11.2026: CI-Fehler der Übersetzung lokalisiert, Tests angepasst
 
 **GitHub-Actions-Prüfung:** Lauf [42849118573](https://github.com/wibem1/kibitz/actions/runs/42849118573), Commit `fef58aa0`: Rust/Ubuntu **bestanden**, App/Ubuntu **fehlgeschlagen**, zwei macOS-Jobs bei Abfrage weiterhin `queued`. Aus App/Ubuntu-Log: **60 Testdateien bestanden**, **2 fehlgeschlagen**, darin 11 Einzeltests. `localPlay.test.ts` (6), `offlineSession.test.ts` (5), `lichessPlay.test.ts` (14) und `shell.test.ts` (9) **bestanden**. Die 11 Fehler lagen in `PrepView.test.tsx` (5) und `TacticsView.test.tsx` (6) durch alte englische UI-Texterwartungen nach der Übersetzung; keine belegte Ursache im Stockfish-Spielmodus.
