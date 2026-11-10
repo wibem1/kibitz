@@ -100,7 +100,7 @@ export default function FirstRunOverlay({ onClose, onOpenHelp }: FirstRunOverlay
       <div
         className="tour-card tour-float"
         role="dialog"
-        aria-label={`First-run tour, card ${tourCounter(state.step)}`}
+        aria-label={`Einführung, Karte ${tourCounter(state.step)}`}
         style={
           pos
             ? { top: pos.top, left: pos.left, width: CARD_WIDTH }
@@ -109,7 +109,7 @@ export default function FirstRunOverlay({ onClose, onOpenHelp }: FirstRunOverlay
       >
         <span className="tour-caret" style={pos ? { top: pos.caretTop } : undefined} />
         <div className="tour-card-head">
-          <span className="tour-tag">FIRST-RUN TOUR</span>
+          <span className="tour-tag">EINFÜHRUNG</span>
           <span className="flex-spacer" />
           <span className="tour-count">{tourCounter(state.step)}</span>
         </div>
@@ -118,14 +118,14 @@ export default function FirstRunOverlay({ onClose, onOpenHelp }: FirstRunOverlay
         </p>
         <div className="tour-actions">
           <button className="btn-primary" onClick={() => dispatch({ type: "next" })}>
-            {last ? "Finish" : "Next"}
+            {last ? "Fertig" : "Weiter"}
           </button>
           <button className="btn-ghost" onClick={() => dispatch({ type: "skip" })}>
-            Skip tour
+            Einführung überspringen
           </button>
           {last && (
             <button className="btn-ghost" onClick={onOpenHelp}>
-              Open the user guide
+              Bedienungsanleitung öffnen
             </button>
           )}
         </div>
