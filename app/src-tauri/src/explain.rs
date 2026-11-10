@@ -342,7 +342,7 @@ mod tests {
         });
         let book_in_headline = in_book.explanation["headline"]["coach"]
             .as_str()
-            .is_some_and(|t| t.contains("book"));
+            .is_some_and(|t| t.contains("Eröffnungstheorie"));
         assert!(
             book_in_blocks || book_in_headline,
             "{}",
