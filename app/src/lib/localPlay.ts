@@ -2,8 +2,8 @@
 import { Chess, normalizeMove } from "chessops/chess";
 import { chessgroundDests } from "chessops/compat";
 import { makeFen, parseFen } from "chessops/fen";
-import { makeSan } from "chessops/san";
-import { makeUci, parseSquare } from "chessops/util";
+import { makeSan, makeSanAndPlay } from "chessops/san";
+import { makeUci, parseSquare, parseUci } from "chessops/util";
 import type { PromoRole } from "./promotion";
 
 export interface LocalGame {
@@ -42,6 +42,19 @@ export function playLocalMove(
   const san = makeSan(pos, move);
   const uci = makeUci(move);
   pos.play(move);
+  return {
+    fens: [...game.fens, makeFen(pos.toSetup())],
+    sans: [...game.sans, san],
+    ucis: [...game.ucis, uci],
+  };
+}
+
+/** Validate a UCI bestmove against the exact current position before applying it. */
+export function playLocalUci(game: LocalGame, uci: string): LocalGame | null {
+  const pos = localPosition(game);
+  const move = parseUci(uci);
+  if (!move || !pos.isLegal(move) || pos.isEnd()) return null;
+  const san = makeSanAndPlay(pos, move);
   return {
     fens: [...game.fens, makeFen(pos.toSetup())],
     sans: [...game.sans, san],
