@@ -1,10 +1,11 @@
 /** Offline pass-and-play: deliberately isolated from Lichess and engines. */
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Board, { type BoardMovable } from "./Board";
 import ScreenHeader from "./shell/ScreenHeader";
 import { usePromotionPicker } from "./PromotionPicker";
 import type { PromoRole } from "./lib/promotion";
 import type { BoardTreatmentChoice } from "./lib/gameView";
+import { restoreOfflineSession, storeOfflineSession } from "./lib/offlineSession";
 import {
   localLegalMoves, localPgn, localPosition, localResultText, newLocalGame,
   playLocalMove, undoLocalMove,
@@ -13,9 +14,15 @@ import {
 interface Props { treatment: BoardTreatmentChoice }
 
 export default function OfflinePlayView({ treatment }: Props) {
-  const [game, setGame] = useState(newLocalGame);
-  const [flipped, setFlipped] = useState(false);
-  const [notice, setNotice] = useState("");
+  const [restored] = useState(() => restoreOfflineSession(window.localStorage));
+  const [game, setGame] = useState(restored.game);
+  const [flipped, setFlipped] = useState(restored.flipped);
+  const [notice, setNotice] = useState(restored.warning ?? "");
+  useEffect(() => {
+    if (!storeOfflineSession(window.localStorage, game, flipped)) {
+      setNotice("Automatisches Speichern ist auf diesem Rechner nicht verfügbar. Bitte die Partie als PGN sichern.");
+    }
+  }, [game, flipped]);
   const [confirmNew, setConfirmNew] = useState(false);
   const pos = useMemo(() => localPosition(game), [game]);
   const completed = pos.isEnd();
@@ -92,7 +99,7 @@ export default function OfflinePlayView({ treatment }: Props) {
                 <div className="sync-card-head">PARTIEVERLAUF</div>
                 <p className="sync-blurb">
                   Die Figuren werden abwechselnd von beiden Spielern gezogen.
-                  Alle Züge werden auf ihre Rechtmäßigkeit geprüft.
+                  Alle Züge werden auf ihre Rechtmäßigkeit geprüft. Die Partie wird auf diesem Rechner automatisch gespeichert.
                 </p>
                 <div className="play-moves mono" aria-label="Zugliste">
                   {game.sans.length === 0 ? "Noch keine Züge" :
