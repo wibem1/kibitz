@@ -1,3 +1,15 @@
+# 2026-11-10 – Rückmeldung vom Intel-Mac: Fenster springt, Übersetzung lückenhaft
+
+**Nutzerbefund:** Test-DMG auf einem echten Intel-Mac startet; Partien laden und Grundfunktionen funktionieren. Beim Durchspielen einer geladenen Partie verschiebt sich das Fenster; viele Texte sind noch englisch. Diese Rückmeldung ist der erste reale Laufzeitnachweis, **keine** Abnahme des springenden Fensters.
+
+**Wahrscheinliche Ursache und Korrektur:** `app/src/MovesPanel.tsx` rief bei jedem Zugwechsel `cur.scrollIntoView({block:"center"})` auf. Das kann übergeordnete Scrollbereiche verschieben. Stattdessen wird nun nur `body.scrollTop` um den gemessenen Abstand der aktuellen Zelle zum Mittelpunkt der internen Zugliste verändert (Commit `bd99d2ff1fa750bf81dc84278d0121afb728a34a`). In `app/src/MovesPanel.test.tsx` wurde ein Regressionstest für ausschließlich internes Scrolling und unveränderte Elternscrollposition eingebaut (Commit `3bb99f308abaea3537b9be818d9f3717bbcd77a0`). **Noch kein erneuter Praxistest des Fixes auf dem Nutzer-Mac.** Andere Ursachen bleiben möglich.
+
+**Zusätzliche Übersetzungen:** `ExplainPanel.tsx` (Horizonte, Hinweise, Züge, Textbausteine), `MovesPanel.tsx` (Zugliste, Kommentare, Varianten, Speichern), `SettingsView.tsx` (zentrale Einstellungen, Enginehinweise). Begleitende `ExplainPanel.test.tsx`- und `SettingsView.test.tsx`-Erwartungen ins Deutsche übernommen. Mehrere Unteransichten, Inhalte aus dem Rust-Erklärungskern, Hilfe und dynamische Fehlermeldungen sind weiterhin englisch; vollständige deutsche Benutzerführung ist **offen**.
+
+**Prüfung:** Der erste CI-Lauf unmittelbar nach dem Fix schlug bei 3 alten Tests fehl, die weiterhin `scrollIntoView` erwarteten, bevor die Regressionstests ersetzt wurden. Alle neueren CI-Läufe sind zum Zeitpunkt dieses Eintrags noch in Warteschlange, deshalb sind die neuen Änderungen **nicht testbestätigt**. Build-Test-Auslöser für macOS-DMG wurde auf `workflow_dispatch` begrenzt, damit nicht jede Änderung eine teure native Paketierung erzeugt. Keine neue Version, kein Release; `main` unverändert.
+
+**Nächster Schritt:** Zunächst den aktuellen Frontend-Vitest-/TypeScript-Build für den neuesten Commit prüfen und Fehler beheben. Dann eine einzige manuelle Intel-DMG-Erstellung veranlassen, vom Nutzer das Schrittverhalten bestätigen lassen. Erst danach zusätzliche Übersetzungen in kleinen, getesteten Gruppen und verlässliche Bestandsaufnahme aller englischen Zeichenketten.
+
 # 2026-11-10 – Intel-DMG nachgewiesen; Partieansicht lokalisiert
 
 **Bestätigter Stand:** GitHub-CI [42818687565](https://github.com/wibem1/kibitz/actions/runs/42818687565) vollständig erfolgreich. Intel-DMG-Build [42818370629](https://github.com/wibem1/kibitz/actions/runs/42818370629) erfolgreich, Artifact `kibitz-de-macos-intel-unsigned-test` (ca. 11,7 MB; im GitHub-Actions-Lauf unter Artifacts; 14 Tage Aufbewahrung). Die DMG ist unsigniert und **noch nicht auf einem realen Intel-Mac gestartet**.
