@@ -11,7 +11,7 @@
  * the recurring-commitment row (commitment_get/set; clear → nulls).
  *
  * Honesty rules: the spawn policy row states the engine-off default in
- * words (it is a product principle, not a setting); the LLM verbaliser
+ * words (it is a product principle, not a setting); the KI-Formulierung
  * and piece-set rows are read-only because no backend setting exists;
  * batch estimates show the measured-or-assumed basis string verbatim.
  */
@@ -106,7 +106,7 @@ export default function SettingsView({
   const [commitNote, setCommitNote] = useState<string | null>(null);
 
   // Network-ingestion mirrors (run 9): configured sync accounts and the
-  // TWIC auto-download toggle (same meta keys the TWIC screen writes).
+  // TWIC automatisch laden toggle (same meta keys the TWIC screen writes).
   const [syncCount, setSyncCount] = useState<number | null>(null);
   const [twicAuto, setTwicAuto] = useState<boolean | null>(null);
   const [twicWeek, setTwicWeek] = useState<number | null>(null);
@@ -227,15 +227,15 @@ export default function SettingsView({
 
           {/* ---- ENGINE & ANALYSIS ---- */}
           <div className="set-group">
-            <div className="set-group-head">ENGINE &amp; ANALYSIS</div>
+            <div className="set-group-head">ENGINE UND ANALYSE</div>
             <Row
-              label="Spawn policy"
-              help="The engine is off by default and never runs behind your back: it starts only when a tactical screen fires, when you explicitly ask for analysis, or when you start a batch job."
-              value={<div className="set-value">On explicit request only</div>}
+              label="Engine-Start"
+              help="Die Engine ist standardmäßig aus. Sie startet nur bei einer taktischen Prüfung, einer ausdrücklich angeforderten Analyse oder einem von dir gestarteten Stapelauftrag."
+              value={<div className="set-value">Nur bei Bedarf</div>}
             />
             <Row
-              label="Annotate database"
-              help="Static Kibitz pass over every game; fired alerts queue bounded engine confirmations. Resumable — pause anytime."
+              label="Datenbank erläutern"
+              help="Alle Partien mit Kibitz erläutern. Taktische Hinweise werden bei Bedarf kurz mit der Engine geprüft. Kann pausiert und fortgesetzt werden."
               value={<div className="set-value mono">{jobsValue}</div>}
               action={ghost(
                 estimating === "annotate" ? "Estimating…" : "Estimate & run…",
@@ -244,8 +244,8 @@ export default function SettingsView({
               )}
             />
             <Row
-              label="Fresh analysis pass"
-              help="One bounded evaluation per mainline position of every game, through the job queue. Legacy analysis is kept, never deleted."
+              label="Partien neu bewerten"
+              help="Jede Hauptvarianten-Stellung mit der Engine neu bewerten. Vorhandene Analysen bleiben erhalten."
               value={<div className="set-value mono">{jobsValue}</div>}
               action={ghost(
                 estimating === "fresh-analysis" ? "Estimating…" : "Estimate & run…",
@@ -258,10 +258,10 @@ export default function SettingsView({
 
           {/* ---- COACH ---- */}
           <div className="set-group">
-            <div className="set-group-head">COACH</div>
+            <div className="set-group-head">TRAINER</div>
             <Row
-              label="Default voice"
-              help="Applies to Explain, drill feedback and puzzle reasons. Also stored in the open database; annotations regenerate on the next annotate pass."
+              label="Erklärstil"
+              help="Gilt für Stellungserklärungen und Übungshinweise. Die Wahl wird in der geöffneten Datenbank gespeichert."
               value={<div className="set-value">{voice === "coach" ? "Coach" : "Neutral"}</div>}
               action={ghost(voice === "coach" ? "Switch to Neutral" : "Switch to Coach", () =>
                 onVoice(voice === "coach" ? "neutral" : "coach"),
@@ -269,18 +269,18 @@ export default function SettingsView({
             />
             <Row
               label="LLM verbaliser"
-              help="Optional and strictly grounded: it may only rewrite detector output, never add claims; on any failure Kibitz falls back to template prose silently. No key is stored by the app — set ANTHROPIC_API_KEY for the CLI explain-llm command."
+              help="Optional für die Kommandozeile: Die KI darf nur vorhandene Analyseergebnisse verständlicher formulieren. Dafür ist ANTHROPIC_API_KEY außerhalb der App erforderlich."
               value={<div className="set-value mono">not set · template prose</div>}
             />
           </div>
 
           {/* ---- DATA ---- */}
           <div className="set-group">
-            <div className="set-group-head">DATA</div>
+            <div className="set-group-head">DATEN</div>
             {/* ---- DATABASE STORAGE (own file: settings/StorageSection.tsx) ---- */}
             <StorageSection />
             <Row
-              label="Account syncs"
+              label="Konten abgleichen"
               help="Lichess, chess.com and FICS sync live on the Account syncs screen (rail: DATA IN / OUT). CLI equivalents: lichess-sync · chesscom-sync · fics-sync."
               value={
                 <div className="set-value mono">
@@ -308,7 +308,7 @@ export default function SettingsView({
               }
             />
             <Row
-              label="Tablebase"
+              label="Endspieldatenbank"
               help="Resolves from KIBITZ_SYZYGY, else a repo-local testdata/syzygy directory."
               value={
                 <div className="set-value mono" title={tb?.note ?? undefined}>
@@ -321,8 +321,8 @@ export default function SettingsView({
               }
             />
             <Row
-              label="Schedule"
-              help="A recurring commitment Home plans around, e.g. “Club night · Thursday”. The opponent name is optional."
+              label="Termin"
+              help="Ein wiederkehrender Schachtermin für die Startseite. Der Gegnername ist optional."
               value={
                 <div className="set-commit">
                   <input
@@ -374,7 +374,7 @@ export default function SettingsView({
             />
             <Row
               label="Brettdarstellung"
-              help="Studio Walnut is the approved default; Instrument is the neutral alternate."
+              help="Holzbrett ist die Voreinstellung; alternativ gibt es eine neutrale Darstellung."
               value={
                 <div className="set-value">
                   {treatment === "walnut" ? "Studio Walnut" : "Instrument"}
@@ -387,7 +387,7 @@ export default function SettingsView({
             />
             <Row
               label="Kommentare anzeigen"
-              help="How PGN comments and variations render in the Moves panel: full, hover (dimmed until pointed at) or hidden."
+              help="Kommentare und Varianten vollständig, abgeschwächt oder gar nicht anzeigen."
               value={<div className="set-value">{annotationMode}</div>}
               action={ghost(`Switch to ${ANNOTATION_CYCLE[annotationMode]}`, () =>
                 onAnnotationMode(ANNOTATION_CYCLE[annotationMode]),
@@ -395,7 +395,7 @@ export default function SettingsView({
             />
             <Row
               label="Figurensatz"
-              help="The chessground cburnett set — fixed for now."
+              help="Der Figurensatz ist derzeit fest vorgegeben."
               value={<div className="set-value mono">cburnett</div>}
             />
           </div>
