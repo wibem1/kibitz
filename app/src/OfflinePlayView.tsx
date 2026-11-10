@@ -23,6 +23,11 @@ export default function OfflinePlayView({ treatment }: Props) {
   const [game, setGame] = useState(restored.game);
   const [flipped, setFlipped] = useState(restored.flipped);
   const [notice, setNotice] = useState(restored.warning ?? "");
+  const [confirmNew, setConfirmNew] = useState(false);
+  const [opponent, setOpponent] = useState<"human" | "stockfish">(restored.opponent);
+  const [humanColor, setHumanColor] = useState<"white" | "black">(restored.humanColor);
+  const [thinking, setThinking] = useState(false);
+  const [failedFen, setFailedFen] = useState<string | null>(null);
   useEffect(() => {
     let saved = false;
     try { saved = storeOfflineSession(window.localStorage, game, flipped, opponent, humanColor); }
@@ -31,11 +36,6 @@ export default function OfflinePlayView({ treatment }: Props) {
       setNotice("Automatisches Speichern ist auf diesem Rechner nicht verfügbar. Bitte die Partie als PGN sichern.");
     }
   }, [game, flipped, opponent, humanColor]);
-  const [confirmNew, setConfirmNew] = useState(false);
-  const [opponent, setOpponent] = useState<"human" | "stockfish">(restored.opponent);
-  const [humanColor, setHumanColor] = useState<"white" | "black">(restored.humanColor);
-  const [thinking, setThinking] = useState(false);
-  const [failedFen, setFailedFen] = useState<string | null>(null);
   const pos = useMemo(() => localPosition(game), [game]);
   const completed = pos.isEnd();
   const fen = game.fens[game.fens.length - 1];
@@ -113,7 +113,7 @@ export default function OfflinePlayView({ treatment }: Props) {
 
   return (
     <>
-      <ScreenHeader title="Offline spielen" subtitle="Zwei Menschen an einem Rechner · keine Internetverbindung nötig" />
+      <ScreenHeader title="Offline spielen" subtitle="Gegen einen Menschen oder Stockfish · ohne Internetverbindung" />
       <div className="page-scroll">
         <div className="play-page">
           <div className="play-columns">
@@ -135,6 +135,11 @@ export default function OfflinePlayView({ treatment }: Props) {
                 <button className="btn-primary" onClick={savePgn}>PGN speichern</button>
               </div>
               {notice && <p role="status">{notice}</p>}
+              {engineTurn && failedFen === fen && (
+                <button className="btn-secondary" onClick={() => { setFailedFen(null); setNotice(""); }}>
+                  Engine-Zug erneut versuchen
+                </button>
+              )}
             </div>
             <div className="play-side-col">
               <div className="sync-card">
