@@ -1,3 +1,20 @@
+# Kibitz DE – 11.11.2026: Funktionsprüfung nach realem Intel-Mac-Test (Audit, keine Freigabe)
+
+**Nutzerbestätigung:** Die zuletzt korrigierten Größenproportionen und das stabile Brett funktionieren im realen Test. Gesamte App noch nicht als vollständig funktionsfähig bestätigt.
+
+**Drei konkret untersuchte UX-/Funktionslücken (Quellcodebefund):**
+1. **Bewertung:** `GameView.tsx` rendert die senkrechte `EvalBar` links des Bretts. `selectPlyAnalysis(analysisRows, gv.ply)` erhält nur gespeicherte `game_analyses`-Datensätze; bei direkt geladener PGN ist `analysisRows=[]`, also Balken ohne Zahl. `Live-Analyse` unter dem Brett ist separat, ihr aktuelles Ergebnis wird in der `live-strip` angezeigt und **nicht** in den Bewertungsbalken eingespeist. Nutzer erwartet eine sichtbare Bewertung der aktuellen Stellung ohne Datenbankimport.
+2. **Gesamte Partie erläutern / neu bewerten:** `GameView.tsx` deaktiviert beide Buttons bei `gameId === null`, also auch bei direkt eingelesener PGN. `App.tsx` erzeugt für `ImportView`-PGN keine `annot.gameId`. Die Stellungserklärung in `ExplainPanel` benutzt dagegen `explainPosition` und funktioniert prinzipiell ohne DB. In `App.tsx` wird das Scheitern automatisch abgerufener Erklärungen mit `.catch(() => {})` still verschluckt; manuelle Fehler landen nur in der allgemeinen Statuszeile. Die UI muss den Unterschied klar erklären und die ganze Partie möglichst auch ohne Datenbankeintrag erläutern.
+3. **Gegen Stockfish spielen:** Die Funktion ist tatsächlich vorhanden unter `Offline spielen` → Gegner `Stockfish (offline)`; `OfflinePlayView.tsx` ruft `offline_engine_move` auf, kennt Menschenfarbe, Rücknahme, Autosave und PGN. Dazu gibt es mehrere reine Logiktests. **Echter UCI-Zug auf Intel-Mac und Wiederherstellung nicht nachgewiesen**. Der Navigationspunkt ist schlecht als Engine-Spiel erkennbar.
+
+**Weitere nachgewiesene Grenzen des Funktionsumfangs:** In `ImportView.tsx` erfolgt SCID-.si4-Import ausdrücklich nur über die CLI, nicht über einen App-Dateidialog. In `SettingsView.tsx` sind zahlreiche sichtbare Texte weiter englisch (u. a. `Switch to Coach`, `LLM verbaliser`, `TWIC auto-download`, `unknown (no database open)`); `DatabaseScreen.tsx` und `EndgameView.tsx` enthalten ebenfalls wesentliche englische UI-Bereiche. Eine vollständige deutsche Oberfläche ist somit **nicht erreicht**, obwohl die 451 deterministic-analysis templates übersetzt wurden.
+
+**Prüfart:** Source-Audit des Branches `feat/de-simple-readable-ui` und Bestätigung des Layouts durch den Nutzer. Kein ausführbarer Integrationstest der Engine/DB/Online-Schnittstellen auf dem Intel-Mac bei diesem Audit. Keine Codeänderungen, keine neue Version, kein Release.
+
+**Prioritäten:** (1) PGN ohne DB vollständig erläutern/bewerten können und Live-Score neben dem Brett zeigen; (2) Engine-Spiel in der Navigation explizit benennen und real am Intel-Mac testen; (3) Restübersetzung der tatsächlich sichtbaren Oberflächen und Fehleranzeigen; (4) Datenbank-/Import-/Training-/Online-Workflows als echte Ende-zu-Ende-Abnahme testen. Erst danach „voll funktionsfähig“ behaupten.
+
+---
+
 # Kibitz DE – 11.11.2026: korrigierter Layoutstand CI-grün, Intel-Mac-DMG liegt vor
 
 **Quellstand der verifizierten Layoutkorrektur:** `a8221d1873d7c90b16fd35336fd7f87a9409445f`, Branch `feat/de-simple-readable-ui`.
