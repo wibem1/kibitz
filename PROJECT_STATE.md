@@ -1,3 +1,15 @@
+# Kibitz DE – 10.11.2026: erstmals komplette CI grün, Intel-DMG-Testworkflow hinzugefügt
+
+**Nachgewiesen:** [CI-Run 42885058472](https://github.com/wibem1/kibitz/actions/runs/42885058472) für Commit `12e51613`: Alle vier Jobs `app (macos-latest)`, `rust (macos-latest)`, `app (ubuntu-latest)`, `rust (ubuntu-latest)` **success**. Im CI-Lauf wurden **keine Download-Artefakte** erzeugt. Ein grüner App-/Rust-Test belegt noch kein DMG und keine reale Stockfish-Partie.
+
+**Nächster Entwicklungsschritt (noch nicht gelaufen):** Neuer gezielter Workflow `.github/workflows/intel-mac-preview.yml` (Commit `ee5332d7`), ausgelöst durch PR-Änderung an genau dieser Workflow-Datei oder manuell. Er kompiliert die Tauri-App für `x86_64-apple-darwin` mit Node 22/Rust, kontrolliert die `x86_64`-Architektur der App-Binary und verlangt genau ein erzeugtes DMG. Danach soll das **unsignierte Test-DMG** als GitHub-Actions-Artefakt `kibitz-de-intel-mac-unsigned-test` hochgeladen werden (7 Tage Aufbewahrung). Keine Tag-Erstellung, kein Release, keine Engine-Beigabe, keine Secrets. Erstellung des Workflows bestätigt, dessen erfolgreiche Ausführung **noch nicht bestätigt**.
+
+**Noch offen für Freigabe:** Test-DMG tatsächlich erfolgreich bauen und herunterladen, Mac-Signatur/Gatekeeper-Hinweise korrekt behandeln, echte Intel-Mac-Stockfish-Partie samt Rücknahme, Autosave und PGN nach `docs/INTEL_MAC_ACCEPTANCE.md` prüfen. Das Release-Zielraster verlangt zudem Apple Silicon/Linux/Windows. `docs/RELEASING.md` und Website/Updater-Zieladressen vor Fork-Veröffentlichung konsistent machen.
+
+**Nächster einzelner Schritt:** Ergebnis des gezielten Intel-DMG-Workflows samt Buildlogs und Artefakt prüfen. Nicht mehrfach auf Verdacht neu starten.
+
+---
+
 # Kibitz DE – 10.11.2026: Intel-Mac-Freigabeprüfung dokumentiert
 
 **Geprüft:** Der gezielt wiederholte macOS-App-Job in [Run 42873364058](https://github.com/wibem1/kibitz/actions/runs/42873364058), aktuelle Job-ID `130064395642`, war bei der erneuten Abfrage weiterhin `queued`. Der aktuellere Workflow für Dokumentationscommit `44a13469`, Run `42883296054`, war ebenfalls noch `queued`. Ein erfolgreiches macOS-App-Paket ist damit nicht belegt.
