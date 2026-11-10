@@ -15,31 +15,31 @@ interface JobsViewProps {
 export default function JobsView({ jobs, running, onRunJobs, error }: JobsViewProps) {
   return (
     <div className="page jobs-view">
-      <h2 className="page-title">Jobs</h2>
+      <h2 className="page-title">Analyseaufträge</h2>
       <div className="panel-box">
         {jobs ? (
           <table className="data-table jobs-table">
             <tbody>
               <tr>
-                <td>pending</td>
+                <td>Wartend</td>
                 <td className="num">{jobs.pending.toLocaleString()}</td>
               </tr>
               <tr>
-                <td>running</td>
+                <td>Laufend</td>
                 <td className="num">{jobs.running.toLocaleString()}</td>
               </tr>
               <tr>
-                <td>done</td>
+                <td>Erledigt</td>
                 <td className="num">{jobs.done.toLocaleString()}</td>
               </tr>
               <tr>
-                <td>failed</td>
+                <td>Fehlgeschlagen</td>
                 <td className="num">{jobs.failed.toLocaleString()}</td>
               </tr>
             </tbody>
           </table>
         ) : (
-          <p className="page-prose">Open a database to see its job queue.</p>
+          <p className="page-prose">Öffne eine Datenbank, um die Analyseaufträge anzuzeigen.</p>
         )}
         <div className="row-gap">
           <button
@@ -47,14 +47,14 @@ export default function JobsView({ jobs, running, onRunJobs, error }: JobsViewPr
             onClick={onRunJobs}
             disabled={!jobs || running || jobs.pending === 0}
           >
-            {running ? "Worker running…" : "Run pending jobs"}
+            {running ? "Bearbeitung läuft …" : "Wartende Aufträge starten"}
           </button>
-          {jobs?.engine && <span className="settings-note">last engine: {jobs.engine}</span>}
+          {jobs?.engine && <span className="settings-note">Zuletzt verwendete Engine: {jobs.engine}</span>}
         </div>
         {error && <div className="error">{error}</div>}
         <p className="page-prose">
-          Everything the engine does goes through this queue — annotate confirmations, re-analyze
-          passes, batch evals. Nothing runs until you start the worker.
+          Alle Enginearbeiten werden als Aufträge verwaltet – etwa die Prüfung von Kommentaren,
+          Neubewertungen und Stapelanalysen. Sie starten erst auf deinen Wunsch.
         </p>
       </div>
     </div>
