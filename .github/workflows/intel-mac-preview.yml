@@ -1,0 +1,65 @@
+# One-time PR verification of an unsigned Intel Mac installer.
+# Not a release: no tag, signing secrets, updater artifacts or publication.
+name: Kibitz DE Intel Mac preview
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/intel-mac-preview.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  intel-mac-preview:
+    name: Unsigned Intel Mac DMG (x86_64)
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+          key: intel-mac-preview
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Build unsigned Intel Mac DMG
+        working-directory: app
+        env:
+          CI: "true"
+        run: npm run tauri build -- --target x86_64-apple-darwin --bundles app,dmg
+
+      - name: Check Intel architecture and DMG exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="app/src-tauri/target/x86_64-apple-darwin/release/bundle"
+          app="$root/macos/Kibitz.app"
+          bin="$app/Contents/MacOS/kibitz-app"
+          test -f "$bin"
+          file "$bin"
+          lipo -archs "$bin" | grep -qw x86_64
+          test -d "$root/dmg"
+          count=$(find "$root/dmg" -maxdepth 1 -name '*.dmg' -type f | wc -l | tr -d ' ')
+          test "$count" -eq 1
+          echo "Intel x86_64 app and one DMG found."
+
+      - name: Upload unsigned test DMG (NOT a release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: kibitz-de-intel-mac-unsigned-test
+          path: app/src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+          retention-days: 7
