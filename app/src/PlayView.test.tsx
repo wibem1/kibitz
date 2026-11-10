@@ -105,7 +105,7 @@ describe("fair play is structural (lichess ToS)", () => {
 
   it("the assistance-disabled notice is rendered by the view", () => {
     expect(playSources).toContain("FAIR_PLAY_NOTICE");
-    expect(FAIR_PLAY_NOTICE).toContain("Engine assistance is disabled");
+    expect(FAIR_PLAY_NOTICE).toContain("Während einer laufenden Lichess-Partie");
   });
 });
 
@@ -129,13 +129,13 @@ describe("PlayView — no token", () => {
   it("explains the board:play token and routes to Settings", async () => {
     const { getByText, onNavigate } = renderPlay();
     await waitFor(() => expect(getByText(/board:play/)).toBeTruthy());
-    fireEvent.click(getByText("Open Settings"));
+    fireEvent.click(getByText("Einstellungen öffnen"));
     expect(onNavigate).toHaveBeenCalledWith("settings");
   });
 
   it("still shows the fair-play stance", async () => {
     const { getByText } = renderPlay();
-    await waitFor(() => expect(getByText(/Engine assistance is disabled/)).toBeTruthy());
+    await waitFor(() => expect(getByText(/Engine-Hilfe/)).toBeTruthy());
   });
 });
 
@@ -150,9 +150,9 @@ describe("PlayView — with a token", () => {
 
   it("offers rapid/classical/correspondence only and says why", async () => {
     const { getByText } = renderPlay();
-    await waitFor(() => expect(getByText(/no bullet or blitz/)).toBeTruthy());
+    await waitFor(() => expect(getByText(/kein Bullet oder Blitz/)).toBeTruthy());
     expect(getByText("10+0")).toBeTruthy();
-    expect(getByText("Correspondence")).toBeTruthy();
+    expect(getByText("Fernschach")).toBeTruthy();
   });
 
   it("lists ongoing games and rejoins onto the board", async () => {
@@ -169,15 +169,15 @@ describe("PlayView — with a token", () => {
     ]);
     vi.mocked(playJoin).mockResolvedValue(liveSnap);
     const { getByText, getByTestId } = renderPlay();
-    await waitFor(() => expect(getByText(/vs Opponent · rapid · your move/)).toBeTruthy());
-    fireEvent.click(getByText("Rejoin"));
+    await waitFor(() => expect(getByText(/gegen Opponent · rapid · du bist am Zug/)).toBeTruthy());
+    fireEvent.click(getByText("Fortsetzen"));
     await waitFor(() => expect(getByTestId("board")).toBeTruthy());
     expect(playJoin).toHaveBeenCalledWith("abc123");
     // Live-game chrome: clocks, players, resign — and no analysis affordance.
-    expect(getByText(/SomeUser \(1500\) — you/)).toBeTruthy();
-    expect(getByText("Resign")).toBeTruthy();
-    expect(getByText("Offer draw")).toBeTruthy();
-    expect(getByText(/Engine assistance is disabled/)).toBeTruthy();
+    expect(getByText(/SomeUser \(1500\) — du/)).toBeTruthy();
+    expect(getByText("Aufgeben")).toBeTruthy();
+    expect(getByText("Remis anbieten")).toBeTruthy();
+    expect(getByText(/Engine-Hilfe/)).toBeTruthy();
   });
 
   it("resign asks for confirmation before posting", async () => {
@@ -194,12 +194,12 @@ describe("PlayView — with a token", () => {
     ]);
     vi.mocked(playJoin).mockResolvedValue(liveSnap);
     const { getByText } = renderPlay();
-    await waitFor(() => expect(getByText("Rejoin")).toBeTruthy());
-    fireEvent.click(getByText("Rejoin"));
-    await waitFor(() => expect(getByText("Resign")).toBeTruthy());
-    fireEvent.click(getByText("Resign"));
+    await waitFor(() => expect(getByText("Fortsetzen")).toBeTruthy());
+    fireEvent.click(getByText("Fortsetzen"));
+    await waitFor(() => expect(getByText("Aufgeben")).toBeTruthy());
+    fireEvent.click(getByText("Aufgeben"));
     expect(playResign).not.toHaveBeenCalled();
-    fireEvent.click(getByText("Confirm resign"));
+    fireEvent.click(getByText("Aufgabe bestätigen"));
     expect(playResign).toHaveBeenCalledWith("abc123");
   });
 
@@ -221,10 +221,10 @@ describe("PlayView — with a token", () => {
       winner: "white",
     });
     const { getByText, queryByText } = renderPlay();
-    await waitFor(() => expect(getByText("Rejoin")).toBeTruthy());
-    fireEvent.click(getByText("Rejoin"));
-    await waitFor(() => expect(getByText(/Checkmate · SomeUser wins — you won/)).toBeTruthy());
-    expect(getByText(/imported for review/)).toBeTruthy();
-    expect(queryByText("Resign")).toBeNull();
+    await waitFor(() => expect(getByText("Fortsetzen")).toBeTruthy());
+    fireEvent.click(getByText("Fortsetzen"));
+    await waitFor(() => expect(getByText(/Schachmatt · SomeUser gewinnt — du hast gewonnen/)).toBeTruthy());
+    expect(getByText(/für die Nachbesprechung importiert/)).toBeTruthy();
+    expect(queryByText("Aufgeben")).toBeNull();
   });
 });
