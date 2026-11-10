@@ -105,9 +105,10 @@ export default function MovesPanel({
     const b = body.getBoundingClientRect();
     const c = cur.getBoundingClientRect();
     if (c.top < b.top + 8 || c.bottom > b.bottom - 8) {
-      // Center rather than pin to the edge, so the coach notes under
-      // the current move stay readable while stepping (run-9 report).
-      cur.scrollIntoView({ block: "center" });
+      // Scroll ONLY the moves list. scrollIntoView() also scrolls ancestor
+      // containers and was shifting the entire game view while stepping.
+      const offset = (c.top + c.bottom - b.top - b.bottom) / 2;
+      body.scrollTop += offset;
     }
   }, [currentPly, annotationMode, rows.length]);
 
