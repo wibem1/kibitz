@@ -345,32 +345,32 @@ export default function HomeView({
     return (
       <div className="home">
         <p className="home-prose">
-          Welcome to Kibitz. Boards, coaching and training all grow out of a game
-          database — and there is no database open yet.
+          Willkommen bei Kibitz! Schachbrett, Analyse und Training nutzen eine Partiedatenbank.
+          Momentan ist noch keine Datenbank geöffnet.
         </p>
         <p className="home-prose dim">
-          Create one, then fill it: import a PGN file, or link your chess.com /
-          lichess username and your games download themselves.
+          Erstelle zuerst eine Datenbank. Danach kannst du PGN-Partien importieren oder
+          dein Lichess- bzw. Chess.com-Konto verbinden.
         </p>
         <div className="home-welcome-actions">
           <button className="btn-primary" onClick={() => onNavigate("database")}>
-            Set up your database
+            Datenbank einrichten
           </button>
           <button className="btn-secondary" onClick={() => onNavigate("import")}>
-            Import PGN
+            PGN importieren
           </button>
           <button className="btn-secondary" onClick={() => onNavigate("syncs")}>
-            Link an account
+            Konto verbinden
           </button>
         </div>
       </div>
     );
   }
   if (!data && !error) {
-    return <div className="home"><p className="home-prose dim">Open a database to see your day.</p></div>;
+    return <div className="home"><p className="home-prose dim">Öffne eine Datenbank, um deine Übersicht anzuzeigen.</p></div>;
   }
   if (error) {
-    return <div className="home"><p className="home-prose dim">Home unavailable: {error}</p></div>;
+    return <div className="home"><p className="home-prose dim">Startseite nicht verfügbar: {error}</p></div>;
   }
   return (
     <HomeContent
