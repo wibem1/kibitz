@@ -167,7 +167,6 @@ export default function GameView({
   onCrosstable,
 }: GameViewProps) {
   const colRef = useRef<HTMLDivElement | null>(null);
-  const stageRef = useRef<HTMLDivElement | null>(null);
   const [boardSize, setBoardSize] = useState(656);
 
   /* ---- live analysis (run-8): explicit toggle, go-infinite, hard stop ---- */
@@ -650,7 +649,7 @@ export default function GameView({
 
       <div className="game-main">
         <div className="board-column" ref={colRef}>
-          <div className="board-stage" ref={stageRef}>
+          <div className="board-stage">
             <div className="board-row">
               <EvalBar
                 row={preview ? null : evalRow}
