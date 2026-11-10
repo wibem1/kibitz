@@ -1,3 +1,15 @@
+# Kibitz DE – 10.11.2026: Intel-DMG erzeugt und Diagnose nach Neustart verfügbar
+
+**Build-Nachweis:** [Intel-Mac-Preview-Lauf 42891915194](https://github.com/wibem1/kibitz/actions/runs/42891915194) erfolgreich (Job `Unsigned Intel Mac DMG (x86_64)`: `success`). Artefakt `kibitz-de-intel-mac-unsigned-test`, ID `13799332203`, Größe 11.693.740 Bytes, wurde hochgeladen. Es handelt sich um ein **unsigniertes Test-DMG eines älteren Commits vor der Diagnosefunktion**, kein Release. Die im Workflow verankerte Architektur-/DMG-Prüfung wurde erfolgreich ausgeführt; die App wurde damit nicht auf einem realen Intel-Mac getestet.
+
+**Diagnose-CI-Zwischenstand:** [Run 42892489492](https://github.com/wibem1/kibitz/actions/runs/42892489492) für `285278fa`: `app (ubuntu-latest)` und `rust (ubuntu-latest)` **success**, macOS-Jobs bei Abfrage `queued`. Die erste Diagnosefunktion und ihre fünf Tests wurden damit zumindest unter Ubuntu geprüft.
+
+**Nachgebesserte Diagnose (neu, noch nicht CI-bestätigt):** Das bisher ausschließlich flüchtige Ereignisprotokoll wäre nach einem App-Absturz verloren. Deshalb speichert `app/src/lib/diagnostics.ts` die **ausschließlich fest definierten Ereignisnamen und Zeitstempel** nun begrenzt lokal im Browser-Speicher, lädt sie beim Neustart **mit strenger Code- und Zeitstempelvalidierung**, entfernt fremde Zusatzfelder und ermöglicht ausdrücklich das Löschen. Keine Rohfehlermeldungen/Dateipfade/Partiedaten/API-Schlüssel, keine automatische Netzwerkübertragung. `app/src/main.tsx` initialisiert die Wiederherstellung, `app/src/SettingsView.tsx` bietet neben `Diagnose speichern` den Knopf `Diagnose löschen`. Zwei zusätzliche Tests für Wiederherstellung/Löschen und das Verwerfen fremder Nutzdaten; Commits `21eae736`, `89dde864`, `c738000d`, `a107c496`. **Noch nicht CI-geprüft**. Ein plötzlicher Prozessabsturz kann ein bereits registriertes Ereignis hinterlassen, nicht aber einen unbekannten nativen Fehler automatisch erfassen.
+
+**Nächster einzelner Schritt:** CI-Lauf für `a107c496` auswerten, gegebenenfalls Korrekturen. Dann aktuelles Intel-Test-DMG samt Diagnosedownload an realem Intel-Mac prüfen, erst danach Freigabe.
+
+---
+
 # Kibitz DE – 10.11.2026: datensparsame Diagnosefunktion eingebaut
 
 **Nutzerauftrag:** „weiter und bitte eine Diagnosefunktion einbauen, damit wir künftige Fehler analysieren können“.
