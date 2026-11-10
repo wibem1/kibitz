@@ -1,3 +1,13 @@
+# 2026-11-10 – TWIC-Test korrigiert und Intel-Mac-Testbuild gestartet
+
+**Code:** Der CI-Fehler des bestehenden Tauri-Tests `netops::tests::auto_sync_worker_probes_then_downloads_newest_first_within_the_cap` beruhte auf einer veralteten Erwartung (`"imported TWIC 1506–1510 (newest first)"` statt des tatsächlich von der Anwendung verwendeten Meldungstexts `"imported 5 issues · 2 games from TWIC 1506–1510"`). Nur die Testassertion in `app/src-tauri/src/netops.rs` wurde an das bestehende korrekte Importergebnis angepasst. Commit `e5f89e76239f4742dba28fd036176ce47c1218f5`. Kein Eingriff in die Synchronisationslogik.
+
+**Realer Buildversuch:** Gesonderter PR-Workflow `.github/workflows/kibitz-de-intel-dmg.yml` auf `macos-15-intel` mit Target `x86_64-apple-darwin`, Tests, unsigniertem Tauri-DMG-Build und Prüfung/Hochladen des Pakets. Start [42818370629](https://github.com/wibem1/kibitz/actions/runs/42818370629), bei letzter Prüfung noch in Arbeit (Installations- und Frontendprüfschritte begonnen); **kein DMG-Erfolg bestätigt**. Keine Veröffentlichung oder Release, keine Änderung des Original-Repositories. Neueste volle CI für diesen Commit: [42818370595](https://github.com/wibem1/kibitz/actions/runs/42818370595), ebenfalls noch offen; früherer Lauf [42818206492](https://github.com/wibem1/kibitz/actions/runs/42818206492) mit erfolgreich abgeschlossenen Rust-Kerntests auf beiden Plattformen, App-Prüfung noch offen.
+
+**Wichtige Sicherheits-/Produktnotiz:** Der Fork enthält noch den ursprünglichen Update-Endpunkt `avienu/kibitz`. Der Originalcode meldet aufgrund eines Platzhalter-Updater-Schlüssels derzeit `not configured` und vermeidet Netzabfrage, eine eigene Update-Strategie muss vor einer eigenständigen Veröffentlichung dennoch geklärt werden. Die meisten Unteransichten und die Hilfe sind weiterhin nicht vollständig auf Deutsch. Ein Paket aus diesem Workflow wäre **unsigniert** und nicht auf einem Endnutzer-Intel-Mac getestet.
+
+**Nächster Schritt:** GitHub-Checks und DMG-Artefakt prüfen; bei Erfolg DMG auf echtem Intel-Mac testen, dann UI-Übersetzung und Vereinfachung fortführen. Ohne Tests keine Freigabe.
+
 # Kibitz DE – GitHub Actions aktiviert, CI-Fortschritt (10. November 2026)
 
 **Branch:** `feat/de-simple-readable-ui`, Draft-PR [#1](https://github.com/wibem1/kibitz/pull/1). Nutzer hat Fork-Actions aktiviert, daraufhin wurde Pull-Request-CI tatsächlich gestartet.
