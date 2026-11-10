@@ -1,3 +1,11 @@
+# Kibitz DE – CI-Nachtrag zur deutschen Analyse (10.11.2026)
+
+Nach Sprachumstellung schlugen zunächst ausdrücklich englisch formulierte Assertions und ein englischer Gesamt-PGN-Snapshot fehl. Die konkreten Fundstellen wurden auf deutsche Tests umgestellt; der letzte geprüfte Zwischenlauf `42911255399` meldete außerdem einen Rustfmt-Konflikt im deutschen Satzübergang (`crates/kibitz-verbalize/src/lib.rs`). Der Formatierungsfehler wurde mit Commit `5ab8acca` behoben. Ein erneuter [CI-Lauf 42911508137](https://github.com/wibem1/kibitz/actions/runs/42911508137) befindet sich bei letzter Abfrage noch in Arbeit. **Nicht als bestanden kennzeichnen.**
+
+Für den Nutzer nicht das ältere Intel-DMG empfehlen: Es enthält die hier beschriebenen Lokalisierungs- und Layoutänderungen nicht. Neuestes DMG erst nach erfolgreichem Build *des aktuellen Commits* und danach tatsächlicher Intel-Mac-Abnahme bereitstellen.
+
+---
+
 # Kibitz DE – 10.11.2026: englische Analysen und springendes Brett korrigiert (Praxistest ausstehend)
 
 **Auslöser:** Nutzer meldet, dass die Stellungserklärungen weiterhin englisch sind und das Schachbrett beim Vor-/Zurückblättern springt. Diese Mängel der bisherigen Intel-Testversion sind bestätigt durch Quellprüfung.
