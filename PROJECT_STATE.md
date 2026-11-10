@@ -1,3 +1,23 @@
+# Kibitz DE – 10.11.2026: lokaler Stockfish-Gegner – erste Codeintegration
+
+**Umgesetzt, noch nicht durch Build oder echten Engine-Test bestätigt:**
+- `app/src-tauri/src/lib.rs`: explizite Tauri-IPC `offline_engine_move`. Jeder Spielzug startet eine **separate UCI-Engine** (nicht dieselbe Prozessinstanz wie die Analyse), benutzt `go nodes` mit gedeckeltem Budget 1.000–250.000 (Standard 20.000), 30-s-Zeitlimit und bestehenden Engine-Pfadresolver. Kein Engine-Start, wenn der Nutzer nicht den Stockfish-Spielmodus wählt. `bestmove (none)` wird als Fehler zurückgegeben. Kein Stream/Evaluation für laufende Lichess-Partien.
+- `app/src/lib/offlineEngine.ts`: typisierte IPC-Brücke.
+- `app/src/lib/localPlay.ts`: `playLocalUci` validiert Engine-Antworten als legale UCI-Züge in der aktuellen Stellung vor dem Übernehmen.
+- `app/src/OfflinePlayView.tsx`: Wahl »Zwei Menschen« oder »Stockfish (offline)«, eigene Farbe Weiß/Schwarz; Engine am Zug nur im gewählten Offline-Modus, Eingabe während Suche gesperrt, stale Promise-Replies auf unmount/Stellungswechsel ignoriert, Fehler und erneuter Versuch. Spielmodus/Farbe nach erstem Zug nicht veränderbar, bis eine neue Partie gestartet wird.
+- `app/src/lib/offlineSession.ts`: rückwärtskompatible optionale Speicherung der gewählten Engine und menschlichen Farbe neben Zügen/Brettorientierung. Validierte Werte; alte v1-Spielstände ohne Felder werden als »Zwei Menschen« geladen.
+- Regressionstests in `localPlay.test.ts` (UCI illegal/legal) und `offlineSession.test.ts` (Modus-Roundtrip, beschädigte Mode-Werte) aktualisiert.
+
+**Codecommits (Auszug):** `80d73114` Rust-IPC, `e83a83ba` Rust-Korrektur, `1d011d4e` UCI-Übernahme, `a4a71de2` IPC-Brücke, `f7517690` Oberfläche, `1b36764a` Speicherung, `684c9a83` Anbindung, `146fb9be`/`8365672c` Tests, `fef58aa0` Initialisierungsreihenfolge/Retry, `c61afd03` Eingabesperre aufheben, `8daec882` Rust-Format.
+
+**Prüfstatus:** GitHub-Quelltext nachgelesen; **weder Vitest noch Rust-Tests, CI, UCI-Zug mit realem Stockfish noch Intel-Mac-Test bestanden/nachgewiesen**. Der CI-Lauf [42849118573](https://github.com/wibem1/kibitz/actions/runs/42849118573) zu früherem Codecommit war bei Abfrage weiterhin `queued`. Für den aktuellen HEAD keine Abnahme. Keine Veröffentlichung, DMG oder Versionsnummer.
+
+**Einschränkungen:** Stockfish-Binary muss über vorhandene Engine-Einstellungen/PATH auffindbar sein. Standardbudget ist noch keine benutzerseitige Schwierigkeitsstufeneinstellung. Kein Maia 2, noch keine KI-Anbindung. Bei einer Rücknahme wird derzeit nur ein Halbzug zurückgenommen (nicht automatisch ein volles Mensch+Engine-Zugpaar). Aktive Engine-Anfrage wird bei Verlassen des Spielschirms UI-seitig ignoriert; der eigene UCI-Prozess endet spätestens nach 30 s.
+
+**Nächster einzelner Schritt:** CI-Rückstau bzw. letzten Build nachvollziehbar klären, aktuelle Fehler der neuen Offline-Engine-Integration beheben, dann gezielt mit echtem Stockfish auf Intel-Mac spielen und sicherstellen, dass erneute Partien, Rücknahme, Wiederherstellung und PGN korrekt bleiben. Erst nach bestätigtem Stand Maia 2 angehen.
+
+---
+
 # Kibitz DE – 10.11.2026: Offline-Partie automatisch wiederherstellen
 
 **Code auf Entwicklungsbranch implementiert, nicht freigegeben:** `app/src/lib/offlineSession.ts` speichert ein versioniertes, kompaktes JSON mit UCI-Zügen und Brettorientierung unter `kibitz.offlineGame.v1` im lokalen Anwendungsspeicher. Beim Wiederöffnen werden sämtliche Züge mit der vorhandenen Schachbibliothek und Legalitätsprüfung aus der Ausgangsstellung rekonstruiert; inkompatible oder beschädigte Daten werden verworfen und führen zu einer verständlichen deutschen Warnmeldung. Fehler bei verweigertem Speicherzugriff führen nicht zum Abbruch des Spielmodus; Nutzer wird zum PGN-Sichern aufgefordert. `OfflinePlayView.tsx` lädt beim ersten Mount, speichert nach Partie-/Ausrichtungsänderung; bisheriges PGN bleibt erhalten. Neuer Unit-Test `app/src/lib/offlineSession.test.ts` prüft Roundtrip, fehlende Daten, ungültige Daten und verweigerten Speicher.
