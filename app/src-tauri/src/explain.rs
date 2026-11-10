@@ -329,7 +329,7 @@ mod tests {
         assert!(
             in_book
                 .prose
-                .starts_with("Diese Stellung ist noch aus der Eröffnungstheorie"),
+                .starts_with("Noch Eröffnungstheorie:"),
             "{}",
             in_book.prose
         );
