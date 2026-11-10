@@ -1,3 +1,13 @@
+# Kibitz DE – 10.11.2026: Diagnose-Wiederherstellung korrigiert
+
+**Konkreter Fehler behoben:** In `app/src/lib/diagnostics.ts` hatte der reguläre Ausdruck für persistierte ISO-Zeitstempel versehentlich doppelt maskierte `\\d`-Klassen. Dadurch wurden beim Neustart gültige Diagnoseereignisse verworfen, obwohl das Speichern funktionierte. Commit `8ed83032` korrigiert die Zeichenklassen. Commit `2755627e` ergänzt einen gezielten Regressionstest für gültige und ungültige Zeitstempel; die zuvor vorhandene Neustart-Probe deckt den Fall ebenfalls ab.
+
+**Prüfstatus:** Quelländerungen auf GitHub gesichert, **CI-Resultat für diese Commits noch offen**. Die zuvor gebaute Intel-Test-DMG-Datei (Run 42891915194) enthält diese Korrektur und die Diagnosefunktion **nicht**. Kein neuer Release und kein Nachweis eines realen Intel-Mac-Tests.
+
+**Nächster einzelner Schritt:** CI-Ergebnis für `2755627e` kontrollieren und dann den Intel-Mac-Testbuild aus genau diesem Stand mit Diagnose-Neustart durchführen.
+
+---
+
 # Kibitz DE – 10.11.2026: Intel-DMG erzeugt und Diagnose nach Neustart verfügbar
 
 **Build-Nachweis:** [Intel-Mac-Preview-Lauf 42891915194](https://github.com/wibem1/kibitz/actions/runs/42891915194) erfolgreich (Job `Unsigned Intel Mac DMG (x86_64)`: `success`). Artefakt `kibitz-de-intel-mac-unsigned-test`, ID `13799332203`, Größe 11.693.740 Bytes, wurde hochgeladen. Es handelt sich um ein **unsigniertes Test-DMG eines älteren Commits vor der Diagnosefunktion**, kein Release. Die im Workflow verankerte Architektur-/DMG-Prüfung wurde erfolgreich ausgeführt; die App wurde damit nicht auf einem realen Intel-Mac getestet.
