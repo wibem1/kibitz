@@ -327,7 +327,9 @@ mod tests {
             explain_position_ctx(FEN, Voice::default(), None, Some(history()), true).unwrap();
         assert!(!serving(&in_book).iter().any(|t| t == "CompleteDevelopment"));
         assert!(
-            in_book.prose.starts_with("Diese Stellung ist noch aus der Eröffnungstheorie"),
+            in_book
+                .prose
+                .starts_with("Diese Stellung ist noch aus der Eröffnungstheorie"),
             "{}",
             in_book.prose
         );
