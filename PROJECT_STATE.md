@@ -1,3 +1,17 @@
+# Kibitz DE – 10.11.2026: erster Offline-Spielmodus implementiert
+
+**Implementiert (Code auf GitHub):** Unabhängige neue Ansicht `OfflinePlayView.tsx` für zwei Personen am selben Rechner, aufgebaut auf dem bestehenden Chessground-Brett und `chessops`. `lib/localPlay.ts`: Ausgangsstellung, legale Züge inklusive Umwandlung über vorhandenen Picker, Zugfolge mit FEN/SAN/UCI, Rücknahme eines Halbzuges und PGN-Export mit offenem Ergebnis `*`. UI: Brett drehen, neue Partie mit Bestätigung, PGN herunterladen. Keine Netz- oder Engine-Aufrufe; bewusste Trennung von Lichess-Online-Partien und dortiger Fair-Play-Sperre. Hauptnavigation und `ViewId` auf `offline` erweitert; sichtbar in einfacher Navigation. Neuer Unit-Test `lib/localPlay.test.ts` (legal/illegal, Farben, Undo, PGN, Matt) und Rail-Test aktualisiert.
+
+**GitHub-Commits:** `940fadd0` (Modell), `2c8eb6a3` (Ansicht), `3f493eac` (Tests), `5d13846e` (Navigation), `080f5a92` (Rail), `22389765` (App-Integration), `951f2fcf` (Rail-Test).
+
+**Prüfstatus:** Quellcode erstellt; **Unit-Tests und TypeScript/Tauri nicht lokal ausführbar**, weil die Ausführungsumgebung GitHub nicht erreichen kann und keine Repository-Abhängigkeiten lokal vorliegen. CI-Lauf [42840633875](https://github.com/wibem1/kibitz/actions/runs/42840633875) für `951f2fc` bei Abfrage **queued**, keine bestandenen Tests nachgewiesen. Kein echter UI-/Intel-Mac-Test; keine Veröffentlichung. Bei CI-Fehlern die Ursache gezielt beheben.
+
+**Einschränkung:** PGN-Export markiert das Ergebnis vorerst bewusst `*`, auch wenn Schachmatt erkannt ist; ein vollständiges Ergebnismodell, Dauerspeicherung in SQLite, Offline-Spiel gegen Stockfish/Maia 2 und KI-Chat sind noch offen. Verlassen der Ansicht beendet die bisher nur im React-Zustand gespeicherte Partie; erst nach bestätigter Basisfunktion Sitzungs-Persistenz ergänzen.
+
+**Nächster einzelner Schritt:** Lauf 42840633875 auswerten, TypeScript-/Vitest-Fehler korrigieren, dann auf Intel-Mac Offline-Spiel einschließlich Umwandlung, Rücknahme und PGN-Import prüfen. Erst danach Ergebnisautomatik und dauerhafte Sitzung ergänzen.
+
+---
+
 # Kibitz DE – 10.11.2026: Lichess-Spielbereich auf Deutsch (neuer Entwicklungsschritt)
 
 **Implementiert und in GitHub gesichert:** `app/src/PlayView.tsx` (Commit `e6aeb125`), `app/src/lib/lichessPlay.ts` (Commit `49978c02`) und dazugehörige Tests `app/src/PlayView.test.tsx` (`74dc05e0`), `app/src/lib/lichessPlay.test.ts` (`19abd38a`) auf `feat/de-simple-readable-ui`. Übersetzt wurden sichtbare Benutzertexte für Lichess-Kontozugang, Gegnersuche, laufende Partie, Remis, Aufgabe, Wiederaufnahme, Spielende und ausdrücklicher Fair-Play-Hinweis. Werte von Lichess, Schnittstellenkennungen, SAN/UCI und Engine-Sperre wurden nicht verändert.
