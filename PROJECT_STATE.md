@@ -1,3 +1,21 @@
+# Kibitz DE – 11.11.2026: Brett springt weiterhin / Kommentarspalte zu breit – Layoutkorrektur zur Abnahme
+
+**Realer Nutzertest am Intel-Mac:** Der Testbuild zu `6b6d8f6` wurde in einem 1532 × 934 Pixel großen macOS-Fenster mit Partie `EgorSN – wibem` bei Halbzug 56/137 fotografiert. Das Brett ist dort etwa 545 px breit und springt beim Vor-/Zurückblättern noch immer. Die Kommentarspalte ist mit 472 px zu breit. Damit ist die bisherige Layoutkorrektur **nicht abgenommen und nicht erfolgreich**; den alten Build nicht als Lösung empfehlen.
+
+**Konkret ermittelte Ursachen und Gegenmaßnahmen (GitHub-Quellcode):**
+1. `app/src/app.css`: `.right-pane` hatte `flex: 0 0 472px`; jetzt `clamp(320px, 27%, 360px)`, womit mehr Platz dem Brett zugutekommt; der Kopf der Erläuterung kann bei geringerer Breite umbrechen.
+2. `app/src/GameView.tsx`: Die ältere Geometriekorrektur hatte `fitBoardSize(r.width - 98, r.height - 220,...)` benutzt. Die feste Abzugszahl von 220 px verkleinerte das Brett auf dem Screenshot unnötig. Die Berechnung benutzt jetzt `fitGameBoardSize()` aus `app/src/lib/gameView.ts` mit 98 px Breitenreserve und nur 126 px Höhenreserve, aus der unveränderlichen Brettspalten-Größe. Die Messung der veralteten `stageRef` ist entfernt.
+3. `app/src/app.css`: `.board-column` ist ein eigener Scrollcontainer. Bei Wechsel der Analyse-/Variantenzeilen kann Browser-Scroll-Anchoring das Brett im Viewport verschieben; `overflow-anchor: none` deaktiviert dieses automatische Versetzen. `scrollbar-gutter: stable` reserviert konstanten Platz für die Bildlaufleiste, damit deren Auftauchen/Verschwinden nicht über den ResizeObserver die Brettbreite verändert.
+4. `app/src/lib/gameView.test.ts`: Regressionstest für ca. 950×785 px Brettspalte nach Verkleinerung der Kommentarspalte; die neue Brettgröße muss >=600 px und teilbar durch 8 sein. Ein weiterer Test kontrolliert die deterministische Berechnung aus derselben Spaltengeometrie unabhängig von wechselnden Halbzügen.
+
+**Commits:** `aa8f3a76`, `8497e236`, `fecc9977`, `b543f734`, `34ec8f66`, `a8221d18` auf `feat/de-simple-readable-ui`.
+
+**Prüfgrenze:** Der Code ist gesichert. CI der letzten Commits noch ausstehend; **nicht als behoben behaupten**, bis ein echter macOS-GUI-Test bei wechselnden Zügen die unveränderte Brettposition und die größeren Maße bestätigt. Vorherigen grünen Basisstand `6b6d8f6` als Referenz erhalten. Ein DMG nur aus exakt geprüftem Commit empfehlen.
+
+**Nächster einzelner Schritt:** CI für `a8221d18` prüfen; falls grün, den neuen unsignierten Intel-x86_64-DMG-Build unter macOS bei Partie `EgorSN – wibem` und Halbzug 56/137 sowie mehrfachem Vor-/Zurück durch Nutzer abnehmen lassen. Bei weiterhin sichtbarem Sprung: konkrete Abweichung (Brett-Oberkante und -Größe vor/nach einem Zug) messen und nicht erneut pauschal CSS-Reservierungen ändern.
+
+---
+
 # Kibitz DE – 10.11.2026: deutschsprachige Analyse CI-grün und aktuelles Intel-Mac-DMG gebaut
 
 **Verbindlicher Quellstand für diesen Prüfpunkt:** Commit `6b6d8f6acf65358e77970b4eac1598d337f3cecb` auf `feat/de-simple-readable-ui`.
