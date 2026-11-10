@@ -78,6 +78,7 @@ export default function ExplainPanel({
     "FORCED MATE": "ERZWUNGENES MATT",
     "TACTICAL SCREEN FIRED": "TAKTISCHE GEFAHR",
     "POSITIONAL": "POSITIONELLE BEWERTUNG",
+    "QUIET POSITION": "RUHIGE STELLUNG",
   };
   const pill = explanation
     ? `${verdictLabels[explanation.tag] ?? explanation.tag}${explanation.eval ? `  ${explanation.eval.display}` : ""}`
