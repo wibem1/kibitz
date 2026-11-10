@@ -91,7 +91,7 @@ fn full_game_narration_is_delta_driven_and_german() {
     // chess logic, while the repetition gate and idempotence stay strict.
     let pgn = kibitz_db::export::export_pgn(&conn, 1).unwrap();
     assert!(
-        pgn.contains("Diese Stellung ist noch aus der Eröffnungstheorie bekannt."),
+        pgn.contains("Noch Eröffnungstheorie:"),
         "opening explanation should be German: {pgn}"
     );
     assert!(
