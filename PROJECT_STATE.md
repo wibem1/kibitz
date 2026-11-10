@@ -1,3 +1,17 @@
+# Kibitz DE – 10.11.2026: Veröffentlichungsprüfung und gezielter macOS-Retry
+
+**Nutzerauftrag:** »weiter und veröffentlichen«. Release-Voraussetzungen aus `DEVELOPMENT_STANDARDS.md`, `AGENTS.md`, `docs/RELEASING.md`, `docs/RELEASE_CHECKLIST.md` und `.github/release-targets.json` überprüft. **Keine neue Version, kein Tag, kein öffentlicher Release**, weil die verlangte reale Mac-Abnahme/Installerprüfung noch aussteht.
+
+**CI-Fakten:** [Run 42873302264](https://github.com/wibem1/kibitz/actions/runs/42873302264) zu `39592c81`: Ubuntu Rust **success**, Ubuntu App **success**, macOS Rust **success**, macOS App **cancelled**. [Run 42873364058](https://github.com/wibem1/kibitz/actions/runs/42873364058) zu `c3a749b5`: Ubuntu Rust und App **success**, macOS Rust **cancelled**, macOS App **cancelled**. Das bestätigt die 5 neuen Fehlertext-Tests auf Ubuntu, aber nicht den macOS-App-Build.
+
+**Konkrete Aktion:** Den zuletzt abgebrochenen **einzelnen** macOS-App-Job `130030105798` aus Run 42873364058 gezielt über GitHub Actions erneut angefordert (`rerun_workflow_job`: `success=true`). Aktueller Versuch: Job `130064395642` (`app (macos-latest)`) bei Abfrage noch `queued`. Keine Retry-Schleife, kein anderer Job unnötig gestartet.
+
+**Release-Blocker:** `.github/release-targets.json` verlangt verifizierte DMGs für `aarch64` und `x86_64` sowie Linux- und Windows-Pakete. Ein vorhandener `release.yml`-Workflow erstellt Release-Entwürfe über Tag-Push; grüne Tests allein erzeugen keine herunterladbare Mac-App. `docs/RELEASING.md` verlangt Artefakt-/Gatekeeper-Prüfung; `docs/RELEASE_CHECKLIST.md` enthält noch nicht abgehakte Voraussetzungen. Ein echter Stockfish-Zug, Rücknahme, Autosave und PGN auf Intel-Mac sind weiterhin nicht nachgewiesen. Außerdem sind Updater-Einstellungen noch auf `avienu/kibitz` statt den Fork ausgerichtet; vor einer späteren öffentlichen Fork-Version gesondert prüfen.
+
+**Nächster einzelner Schritt:** Den neuen macOS-App-Job auswerten und falls er erfolgreich ist, einen testbaren Intel-Mac-Build samt echter Stockfish-Probe und Artefaktkontrolle vorbereiten; erst dann Versionierung, Tag und Freigabe. Maia 2 nicht vorziehen.
+
+---
+
 # Kibitz DE – 10.11.2026: UCI-Test in Ubuntu-CI grün, Stockfish-Fehlermeldungen verbessert
 
 **Belegter Prüfstand:** Für Commit `eb630e83` mit dem simulierten `scripted_engine_returns_a_bounded_bestmove` sind in [GitHub-Actions-Lauf 42872367592](https://github.com/wibem1/kibitz/actions/runs/42872367592) die Jobs `rust (ubuntu-latest)` und `app (ubuntu-latest)` **success**. Auch für den nachfolgenden Dokumentationscommit `2398307f` sind in [Lauf 42872452261](https://github.com/wibem1/kibitz/actions/runs/42872452261) beide Ubuntu-Jobs **success**. Damit ist der neue UCI-Protokolltest auf Ubuntu tatsächlich durch den Rust-Job ausgeführt und akzeptiert worden. Beide macOS-Jobs standen bei Abfrage weiterhin `queued`; daraus folgt **kein** Mac-Testnachweis.
