@@ -281,6 +281,22 @@ pub fn resolve_engine_path(user_path: Option<&str>) -> Result<PathBuf, String> {
             }
         }
     }
+    // macOS GUI applications started from Finder often inherit a minimal PATH
+    // without Homebrew/MacPorts directories. Probe the standard installed
+    // locations directly, rather than requiring a Terminal launch.
+    #[cfg(target_os = "macos")]
+    for candidate in [
+        "/usr/local/bin/stockfish",       // Homebrew on Intel Macs
+        "/opt/homebrew/bin/stockfish",    // Homebrew on Apple Silicon
+        "/opt/local/bin/stockfish",       // MacPorts
+        "/usr/local/opt/stockfish/bin/stockfish",
+        "/opt/homebrew/opt/stockfish/bin/stockfish",
+    ] {
+        let path = PathBuf::from(candidate);
+        if path.is_file() {
+            return Ok(path);
+        }
+    }
     Err(
         "No Stockfish binary found. Set an engine path in the UI, set KIBITZ_STOCKFISH, \
          or install stockfish on PATH."
