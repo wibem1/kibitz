@@ -396,8 +396,11 @@ fn apply_starter(voice: Voice, rotation_key: &str, index: usize, paragraph: Stri
     }
     let white = lookup(&["side.white"]);
     let black = lookup(&["side.black"]);
-    let body = if paragraph.starts_with(white) || paragraph.starts_with(black) {
-        paragraph
+    let body = if starter.ends_with(':')
+        || paragraph.starts_with(white)
+        || paragraph.starts_with(black)
+    {
+        capitalize_first(&paragraph)
     } else {
         decapitalize_first(&paragraph)
     };
