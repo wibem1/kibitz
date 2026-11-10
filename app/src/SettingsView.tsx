@@ -22,6 +22,7 @@ import EngineSection from "./settings/EngineSection";
 import LichessSection from "./settings/LichessSection";
 import StorageSection from "./settings/StorageSection";
 import UpdatesSettings from "./UpdatesSettings";
+import { saveDiagnosticReport } from "./lib/diagnostics";
 import {
   batchEstimate,
   batchStart,
@@ -360,6 +361,17 @@ export default function SettingsView({
 
           {/* ---- UPDATES (own file: UpdatesSettings.tsx, run-8 packaging) ---- */}
           <UpdatesSettings />
+
+          {/* ---- DIAGNOSTICS ---- */}
+          <div className="set-group">
+            <div className="set-group-head">DIAGNOSE</div>
+            <Row
+              label="Fehlerbericht"
+              help="Speichert einen JSON-Bericht mit bis zu 120 Ereignistypen aus der laufenden Sitzung. Enthält keine API-Schlüssel, Dateipfade, Partien oder Fehlermeldungstexte. Nur beim Klick wird eine Datei erzeugt."
+              value={<div className="set-value">Lokaler Diagnosebericht · ohne automatische Übertragung</div>}
+              action={ghost("Diagnose speichern", () => saveDiagnosticReport())}
+            />
+          </div>
 
           {/* ---- APPEARANCE ---- */}
           <div className="set-group">
