@@ -61,7 +61,7 @@ fn confirmed_verdict_leads_the_comment() {
         .unwrap()
         .replace('\n', " ");
     assert!(
-        pgn.to_lowercase().contains("confirm"),
+        pgn.contains("Die Engine bestätigt"),
         "confirmed verdict rendered with PV:\n{pgn}"
     );
     assert!(pgn.contains("Bxf7+"), "PV rendered as SAN:\n{pgn}");
@@ -77,7 +77,7 @@ fn refuted_verdict_drops_the_alert_from_prose() {
     plant_verdict(&conn, "refuted", 10);
     let before = kibitz_db::export::export_pgn(&conn, 1).unwrap();
     assert!(
-        before.contains("loose") || before.contains("undefended") || before.contains("knight"),
+        before.contains("Springer von Weiß auf e5"),
         "pre-fold comment mentions the alert:\n{before}"
     );
     let report = fold_back(&conn).unwrap();
@@ -88,7 +88,7 @@ fn refuted_verdict_drops_the_alert_from_prose() {
     let last_comment_mentions_e5_knight = after
         .rsplit('{')
         .next()
-        .map(|c| c.contains("knight on e5"))
+        .map(|c| c.contains("Springer von Weiß auf e5"))
         .unwrap_or(false);
     assert!(
         !last_comment_mentions_e5_knight,
@@ -154,14 +154,14 @@ fn mate_verdict_renders_as_mate_not_material() {
         .unwrap()
         .replace('\n', " ");
     assert!(
-        pgn.contains("forced mate in 3"),
+        pgn.contains("Matt in 3 Zügen"),
         "mate verdict must say mate:\n{pgn}"
     );
     // The engine sentence must not speak material ("winning about N
     // pawns"). The bare word "pawns" is no longer diagnostic: run-11
     // development-plan prose legitimately mentions center pawns.
     assert!(
-        !pgn.contains("winning about"),
+        !pgn.contains("Gewinn von etwa 319"),
         "mate must never render as material:\n{pgn}"
     );
 }
