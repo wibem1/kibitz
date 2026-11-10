@@ -1,3 +1,15 @@
+# Kibitz DE – 10.11.2026: CI-Fehler der Übersetzung lokalisiert, Tests angepasst
+
+**GitHub-Actions-Prüfung:** Lauf [42849118573](https://github.com/wibem1/kibitz/actions/runs/42849118573), Commit `fef58aa0`: Rust/Ubuntu **bestanden**, App/Ubuntu **fehlgeschlagen**, zwei macOS-Jobs bei Abfrage weiterhin `queued`. Aus App/Ubuntu-Log: **60 Testdateien bestanden**, **2 fehlgeschlagen**, darin 11 Einzeltests. `localPlay.test.ts` (6), `offlineSession.test.ts` (5), `lichessPlay.test.ts` (14) und `shell.test.ts` (9) **bestanden**. Die 11 Fehler lagen in `PrepView.test.tsx` (5) und `TacticsView.test.tsx` (6) durch alte englische UI-Texterwartungen nach der Übersetzung; keine belegte Ursache im Stockfish-Spielmodus.
+
+**Korrektur in GitHub (implementiert, noch nicht erneut grün getestet):** Erwartete deutsche Platzhalter, Schaltflächen, Rubriken und Statuslabels in `app/src/PrepView.test.tsx` (Commit `f2238e75`) und `app/src/TacticsView.test.tsx` (Commit `fb3dc0a2`) nach tatsächlichem UI-Quelltext angepasst; Produktivcode unverändert, verbleibende dynamische englische Hilfstexte noch offen. Bestehende funktionale Regressionstests dürfen nicht entfernt oder abgeschwächt werden.
+
+**Aktueller Prüfstand:** Für den neuen Testcommit `fb3dc0a2` bei letzter Abfrage noch kein CI-Lauf zugeordnet, daher weiterhin **keine vollständige grüne CI-Bestätigung oder Intel-Mac-Abnahme**. Keine Veröffentlichung, keine Maia-2-Integration in diesem Schritt.
+
+**Nächster einzelner Schritt:** Nächsten tatsächlich ausgeführten CI-Lauf für den aktuellen Branch-Head kontrollieren, ggf. verbliebene Test- bzw. Compile-Fehler korrigieren; danach realen Stockfish-Zug und Rücknahme/PGN/Autosave auf Intel-Mac prüfen. Erst nach dieser Abnahme Maia 2 integrieren.
+
+---
+
 # Kibitz DE – 10.11.2026: lokaler Stockfish-Gegner – erste Codeintegration
 
 **Umgesetzt, noch nicht durch Build oder echten Engine-Test bestätigt:**
