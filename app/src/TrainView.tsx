@@ -295,21 +295,21 @@ export default function TrainView({ onSummary, treatment }: TrainViewProps) {
   const newCount = queue.filter((c) => c.isNew).length;
 
   const metaLeft = card
-    ? `${card.repertoireName} · your move as ${color}`.toUpperCase()
+    ? `${card.repertoireName} · dein Zug als ${color === "white" ? "Weiß" : "Schwarz"}`.toUpperCase()
     : null;
 
   return (
     <>
       <ScreenHeader
-        title="Openings SRS"
+        title="Eröffnungen üben"
         subtitle={
           counts
-            ? `FSRS scheduling · ${counts.due} due today · ${counts.total} positions as ${color}`
-            : "FSRS scheduling · open a database to train"
+            ? `FSRS-Wiederholung · ${counts.due} heute fällig · ${counts.total} Stellungen für ${color === "white" ? "Weiß" : "Schwarz"}`
+            : "FSRS-Wiederholung · zum Training eine Datenbank öffnen"
         }
         actions={
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
-            Import repertoire
+            Repertoire importieren
           </button>
         }
       />
@@ -318,10 +318,10 @@ export default function TrainView({ onSummary, treatment }: TrainViewProps) {
         <div className="srs-col">
           <div className="srs-colhead">
             <span className="col-label">REPERTOIRE</span>
-            <span className="seg" role="group" aria-label="Repertoire colour">
+            <span className="seg" role="group" aria-label="Repertoirefarbe">
               {(["white", "black"] as const).map((c) => (
                 <button key={c} className={color === c ? "cur" : ""} onClick={() => pickColor(c)}>
-                  as {c === "white" ? "White" : "Black"}
+                  für {c === "white" ? "Weiß" : "Schwarz"}
                 </button>
               ))}
             </span>
@@ -331,24 +331,24 @@ export default function TrainView({ onSummary, treatment }: TrainViewProps) {
             {lines.map((l) => (
               <div key={l.name} className="srs-line">
                 <span className="srs-line-name">{l.name}</span>
-                <span className={`srs-line-due${l.due > 0 ? " hot" : ""}`}>{l.due} due</span>
+                <span className={`srs-line-due${l.due > 0 ? " hot" : ""}`}>{l.due} fällig</span>
               </div>
             ))}
             {lines.length === 0 && (
               <p className="srs-empty">
-                No cards due as {color}.{" "}
+                Keine Karten für {color === "white" ? "Weiß" : "Schwarz"} fällig.{" "}
                 {counts && counts.total > 0
-                  ? `All ${counts.total} positions are scheduled ahead.`
-                  : "Add lines from a loaded game (“→ repertoire” under the Moves panel) or import a study."}
+                  ? `Alle ${counts.total} Stellungen sind für später vorgemerkt.`
+                  : "Füge Varianten aus einer geladenen Partie hinzu („→ Repertoire“ unter der Zugliste) oder importiere eine Studie."}
               </p>
             )}
           </div>
           <button className="srs-import" onClick={() => setShowImport(true)}>
-            Import PGN or Lichess study
+            PGN oder Lichess-Studie importieren
           </button>
           <p className="srs-foot">
-            Scheduling is FSRS-4.5. Each grade button shows the real next interval the scheduler
-            will set for that answer.
+            Die Wiederholungen werden nach FSRS-4.5 geplant. Jede Bewertungsstufe zeigt
+            den tatsächlichen Abstand bis zur nächsten Übung.
           </p>
         </div>
 
@@ -359,9 +359,9 @@ export default function TrainView({ onSummary, treatment }: TrainViewProps) {
               <div className="srs-meta">
                 <span className="srs-meta-line">{metaLeft}</span>
                 <span className="flex-spacer" />
-                {card.lapses > 0 && <span className="lapse-pill">LAPSE ×{card.lapses}</span>}
+                {card.lapses > 0 && <span className="lapse-pill">FEHLER ×{card.lapses}</span>}
                 <span className="srs-meta-counts">
-                  {counts ? `${counts.due} DUE · ${done} DONE` : `${done} DONE`}
+                  {counts ? `${counts.due} FÄLLIG · ${done} ERLEDIGT` : `${done} ERLEDIGT`}
                 </span>
               </div>
               <div className="srs-board">
@@ -382,7 +382,7 @@ export default function TrainView({ onSummary, treatment }: TrainViewProps) {
                     className="srs-san"
                     type="text"
                     value={typed}
-                    placeholder="type your move…"
+                    placeholder="Zug eingeben …"
                     spellCheck={false}
                     onChange={(e) => {
                       setTyped(e.target.value);
@@ -395,18 +395,18 @@ export default function TrainView({ onSummary, treatment }: TrainViewProps) {
                       }
                     }}
                   />
-                  <span className="srs-answer-hint">or play it on the board</span>
+                  <span className="srs-answer-hint">oder auf dem Brett ziehen</span>
                   {typedNote && <span className="srs-typed-note">{typedNote}</span>}
                 </div>
               ) : (
                 <div className="srs-reveal">
                   {session?.phase === "correct" ? (
                     <span className="srs-reveal-ok">
-                      Correct — <b>{card.expectedSan}</b>. How well did you know it?
+                      Richtig – <b>{card.expectedSan}</b>. Wie sicher kanntest du den Zug?
                     </span>
                   ) : (
                     <span className="srs-reveal-bad">
-                      The repertoire move is <b>{card.expectedSan}</b>.
+                      Der Repertoirezug lautet <b>{card.expectedSan}</b>.
                     </span>
                   )}
                 </div>
@@ -415,24 +415,24 @@ export default function TrainView({ onSummary, treatment }: TrainViewProps) {
             </>
           ) : session?.phase === "done" ? (
             <div className="srs-start">
-              <div className="srs-start-title">Session complete</div>
+              <div className="srs-start-title">Training abgeschlossen</div>
               <p className="srs-start-prose">
-                {session.tally.reviewed} reviewed — {session.tally.correct} correct,{" "}
-                {session.tally.again} to relearn.
+                {session.tally.reviewed} geübt – {session.tally.correct} richtig,{" "}
+                {session.tally.again} erneut üben.
               </p>
               <button className="btn-primary" onClick={endSession}>
-                Back to the queue
+                Zur Aufgabenliste
               </button>
             </div>
           ) : (
             <div className="srs-start">
               <div className="srs-start-title">
-                {counts ? `${counts.due} due as ${color}` : "No database open"}
+                {counts ? `${counts.due} fällig für ${color === "white" ? "Weiß" : "Schwarz"}` : "Keine Datenbank geöffnet"}
               </div>
               {counts && counts.total === 0 && (
                 <p className="srs-start-prose">
-                  No cards yet. Add lines from a loaded game (&ldquo;→ repertoire&rdquo; under the
-                  Moves panel) or import a PGN study.
+                  Noch keine Karten vorhanden. Füge Varianten aus einer geladenen Partie hinzu
+                  oder importiere eine PGN-Studie.
                 </p>
               )}
               <button
@@ -440,7 +440,7 @@ export default function TrainView({ onSummary, treatment }: TrainViewProps) {
                 onClick={() => void startSession()}
                 disabled={!counts || counts.due === 0}
               >
-                Start review
+                Training starten
               </button>
             </div>
           )}
@@ -448,28 +448,28 @@ export default function TrainView({ onSummary, treatment }: TrainViewProps) {
 
         {/* ---- session aside (340px) ---- */}
         <aside className="srs-aside">
-          <div className="aside-label">THIS SESSION</div>
+          <div className="aside-label">DIESE SITZUNG</div>
           <div className="srs-tiles">
             <div className="stat-tile">
-              <div className="stat-tile-caption">DUE</div>
+              <div className="stat-tile-caption">FÄLLIG</div>
               <div className="stat-tile-row">
                 <span className="stat-tile-value">{counts?.due ?? "—"}</span>
               </div>
             </div>
             <div className="stat-tile">
-              <div className="stat-tile-caption">DONE</div>
+              <div className="stat-tile-caption">ERLEDIGT</div>
               <div className="stat-tile-row">
                 <span className="stat-tile-value">{done}</span>
               </div>
             </div>
             <div className="stat-tile">
-              <div className="stat-tile-caption">LAPSES</div>
+              <div className="stat-tile-caption">FEHLER</div>
               <div className="stat-tile-row">
                 <span className="stat-tile-value">{lapses}</span>
               </div>
             </div>
             <div className="stat-tile">
-              <div className="stat-tile-caption">NEW</div>
+              <div className="stat-tile-caption">NEU</div>
               <div className="stat-tile-row">
                 <span className="stat-tile-value">{newCount}</span>
               </div>
@@ -489,22 +489,22 @@ export default function TrainView({ onSummary, treatment }: TrainViewProps) {
       {showImport && (
         <div className="modal-overlay" onClick={() => setShowImport(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">Import a repertoire</div>
+            <div className="modal-title">Repertoire importieren</div>
             <p className="modal-prose">
-              Bulk import is a command-line feature for now — every mainline move of your colour
-              in the PGN (a Lichess study export works) becomes a training card. Re-import is
-              idempotent: positions that already have a card are left untouched.
+              Der Massenimport erfolgt zurzeit über die Kommandozeile. Jeder Hauptvarianten-Zug
+              deiner Farbe wird zur Trainingskarte. Bereits vorhandene Karten bleiben bei
+              erneutem Import unverändert.
             </p>
             <pre className="modal-cli">
               {"kibitz-cli --db <path.sqlite> import-repertoire study.pgn " + color + ' --name "main"'}
             </pre>
             <p className="modal-prose">
-              From inside the app, load a game and use &ldquo;→ repertoire&rdquo; under the Moves
-              panel to add one line at a time.
+              Innerhalb der App kannst du eine Partie laden und unter der Zugliste mit
+              „→ Repertoire“ einzelne Varianten hinzufügen.
             </p>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setShowImport(false)}>
-                Close
+                Schließen
               </button>
             </div>
           </div>
