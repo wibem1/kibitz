@@ -15,9 +15,9 @@ import {
   playLocalMove, playLocalUci, undoLocalTurn,
 } from "./lib/localPlay";
 
-interface Props { treatment: BoardTreatmentChoice }
+interface Props { treatment: BoardTreatmentChoice; onEngineSettings: () => void }
 
-export default function OfflinePlayView({ treatment }: Props) {
+export default function OfflinePlayView({ treatment, onEngineSettings }: Props) {
   const [restored] = useState(() => {
     try { return restoreOfflineSession(window.localStorage); }
     catch { return restoreOfflineSession({ getItem: () => { throw Error("blocked"); }, setItem: () => {} }); }
@@ -162,6 +162,17 @@ export default function OfflinePlayView({ treatment }: Props) {
                 <button className="btn-primary" onClick={savePgn}>PGN speichern</button>
               </div>
               {notice && <p role="status">{notice}</p>}
+              {opponent === "stockfish" && failedFen === fen && (
+                <div className="offline-engine-help">
+                  <button className="btn-secondary" onClick={onEngineSettings}>
+                    Stockfish in Einstellungen einrichten
+                  </button>
+                  <p>Auf einem Intel-Mac muss eine passende Stockfish-Engine installiert sein.
+                    Falls du Homebrew verwendest: <code>brew install stockfish</code>.
+                    Danach unter „Einstellungen → Engineprogramm“ die Engine prüfen.
+                    Die App lädt keine Engine ungefragt herunter.</p>
+                </div>
+              )}
               {engineTurn && failedFen === fen && (
                 <button className="btn-secondary" onClick={() => { setFailedFen(null); setNotice(""); }}>
                   Engine-Zug erneut versuchen
