@@ -1,3 +1,15 @@
+# Kibitz DE – 10.11.2026: UCI-Pfadauflösung auf Intel-Mac abgesichert
+
+**Neue Korrektur:** Die bisherige automatische Engine-Suche in `app/src-tauri/src/uci.rs` bevorzugte das im Repository vorhandene Apple-Silicon-Programm `tools/stockfish/stockfish-macos-m1-apple-silicon` auf **allen** Plattformen, falls die Datei existierte. Auf einem Intel-Mac (oder Linux/Windows) ist das unbrauchbar. Commit `9fe9185f` beschränkt dieses Repo-Entwicklungsbinary nun auf macOS ARM64; Intel-Mac greift stattdessen auf einen explizit konfigurierten Pfad, `KIBITZ_STOCKFISH` oder `stockfish` im PATH zurück. Ein neuer Rust-Test für die plattformabhängige Schranke ist ergänzt. **Der Code ist statisch gegengeprüft, aber nicht neu kompiliert oder real getestet.** Diese Änderung nimmt keine Installation oder Bereitstellung einer Intel-Engine vor.
+
+**CI-Prüfung:** [Lauf 42851869692](https://github.com/wibem1/kibitz/actions/runs/42851869692) für `ab92e8cb` inzwischen abgeschlossen: `app (ubuntu-latest)` **success**, `rust (ubuntu-latest)` **success**, beide macOS-Jobs **cancelled**. Daher ist die gesamte Workflow-Konklusion `failure`, obwohl die beiden Ubuntu-Jobs grün waren. Auch die neueren Undo-Commits und `9fe9185f` sind damit **nicht** grün nachgewiesen. Beim Abruf von `9fe9185f` wurde noch kein eigener PR-Workflow-Lauf zugeordnet.
+
+**Noch offen:** Auf Intel-Mac Stockfish-Binary konfigurieren/auffinden, reale UCI-Partie und Rücknahme sowie Autosave/PGN prüfen. Vorhandene macOS-CI-Jobs müssen für den aktuellen Code einen aussagekräftigen Lauf abschließen; keine voreilige Veröffentlichung. Maia 2 bleibt bis dahin zurückgestellt.
+
+**Nächster einzelner Schritt:** Aktuellste CI-Ausführung mit vollständig gelaufenen macOS-Jobs prüfen und ggf. Fehler korrigieren; danach konkreter Intel-Mac-Praxistest des Offline-Spielmodus.
+
+---
+
 # Kibitz DE – 10.11.2026: Ubuntu-CI grün und Stockfish-Zugrücknahme verbessert
 
 **Nachgewiesener CI-Stand:** GitHub-Actions-Lauf [42851869692](https://github.com/wibem1/kibitz/actions/runs/42851869692) auf Commit `ab92e8cb`: `app (ubuntu-latest)` **success** und `rust (ubuntu-latest)` **success**. Die beiden macOS-Jobs waren bei der Abfrage noch `queued`. Damit sind die vorherigen 11 fehlgeschlagenen Übersetzungs-Tests durch Updates der UI-Erwartungen behoben, jedoch **kein** macOS-Erfolg und **kein** realer Stockfish-Spieltest belegt.
