@@ -597,3 +597,20 @@ export function fitBoardSize(
   }
   return Math.max(MIN_BOARD_SIZE, size);
 }
+
+/**
+ * Geometry for the actual game screen. Size from the fixed board COLUMN,
+ * never from the stage whose adjacent analysis/preview rows change per ply.
+ * Width reserve covers side padding, evaluation rail and spacing; height
+ * reserve covers column padding, navigation buttons and their row gap.
+ * Additional optional strips may scroll below the board without shrinking it.
+ */
+export function fitGameBoardSize(
+  columnWidth: number,
+  columnHeight: number,
+  treatment: BoardTreatmentChoice = "walnut",
+): number {
+  const widthForBoard = Math.max(0, columnWidth - 98);
+  const heightForBoard = Math.max(0, columnHeight - 126);
+  return fitBoardSize(widthForBoard, heightForBoard, treatment);
+}
