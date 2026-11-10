@@ -224,9 +224,16 @@ pub fn parse_bestmove_line(line: &str) -> Option<BestMove> {
 /// 1. Explicit user-set path (persisted in the UI). If set but missing,
 ///    this is a hard error — an explicit choice is never silently ignored.
 /// 2. `KIBITZ_STOCKFISH` environment variable (skipped if stale/missing).
-/// 3. `tools/stockfish/stockfish-macos-m1-apple-silicon` relative to the
-///    repo root, found by walking up from the current dir and the exe dir.
-/// 4. `stockfish` on `PATH`.
+/// 3. Repo-local Apple Silicon dev binary, only on macOS ARM64.
+///    It must not be auto-selected on Intel macOS, Linux or Windows.
+/// 4. `stockfish` on `PATH` (including Intel macOS).
+/// The repository's bundled development binary targets Apple Silicon.
+/// Using it as the default on Intel Macs or other operating systems
+/// would produce an unusable engine even though the file exists.
+fn use_repo_apple_silicon_binary() -> bool {
+    cfg!(all(target_os = "macos", target_arch = "aarch64"))
+}
+
 pub fn resolve_engine_path(user_path: Option<&str>) -> Result<PathBuf, String> {
     if let Some(p) = user_path.map(str::trim).filter(|p| !p.is_empty()) {
         let path = PathBuf::from(p);
@@ -251,11 +258,13 @@ pub fn resolve_engine_path(user_path: Option<&str>) -> Result<PathBuf, String> {
             roots.push(dir.to_path_buf());
         }
     }
-    for root in &roots {
-        for dir in root.ancestors() {
-            let candidate = dir.join(REPO_ENGINE_RELPATH);
-            if candidate.is_file() {
-                return Ok(candidate);
+    if use_repo_apple_silicon_binary() {
+        for root in &roots {
+            for dir in root.ancestors() {
+                let candidate = dir.join(REPO_ENGINE_RELPATH);
+                if candidate.is_file() {
+                    return Ok(candidate);
+                }
             }
         }
     }
@@ -504,6 +513,16 @@ mod tests {
             UciPosition::Fen("8/8/8/8/8/8/8/K1k5 w - - 0 1".into()).to_command(),
             "position fen 8/8/8/8/8/8/8/K1k5 w - - 0 1"
         );
+    }
+
+    #[test]
+    fn apple_silicon_dev_binary_is_never_selected_on_intel_mac() {
+        #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
+        assert!(!use_repo_apple_silicon_binary());
+        #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+        assert!(use_repo_apple_silicon_binary());
+        #[cfg(not(target_os = "macos"))]
+        assert!(!use_repo_apple_silicon_binary());
     }
 
     #[test]
