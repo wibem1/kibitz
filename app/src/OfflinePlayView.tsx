@@ -50,6 +50,7 @@ export default function OfflinePlayView({ treatment }: Props) {
     requestOfflineEngineMove(fen, 20_000, path)
       .then((uci) => {
         if (cancelled) return;
+        setThinking(false);
         const next = playLocalUci(game, uci);
         if (!next) {
           setFailedFen(fen);
@@ -61,10 +62,10 @@ export default function OfflinePlayView({ treatment }: Props) {
       })
       .catch((error) => {
         if (cancelled) return;
+        setThinking(false);
         setFailedFen(fen);
         setNotice(`Stockfish konnte nicht ziehen: ${String(error)}`);
-      })
-      .finally(() => { if (!cancelled) setThinking(false); });
+      });
     return () => { cancelled = true; };
   }, [engineTurn, failedFen, fen, game]);
   const lastUci = game.ucis[game.ucis.length - 1];
