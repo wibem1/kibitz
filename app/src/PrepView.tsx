@@ -56,7 +56,7 @@ interface PrepViewProps {
   /** Round-2 navigation contract (lib/shell.ts ViewParams): opponent name
    * to prefill step 1 — Home's "Prep an opponent" Go navigates here. */
   opponent?: string | null;
-  /** Shell navigation ("Open his profile" → Profile, opponent subject). */
+  /** Shell navigation ("Gegnerprofil öffnen" → Profile, opponent subject). */
   onNavigate: (view: ViewId, params?: ViewParams) => void;
   /** Board skin for the aside board. */
   treatment?: BoardTreatment;
@@ -221,16 +221,16 @@ export default function PrepView({
   /* ---- fingerprint table ---- */
   const fpCols: DataTableColumn<FingerprintRow>[] = [
     { key: "eco", header: "ECO", render: (r) => <span className="cell-eco">{r.eco}</span> },
-    { key: "name", header: "OPENING", render: (r) => r.name ?? <span className="cell-dim">—</span> },
+    { key: "name", header: "ERÖFFNUNG", render: (r) => r.name ?? <span className="cell-dim">—</span> },
     {
       key: "share",
-      header: "SHARE",
+      header: "ANTEIL",
       align: "right",
       render: (r) => <span className="cell-mono">{r.sharePct.toFixed(0)}%</span>,
     },
     {
       key: "score",
-      header: "SCORE",
+      header: "ERGEBNIS",
       render: (r) => (
         <span className="prep2-score">
           <span className="prep2-score-bar">
@@ -244,12 +244,12 @@ export default function PrepView({
     },
     {
       key: "elo",
-      header: "AVG ELO",
+      header: "Ø ELO",
       align: "right",
       render: () => (
         <span
           className="prep2-elo-none"
-          title="Per-family average Elo is not recorded by the fingerprint yet."
+          title="Die durchschnittliche Elozahl je Eröffnungsfamilie wird derzeit nicht erfasst."
         >
           —
         </span>
@@ -257,7 +257,7 @@ export default function PrepView({
     },
     {
       key: "exit",
-      header: "BOOK EXIT",
+      header: "BUCHENDE",
       render: (r) => {
         const exit = fp ? bookExitFor(r, fp.bookExits) : null;
         return exit ? (
@@ -274,7 +274,7 @@ export default function PrepView({
   const mgCols: DataTableColumn<MasterGame>[] = [
     {
       key: "white",
-      header: "WHITE",
+      header: "WEISS",
       render: (m) => (
         <>
           {m.white}
@@ -284,7 +284,7 @@ export default function PrepView({
     },
     {
       key: "black",
-      header: "BLACK",
+      header: "SCHWARZ",
       render: (m) => (
         <>
           {m.black}
@@ -292,17 +292,17 @@ export default function PrepView({
         </>
       ),
     },
-    { key: "result", header: "RESULT", render: (m) => <span className="cell-result">{m.result}</span> },
-    { key: "event", header: "EVENT", render: (m) => <span className="cell-dim">{m.event}</span> },
+    { key: "result", header: "ERGEBNIS", render: (m) => <span className="cell-result">{m.result}</span> },
+    { key: "event", header: "TURNIER", render: (m) => <span className="cell-dim">{m.event}</span> },
     {
       key: "year",
-      header: "YEAR",
+      header: "JAHR",
       align: "right",
       render: (m) => <span className="cell-date">{m.date?.slice(0, 4) ?? "—"}</span>,
     },
     {
       key: "ply",
-      header: "AT PLY",
+      header: "BEI HALBZUG",
       align: "right",
       render: (m) => <span className="cell-date">{m.ply}</span>,
     },
@@ -323,8 +323,8 @@ export default function PrepView({
   return (
     <div className="prep2">
       <ScreenHeader
-        title="Opponent prep"
-        subtitle="Pick an opponent, fingerprint the repertoire, find the soft lines"
+        title="Gegnervorbereitung"
+        subtitle="Gegner auswählen, Eröffnungen untersuchen und Schwachstellen finden"
       />
       <Stepper
         steps={steps}
@@ -344,30 +344,30 @@ export default function PrepView({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && void search(query)}
-                  placeholder="Opponent name…"
+                  placeholder="Name des Gegners…"
                   spellCheck={false}
                 />
                 <button className="btn-secondary" onClick={() => void search(query)} disabled={searching}>
-                  {searching ? "Searching…" : "Search local"}
+                  {searching ? "Suche läuft…" : "Lokal suchen"}
                 </button>
                 <button
                   className="btn-secondary"
                   disabled
-                  title="Account fetch ships with the sync surface; today it runs from the CLI: kibitz-cli lichess-sync."
+                  title="Der Abruf ist hier noch nicht verfügbar. Er erfolgt derzeit über die Kommandozeile: kibitz-cli lichess-sync."
                 >
-                  Fetch from Lichess
+                  Von Lichess abrufen
                 </button>
                 <button
                   className="btn-secondary"
                   disabled
-                  title="Account fetch ships with the sync surface; today it runs from the CLI: kibitz-cli chesscom-sync."
+                  title="Der Abruf ist hier noch nicht verfügbar. Er erfolgt derzeit über die Kommandozeile: kibitz-cli chesscom-sync."
                 >
-                  Fetch from chess.com
+                  Von chess.com abrufen
                 </button>
               </div>
               {error && <div className="error">{error}</div>}
               {candidates && candidates.length === 0 && (
-                <div className="pf2-empty">No local players match “{query.trim()}”.</div>
+                <div className="pf2-empty">Keine lokalen Spieler mit „{query.trim()}“ gefunden.</div>
               )}
               {candidates && candidates.length > 0 && (
                 <div className="prep2-results">
@@ -380,18 +380,17 @@ export default function PrepView({
                     >
                       <span className="prep2-result-name">{c.name}</span>
                       <span className="prep2-result-games">
-                        {c.games !== null ? `${c.games} game${c.games === 1 ? "" : "s"}` : ""}
+                        {c.games !== null ? `${c.games} ${c.games === 1 ? "Partie" : "Partien"}` : ""}
                       </span>
-                      <span className="source-tag dim">local</span>
+                      <span className="source-tag dim">lokal</span>
                     </button>
                   ))}
                 </div>
               )}
               <p className="prep2-footnote">
-                Local hits come from your own database first. Fetching would pull that player&rsquo;s
-                public games on demand — the engine stays cold; nothing is analysed until you ask
-                for it. Account fetch currently runs from the CLI (kibitz-cli lichess-sync /
-                chesscom-sync).
+                Die Treffer stammen aus deiner lokalen Datenbank. Öffentliche Partien können derzeit
+                über die Kommandozeile abgerufen werden (kibitz-cli lichess-sync / chesscom-sync).
+                Die Schachengine bleibt dabei ausgeschaltet; ohne ausdrücklichen Auftrag wird nichts analysiert.
               </p>
             </div>
           )}
@@ -399,24 +398,24 @@ export default function PrepView({
           {step === 2 && (
             <div>
               <div className="prep2-fp-head">
-                <span className="prep2-strip-title">REPERTOIRE FINGERPRINT</span>
-                <div className="seg" role="tablist" aria-label="Repertoire colour">
+                <span className="prep2-strip-title">ERÖFFNUNGSPROFIL</span>
+                <div className="seg" role="tablist" aria-label="Spielfarbe">
                   <button className={color === "white" ? "cur" : ""} onClick={() => setColor("white")}>
-                    as White
+                    als Weiß
                   </button>
                   <button className={color === "black" ? "cur" : ""} onClick={() => setColor("black")}>
-                    as Black
+                    als Schwarz
                   </button>
                 </div>
                 {fp && (
                   <span className="prep2-fp-meta">
-                    {fp.games} games as {color === "white" ? "White" : "Black"} · scores{" "}
+                    {fp.games} Partien als {color === "white" ? "Weiß" : "Schwarz"} · Ergebnis{" "}
                     {fp.scorePct.toFixed(1)}%
                   </span>
                 )}
               </div>
               {error && <div className="error">{error}</div>}
-              {loadingPrep && <div className="pf2-empty">Fingerprinting {selOpponent}…</div>}
+              {loadingPrep && <div className="pf2-empty">Untersuche das Eröffnungsprofil von {selOpponent}…</div>}
               {fp && (
                 <DataTable
                   columns={fpCols}
@@ -425,13 +424,13 @@ export default function PrepView({
                   rowKey={(r) => r.eco}
                   onRowClick={() => goTo(3)}
                   rowClassName={(r) => (fingerprintRowWeak(r) ? "prep2-weak-row" : undefined)}
-                  empty="No games for this colour."
+                  empty="Keine Partien mit dieser Farbe vorhanden."
                 />
               )}
               {fp && (
                 <p className="prep2-footnote">
-                  Weak families (under 50% with a real sample) are marked; click a row — or the
-                  ③ chip — to rank the weak lines.
+                  Schwache Eröffnungsfamilien (unter 50 % bei ausreichender Datenbasis) sind markiert.
+                  Klicke auf eine Zeile oder auf Schritt ③, um die Schwachstellen zu sortieren.
                 </p>
               )}
             </div>
@@ -439,13 +438,13 @@ export default function PrepView({
 
           {step === 3 && (
             <div>
-              <div className="prep2-strip-title standalone">WEAKEST LINES — RANKED</div>
+              <div className="prep2-strip-title standalone">SCHWÄCHSTE VARIANTEN – SORTIERT</div>
               {error && <div className="error">{error}</div>}
-              {loadingPrep && <div className="pf2-empty">Ranking weak lines…</div>}
+              {loadingPrep && <div className="pf2-empty">Sortiere schwache Varianten…</div>}
               {lines && lines.length === 0 && (
                 <div className="pf2-empty">
-                  No weak lines found for {selOpponent} as {color} (needs 3+ games per spot and an
-                  under-50% score).
+                  Keine schwachen Varianten für {selOpponent} als {color === "white" ? "Weiß" : "Schwarz"} gefunden
+                  (mindestens drei Partien je Stellung und ein Ergebnis unter 50 % erforderlich).
                 </div>
               )}
               {lines && lines.length > 0 && (
@@ -474,10 +473,10 @@ export default function PrepView({
 
           {step === 4 && (
             <div>
-              <div className="prep2-strip-title standalone">MASTER GAMES IN THIS EXACT POSITION</div>
+              <div className="prep2-strip-title standalone">MEISTERPARTIEN IN DIESER STELLUNG</div>
               {selLine && (
                 <div className="prep2-line-context">
-                  {lineName(selLine)} · {lineScore(selLine)} · {selOpponent} plays{" "}
+                  {lineName(selLine)} · {lineScore(selLine)} · {selOpponent} spielt{" "}
                   {selLine.opponentMoves.join(" / ")}
                 </div>
               )}
@@ -487,7 +486,7 @@ export default function PrepView({
                 gridTemplate="1.4fr 1.4fr 58px 1fr 74px 96px"
                 rowKey={(m) => m.gameId}
                 onRowClick={(m) => onLoadGameAt(m.gameId, m.ply)}
-                empty="No master games reach this spot."
+                empty="Keine Meisterpartien zu dieser Stellung vorhanden."
               />
               <p className="prep2-footnote">{MASTER_RANKING_RULE}</p>
             </div>
@@ -498,11 +497,11 @@ export default function PrepView({
           <Board fen={asideFen ?? START_FEN} treatment={treatment} size={472} />
           <div className="prep2-aside-caption">
             {selLine && asideFen
-              ? `${lineName(selLine).toUpperCase()} · BY PLY ${selLine.ply} · SCORES ${selLine.scorePct.toFixed(0)}%`
-              : "NO PREP POSITION CHOSEN YET · STARTING POSITION"}
+              ? `${lineName(selLine).toUpperCase()} · BEI HALBZUG ${selLine.ply} · ERGEBNIS ${selLine.scorePct.toFixed(0)}%`
+              : "NOCH KEINE STELLUNG AUSGEWÄHLT · ANFANGSSTELLUNG"}
           </div>
           <div>
-            <div className="prep2-finding-label">PROFILE FINDING · THIS OPPONENT</div>
+            <div className="prep2-finding-label">PROFILBEFUND · DIESER GEGNER</div>
             <p className="prep2-finding">{finding}</p>
             <div className="prep2-aside-buttons">
               <button
@@ -510,7 +509,7 @@ export default function PrepView({
                 disabled={!selOpponent}
                 onClick={() => selOpponent && onNavigate("profile", { opponent: selOpponent })}
               >
-                Open his profile
+                Gegnerprofil öffnen
               </button>
               <button
                 className="btn-primary"
@@ -521,7 +520,7 @@ export default function PrepView({
                   }
                 }}
               >
-                Study in game view
+                In der Partie untersuchen
               </button>
             </div>
           </div>
