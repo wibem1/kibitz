@@ -1,3 +1,13 @@
+# Kibitz DE – 10.11.2026: 23/25 Erklärungsengine-Tests und anschließende Korrekturen
+
+[CI 42916960458](https://github.com/wibem1/kibitz/actions/runs/42916960458) meldete im Mac-Rust-Job für `crates/kibitz-verbalize/tests/verbalize.rs` **23 von 25 Tests erfolgreich**. Die beiden verbleibenden Fehler waren eine falsch erwartete Groß-/Kleinschreibung in einem deutschen Entwicklungshinweis und eine im Englischen bestehende, in der Übersetzung versehentlich verlorene Unterscheidung zwischen Coach- und Neutral-Eröffnungskommentar. Korrigiert in `a5a17ffd` und `3e7f3650`; die genderabhängige Formulierung `Dame ... seinen Schutz` wurde zugleich durch die grammatisch neutrale `steht ohne Deckung` ersetzt.
+
+Im nächsten Zwischenlauf `42917260842` bestanden danach die Verbalizer-Tests unter Ubuntu; der verbleibende Fehler im narrations-PGN-Regressionstest war die alte erwartete Coach-Buchformulierung. Korrigiert in `bd73b509`. **Die danach gestartete vollständige CI [42917505533](https://github.com/wibem1/kibitz/actions/runs/42917505533) ist bei der letzten Abfrage noch nicht abgeschlossen**; Intel-Test-DMG [42917505584](https://github.com/wibem1/kibitz/actions/runs/42917505584) ebenfalls noch ausstehend. Keinen grünen Gesamtstatus behaupten, bevor beide Tests abgeschlossen sind.
+
+**Wichtig für die reale Abnahme:** Frisch erzeugte Positions-Erklärungen sollen deutsch sein. Bereits früher in der lokalen Datenbank gespeicherte englische Kommentare werden nicht von selbst ausgetauscht; eine erneute Annotation ist erforderlich. Die Brettfixierung wurde bisher nur anhand des Quellcodes geprüft, nicht an einem echten Intel-Mac.
+
+---
+
 # Kibitz DE – 10.11.2026: Restfehler der deutschen Erklärungsengine in Tests behoben (CI läuft)
 
 **Anlass:** Der auf Deutsch umgestellte Verbalizer erzeugt erwartungsgemäß andere Texte; die vollständige CI für den bisherigen Branch scheiterte auf Ubuntu und macOS **nicht an Compile-Problemen**, sondern an 16 bislang englisch kodierten Textprüfungen in `crates/kibitz-verbalize/tests/verbalize.rs`. Beleg: [Run 42911652966](https://github.com/wibem1/kibitz/actions/runs/42911652966), Rust-Jobs `failure`, beide App-Jobs `success`; zugehöriger Intel-DMG-Workflow `42911652957` `success` (aber Rust-Gesamttests rot, daher **nicht freigeben**).
