@@ -1,3 +1,17 @@
+# Kibitz DE – 10.11.2026: deutschsprachige Analyse CI-grün und aktuelles Intel-Mac-DMG gebaut
+
+**Verbindlicher Quellstand für diesen Prüfpunkt:** Commit `6b6d8f6acf65358e77970b4eac1598d337f3cecb` auf `feat/de-simple-readable-ui`.
+
+**Vollständige CI erfolgreich:** [GitHub Actions Run 42918245931](https://github.com/wibem1/kibitz/actions/runs/42918245931), `completed/success` mit allen vier Jobs: `rust (ubuntu-latest)`, `rust (macos-latest)`, `app (ubuntu-latest)`, `app (macos-latest)`. Der App-Ubuntu-Log bestätigt zuvor 624/624 Frontendtests, TypeScript-Prüfung und Vite-Build erfolgreich. Der gleiche Commit umfasst die Übertragung von 451 Analyse-Template-Einträgen ins Deutsche und die Anpassung der zugehörigen Rust- und PGN-Tests. Vorherige rote CI-Läufe betrafen englisch formulierte Test-Erwartungen und Rustfmt und sind mit `6b6d8f6` behoben.
+
+**Intel-Mac-Testpaket erfolgreich erstellt:** [Actions Run 42918245930](https://github.com/wibem1/kibitz/actions/runs/42918245930) `completed/success`; [Artefakt kibitz-de-intel-mac-unsigned-test, ID 13809953480](https://github.com/wibem1/kibitz/actions/runs/42918245930/artifacts/13809953480) (ZIP 11.693.739 Bytes; enthält `Kibitz_0.1.2_x64.dmg`). Buildlog bestätigt `Mach-O 64-bit executable x86_64`, genau ein DMG und erfolgreichen Upload. **Unsignierter Testbuild, kein offizieller Release.**
+
+**Noch nicht abgenommen:** Die Nutzerbeschwerde `Brett springt beim Zug vor/zurück` wurde durch stabile Breiten-/Höhenmessung und obere Verankerung der Brettspalte adressiert; reales Verhalten am Intel Mac ist **nicht** geprüft. Ebenso müssen deutsche Frischerklärungen im echten App-Fenster bestätigt werden. Schon in SQLite gespeicherte englische Annotations- oder Fremd-PGN-Texte werden nicht rückwirkend von der Template-Übersetzung geändert; für neu erzeugte Anmerkungen muss eine neue Annotation erfolgen.
+
+**Nächster einzelner Schritt:** Nutzer installiert dieses genau geprüfte Intel-DMG und prüft in `Partie & Analyse` zunächst mehrmals `Zurück/Weiter` und `Stellung erklären` an einer noch nicht erklärten Stellung. Bei Fehlern Diagnose über Einstellungen exportieren. Erst nach echter GUI-Abnahme Veröffentlichung erwägen. Maia 2 bleibt separate spätere Funktion.
+
+---
+
 # Kibitz DE – 10.11.2026: 23/25 Erklärungsengine-Tests und anschließende Korrekturen
 
 [CI 42916960458](https://github.com/wibem1/kibitz/actions/runs/42916960458) meldete im Mac-Rust-Job für `crates/kibitz-verbalize/tests/verbalize.rs` **23 von 25 Tests erfolgreich**. Die beiden verbleibenden Fehler waren eine falsch erwartete Groß-/Kleinschreibung in einem deutschen Entwicklungshinweis und eine im Englischen bestehende, in der Übersetzung versehentlich verlorene Unterscheidung zwischen Coach- und Neutral-Eröffnungskommentar. Korrigiert in `a5a17ffd` und `3e7f3650`; die genderabhängige Formulierung `Dame ... seinen Schutz` wurde zugleich durch die grammatisch neutrale `steht ohne Deckung` ersetzt.
