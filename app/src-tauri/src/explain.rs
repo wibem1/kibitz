@@ -290,7 +290,7 @@ mod tests {
             serving(&with)
         );
         assert!(
-            with.prose.contains("develop") || with.prose.to_lowercase().contains("at home"),
+            with.prose.contains("entwickeln") || with.prose.contains("Entwicklung"),
             "{}",
             with.prose
         );
@@ -327,7 +327,7 @@ mod tests {
             explain_position_ctx(FEN, Voice::default(), None, Some(history()), true).unwrap();
         assert!(!serving(&in_book).iter().any(|t| t == "CompleteDevelopment"));
         assert!(
-            in_book.prose.starts_with("Still in the book"),
+            in_book.prose.starts_with("Diese Stellung ist noch aus der Eröffnungstheorie"),
             "{}",
             in_book.prose
         );
@@ -338,7 +338,7 @@ mod tests {
         let book_in_blocks = blocks.iter().any(|b| {
             b["text"]["coach"]
                 .as_str()
-                .is_some_and(|t| t.contains("book"))
+                .is_some_and(|t| t.contains("Eröffnungstheorie"))
         });
         let book_in_headline = in_book.explanation["headline"]["coach"]
             .as_str()
