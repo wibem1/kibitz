@@ -1,3 +1,15 @@
+# Kibitz DE – 10.11.2026: korrekter PGN-Ausgang im Offline-Modus
+
+**Implementiert:** `lib/localPlay.ts` ermittelt den regulären Endstand aus `chessops`-Position/`outcome()`: Weiß gewinnt `1-0`, Schwarz gewinnt `0-1`, regelkonformes Remis `1/2-1/2`, laufende Partie `*`. Die PGN-Kopfzeile `Result` und der Abschlussmarker nutzen denselben Wert. `OfflinePlayView.tsx` zeigt eine deutsche Meldung bei Partieende. Isolierter Regressionstest für das Narrenmatt `1. f3 e5 2. g4 Dh4#` ergänzt; normaler unvollendeter Export bleibt `*`. Commits: `bab5accf`, `144e0524`, `7828789e`.
+
+**Prüfstatus:** Nach Quelltextsichtprüfung in GitHub gespeichert. Keine erfolgreiche Ausführung von Vitest oder Tauri bestätigt. Vorherige CI-Läufe 42840633875 und 42841081341 meldeten bei erneuter Abfrage noch `queued`. Für Testcommit `7828789e` war noch kein zugeordneter CI-Lauf verfügbar. Keine Releasefreigabe.
+
+**Bekannte Einschränkungen:** Manuelle Aufgabe/Remisvereinbarung ohne schachliche Endstellung fehlt im lokalen Modus; keine Uhr, kein gespeicherter Zwischenstand, noch kein Stockfish/Maia-Spiel oder freier KI-Chat. Ein Remisgrund wird vorerst allgemein als „Remis“ angezeigt.
+
+**Nächster einzelner Schritt:** CI-Status prüfen; Fehler priorisiert beheben. Danach Offlinepartie beim Wechsel zwischen Ansichten dauerhaft erhalten (validierter Zustand und Save/Restore), bevor Engine-Gegner ergänzt werden.
+
+---
+
 # Kibitz DE – 10.11.2026: erster Offline-Spielmodus implementiert
 
 **Implementiert (Code auf GitHub):** Unabhängige neue Ansicht `OfflinePlayView.tsx` für zwei Personen am selben Rechner, aufgebaut auf dem bestehenden Chessground-Brett und `chessops`. `lib/localPlay.ts`: Ausgangsstellung, legale Züge inklusive Umwandlung über vorhandenen Picker, Zugfolge mit FEN/SAN/UCI, Rücknahme eines Halbzuges und PGN-Export mit offenem Ergebnis `*`. UI: Brett drehen, neue Partie mit Bestätigung, PGN herunterladen. Keine Netz- oder Engine-Aufrufe; bewusste Trennung von Lichess-Online-Partien und dortiger Fair-Play-Sperre. Hauptnavigation und `ViewId` auf `offline` erweitert; sichtbar in einfacher Navigation. Neuer Unit-Test `lib/localPlay.test.ts` (legal/illegal, Farben, Undo, PGN, Matt) und Rail-Test aktualisiert.
