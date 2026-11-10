@@ -1,5 +1,5 @@
 /** Offline pass-and-play: deliberately isolated from Lichess and engines. */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Board, { type BoardMovable } from "./Board";
 import ScreenHeader from "./shell/ScreenHeader";
 import { usePromotionPicker } from "./PromotionPicker";
@@ -30,6 +30,14 @@ export default function OfflinePlayView({ treatment, onEngineSettings }: Props) 
   const [humanColor, setHumanColor] = useState<"white" | "black">(restored.humanColor);
   const [thinking, setThinking] = useState(false);
   const [failedFen, setFailedFen] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  // React can reuse the same .page-scroll DOM node across screens. Reset its
+  // former scroll offset before paint, otherwise rank eight starts behind the
+  // page header when opening Offline spielen from a scrolled screen.
+  useLayoutEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, []);
+
   // Offline play has its own board layout. Never rely on Board's 520px
   // default: reserve enough room for the move list while using the remaining
   // space in the application window for an actually readable chessboard.
@@ -135,7 +143,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings }: Props) 
   return (
     <>
       <ScreenHeader title="Offline spielen" subtitle="Gegen einen Menschen oder Stockfish · ohne Internetverbindung" />
-      <div className="page-scroll">
+      <div className="page-scroll" ref={scrollRef}>
         <div className="play-page offline-play-page">
           <div className="play-columns">
             <div className="play-board-col" style={{ width: boardSize + 32, maxWidth: "100%" }}>
