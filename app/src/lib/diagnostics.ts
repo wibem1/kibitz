@@ -42,7 +42,7 @@ export function initializeDiagnostics(candidate: DiagnosticStorage): void {
       if (typeof event !== "object" || event === null) continue;
       const item = event as Record<string, unknown>;
       if (typeof item.code !== "string" || !allowedCodes.has(item.code as DiagnosticCode)) continue;
-      if (typeof item.time !== "string" || !/^\\d{4}-\\d\\d-\\d\\dT/.test(item.time)) continue;
+      if (typeof item.time !== "string" || !/^\d{4}-\d\d-\d\dT/.test(item.time)) continue;
       events.push({ code: item.code as DiagnosticCode, time: item.time });
     }
   } catch { /* disabled or corrupt storage: stay in-memory */ }
