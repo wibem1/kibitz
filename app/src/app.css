@@ -340,6 +340,10 @@ textarea {
   padding: 22px 26px;
   overflow-y: auto;
   overflow-x: hidden;
+  /* Conditional analysis strips may change the column's scroll range.
+     Never let browser scroll anchoring shift the board on a move. */
+  overflow-anchor: none;
+  scrollbar-gutter: stable;
 }
 /* The board stays anchored at the top; conditional rows below it
    may change height without moving or resizing the board. */
@@ -493,7 +497,10 @@ textarea {
 /* ---- right pane (design §D) ---------------------------------------------- */
 
 .right-pane {
-  flex: 0 0 472px;
+  /* Prior 472px panel made the board uncomfortably small on laptop screens.
+     Reserve about one quarter of the game area for explanations and moves. */
+  flex: 0 0 clamp(320px, 27%, 360px);
+  min-width: 0;
   background: var(--panel);
   border-left: 1px solid var(--line);
   display: flex;
