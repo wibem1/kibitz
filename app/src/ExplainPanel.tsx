@@ -99,7 +99,7 @@ export default function ExplainPanel({
           : verifying
             ? "Stellungsprüfung · Kandidaten werden geprüft …"
             : "Stellungsprüfung · ohne Engine",
-        `${voice === "coach" ? "Trainer" : "Neutral"} voice · templates`,
+        `${voice === "coach" ? "Trainer" : "Neutral"} · Textbausteine`,
         selectionNote(selectedSquare),
       ].join(" · ")
     : null;
@@ -193,7 +193,7 @@ export default function ExplainPanel({
                 <button className="explain-expander" onClick={onToggleFindings}>
                   {findingsExpanded
                     ? "▴ Nur Zusammenfassung"
-                    : `▾ ${moreCount} weitere Hinweise – bereits auf dem Brett markiert`}
+                    : `▾ ${moreCount} ${moreCount === 1 ? "weiterer Hinweis" : "weitere Hinweise"} – bereits auf dem Brett markiert`}
                 </button>
               )}
               {meta && <div className="explain-meta">{meta}</div>}
