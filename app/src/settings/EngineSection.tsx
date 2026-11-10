@@ -134,33 +134,33 @@ export default function EngineSection() {
       setTb(info);
       saveTbDir(tbDir);
       setTbNote(
-        info.available ? "Saved — tables loaded." : "Saved, but no usable tables at that path.",
+        info.available ? "Gespeichert – Endspieldatenbanken geladen." : "Gespeichert, aber unter diesem Pfad wurden keine nutzbaren Tabellen gefunden.",
       );
     } catch (e) {
-      setTbNote(`Tablebase dir: ${e}`);
+      setTbNote(`Endspieldatenbank-Verzeichnis: ${e}`);
     }
   }, [tbDir]);
 
   return (
     <div className="set-group">
-      <div className="set-group-head">ENGINE MANAGER</div>
+      <div className="set-group-head">ENGINEVERWALTUNG</div>
       <Row
-        label="Engine binary"
-        help="Resolution order: this override, then KIBITZ_STOCKFISH, the repo binary, and stockfish on PATH. Verify runs the UCI handshake only — no search, no background spawn."
+        label="Engineprogramm"
+        help="Zuerst wird dieser Pfad verwendet, danach KIBITZ_STOCKFISH, die mitgelieferte Engine und zuletzt Stockfish im Systempfad. Die Verbindungskontrolle prüft nur UCI und startet keine Schachsuche."
         value={
           <div className="set-stack">
             <input
               className="set-value mono editing"
               type="text"
               value={enginePath}
-              placeholder="resolved automatically if empty"
+              placeholder="Bei leerem Feld automatisch suchen"
               spellCheck={false}
               onChange={(e) => onEnginePathChange(e.target.value)}
             />
             <div className="set-subline mono" title={resolved ?? resolveError ?? undefined}>
               {resolved !== null
-                ? `resolves to ${resolved}`
-                : (resolveError ?? "resolving…")}
+                ? `Gefunden: ${resolved}`
+                : (resolveError ?? "Pfad wird gesucht …")}
             </div>
             {verifyLine && (
               <div
@@ -176,15 +176,15 @@ export default function EngineSection() {
             className="btn-ghost"
             onClick={() => void doVerify()}
             disabled={verifying || resolved === null}
-            title="Spawn the binary, run the uci handshake, read its id name, quit"
+            title="Programm starten, UCI-Kennung prüfen und sofort beenden"
           >
-            {verifying ? "Verifying…" : "Verify & get version"}
+            {verifying ? "Prüfung läuft …" : "Verbindung und Version prüfen"}
           </button>
         }
       />
       <Row
-        label="Node budget"
-        help="Per analysis request; every engine job is bounded by it. Separators are fine (2,000,000)."
+        label="Rechenlimit (Knoten)"
+        help="Maximale Zahl der untersuchten Stellungen pro Analyseauftrag. Zifferngruppen dürfen getrennt werden (2.000.000)."
         value={
           <input
             className={`set-value mono editing${nodesParsed === null ? " invalid" : ""}`}
@@ -195,13 +195,13 @@ export default function EngineSection() {
             onChange={(e) => setNodesText(e.target.value)}
             onBlur={onNodesCommit}
             onKeyDown={(e) => e.key === "Enter" && onNodesCommit()}
-            aria-label="Node budget"
+            aria-label="Rechenlimit in Knoten"
           />
         }
       />
       <Row
-        label="Syzygy tablebases"
-        help="Directory of .rtbw/.rtbz files for the endgame trainer. Empty = automatic (KIBITZ_SYZYGY, else the repo's testdata/syzygy). An explicit path is never silently substituted."
+        label="Syzygy-Endspieldatenbanken"
+        help="Verzeichnis der .rtbw/.rtbz-Dateien für das Endspieltraining. Leer bedeutet automatische Suche über KIBITZ_SYZYGY oder das Testverzeichnis. Ein eingetragener Pfad wird nicht stillschweigend ersetzt."
         value={
           <div className="set-stack">
             <input
@@ -221,7 +221,7 @@ export default function EngineSection() {
         }
         action={
           <button className="btn-ghost" onClick={() => void applyTbDir()}>
-            Apply
+            Übernehmen
           </button>
         }
       />
