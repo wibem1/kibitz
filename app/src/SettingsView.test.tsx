@@ -117,8 +117,8 @@ describe("Settings — honesty rows", () => {
   it("states the engine-off default in words", async () => {
     const { container } = renderSettings();
     await waitFor(() => expect(commitmentGet).toHaveBeenCalled());
-    expect(container.textContent).toContain("The engine is off by default");
-    expect(container.textContent).toContain("On explicit request only");
+    expect(container.textContent).toContain("Die Engine ist standardmäßig aus");
+    expect(container.textContent).toContain("Nur bei Bedarf");
   });
 
   it("shows the fixed cburnett piece set as a read-only row", async () => {
