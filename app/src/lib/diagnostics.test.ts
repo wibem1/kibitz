@@ -46,6 +46,24 @@ describe("Diagnose ohne vertrauliche Inhalte", () => {
     expect(report).not.toContain("/Users/private");
   });
 
+  it("stellt nur korrekt formatierte Zeitstempel wieder her", () => {
+    const store = new Map<string, string>([[
+      "kibitz.diagnosticEvents.v1",
+      JSON.stringify([
+        { code: "ui_error", time: "ungueltig" },
+        { code: "offline_engine_move", time: "2026-11-10T12:00:00.000Z" },
+      ]),
+    ]]);
+    initializeDiagnostics({
+      getItem: (key) => store.get(key) ?? null,
+      setItem: (key, value) => { store.set(key, value); },
+      removeItem: (key) => { store.delete(key); },
+    });
+    expect(diagnosticsReport().events).toEqual([
+      { code: "offline_engine_move", time: "2026-11-10T12:00:00.000Z" },
+    ]);
+  });
+
   it("speichert nur feste Ereigniscodes ohne Fehlertext", () => {
     const raw = "Configured engine path does not exist: /Users/private/secret-key";
     recordDiagnostic(diagnoseEngineFailure(raw));
