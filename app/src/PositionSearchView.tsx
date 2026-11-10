@@ -147,7 +147,7 @@ export default function PositionSearchView({
 
   const pill =
     results !== null
-      ? `${results.total.toLocaleString("de-DE"} PARTIEN · ${
+      ? `${results.total.toLocaleString("de-DE")} PARTIEN · ${
           results.elapsedMs < 1 ? "<1" : Math.round(results.elapsedMs)
         } ms`
       : null;
@@ -274,7 +274,7 @@ export default function PositionSearchView({
                     <div className="pager-row">
                       <span className="pager-note">
                         Angezeigt werden {results.rows.length} von{" "}
-                        {results.total.toLocaleString("de-DE"} Treffern.
+                        {results.total.toLocaleString("de-DE")} Treffern.
                       </span>
                     </div>
                   ) : undefined
