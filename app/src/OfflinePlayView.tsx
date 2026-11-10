@@ -29,6 +29,25 @@ export default function OfflinePlayView({ treatment }: Props) {
   const [humanColor, setHumanColor] = useState<"white" | "black">(restored.humanColor);
   const [thinking, setThinking] = useState(false);
   const [failedFen, setFailedFen] = useState<string | null>(null);
+  // Offline play has its own board layout. Never rely on Board's 520px
+  // default: reserve enough room for the move list while using the remaining
+  // space in the application window for an actually readable chessboard.
+  const [windowSize, setWindowSize] = useState(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }));
+  useEffect(() => {
+    const onResize = () => setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  const boardSize = Math.max(496, Math.min(
+    720,
+    Math.floor(Math.min(
+      windowSize.width - (windowSize.width >= 1140 ? 204 + 340 + 70 : 204 + 52),
+      windowSize.height - 195,
+    ) / 8) * 8,
+  ));
   useEffect(() => {
     let saved = false;
     try { saved = storeOfflineSession(window.localStorage, game, flipped, opponent, humanColor); }
@@ -122,7 +141,7 @@ export default function OfflinePlayView({ treatment }: Props) {
     <>
       <ScreenHeader title="Offline spielen" subtitle="Gegen einen Menschen oder Stockfish · ohne Internetverbindung" />
       <div className="page-scroll">
-        <div className="play-page">
+        <div className="play-page offline-play-page">
           <div className="play-columns">
             <div className="play-board-col">
               <div className="play-player">
@@ -130,7 +149,7 @@ export default function OfflinePlayView({ treatment }: Props) {
               </div>
               <div style={{ position: "relative" }}>
                 <Board fen={fen} movable={movable} lastMove={lastMove}
-                  orientation={flipped ? "black" : "white"} treatment={treatment} />
+                  orientation={flipped ? "black" : "white"} treatment={treatment} size={boardSize} />
                 {promo.element}
               </div>
               <div className="play-actions">
