@@ -236,7 +236,7 @@ export function HomeContent({
               <span className="home-panel-title">{since ?? "NEU DIESE WOCHE"}</span>
             </div>
             {summary.newGames.length === 0 ? (
-              <p className="home-prose dim">No new games this week.</p>
+              <p className="home-prose dim">Diese Woche keine neuen Partien.</p>
             ) : (
               <>
                 <div className="home-new-rows">
