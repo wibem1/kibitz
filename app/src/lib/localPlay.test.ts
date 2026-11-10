@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { localLegalMoves, localPgn, localPosition, localResult, localResultText, newLocalGame, playLocalMove, undoLocalMove } from "./localPlay";
+import { localLegalMoves, localPgn, localPosition, localResult, localResultText, newLocalGame, playLocalMove, playLocalUci, undoLocalMove } from "./localPlay";
 
 describe("Offline-Partie für zwei Menschen", () => {
   it("beginnt in der Ausgangsstellung mit legalen weißen Zügen", () => {
@@ -14,6 +14,14 @@ describe("Offline-Partie für zwei Menschen", () => {
     expect(next.sans).toEqual(["e4"]);
     expect(localPosition(next).turn).toBe("black");
     expect(g.sans).toHaveLength(0);
+  });
+  it("prüft Engine-Züge wie menschliche Züge", () => {
+    const g = newLocalGame();
+    expect(playLocalUci(g, "e2e5")).toBeNull();
+    expect(playLocalUci(g, "(none)")).toBeNull();
+    const next = playLocalUci(g, "e2e4")!;
+    expect(next.sans).toEqual(["e4"]);
+    expect(localPosition(next).turn).toBe("black");
   });
   it("nimmt den letzten Zug verlustfrei zurück", () => {
     const g = newLocalGame();
