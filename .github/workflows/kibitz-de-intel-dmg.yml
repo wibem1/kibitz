@@ -1,0 +1,52 @@
+# Isolated unsigned Intel-macOS build for the Kibitz DE UI fork.
+# PR-only; no tags, no release creation, no signing keys, no updater output.
+name: Kibitz DE Intel test DMG
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/kibitz-de-intel-dmg.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  intel-dmg:
+    runs-on: macos-15-intel
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install frontend dependencies
+        working-directory: app
+        run: npm ci
+      - name: Test frontend and typecheck
+        working-directory: app
+        run: |
+          npm test
+          npm run build
+      - name: Build unsigned Intel DMG (test artifact only)
+        working-directory: app
+        run: npm run tauri build -- --target x86_64-apple-darwin --bundles dmg
+      - name: Verify DMG exists
+        run: |
+          set -euo pipefail
+          find app/src-tauri/target/x86_64-apple-darwin/release/bundle/dmg -name '*.dmg' -type f -print
+          test "$(find app/src-tauri/target/x86_64-apple-darwin/release/bundle/dmg -name '*.dmg' -type f | wc -l)" -gt 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kibitz-de-macos-intel-unsigned-test
+          path: app/src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+          retention-days: 14
