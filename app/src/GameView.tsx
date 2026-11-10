@@ -255,7 +255,7 @@ export default function GameView({
       ),
     );
     onStatus(
-      `Engine line added as a variation of ${game?.sans[gv.ply] ?? "the next move"} — Save to keep it.`,
+      `Engine-Variante zu ${game?.sans[gv.ply] ?? "dem nächsten Zug"} eingefügt. Bitte speichern.`,
     );
   };
 
@@ -467,7 +467,7 @@ export default function GameView({
   const headers = game?.headers ?? {};
   const title = game
     ? `${headers["White"] ?? "?"} — ${headers["Black"] ?? "?"}`
-    : "No game loaded";
+    : "Keine Partie geladen";
   const meta = game
     ? [
         [headers["Site"], headers["Date"]?.slice(0, 4)]
@@ -802,14 +802,14 @@ export default function GameView({
                     disabled={!canAddPv}
                     title={
                       canAddPv
-                        ? `Insert the first ${Math.min(pvSans.length, PV_INSERT_PLIES)} moves of this line as a variation at the current move`
+                        ? `Die ersten ${Math.min(pvSans.length, PV_INSERT_PLIES)} Halbzüge als Variante einfügen`
                         : editing === null
-                          ? "Open a database game to add engine lines as variations"
+                          ? "Zum Einfügen einer Variante eine Datenbankpartie öffnen"
                           : preview !== null
-                            ? "Exit the variation preview first"
+                            ? "Zuerst die Variantenvorschau schließen"
                             : gv.ply >= plyCount
-                              ? "End of the mainline — nothing to vary here"
-                              : "Waiting for an engine line"
+                              ? "Am Ende der Hauptvariante ist kein weiterer Zug vorhanden"
+                              : "Warte auf die Engine-Variante"
                     }
                   >
                     + Als Variante
@@ -824,7 +824,7 @@ export default function GameView({
           {pendingVar && (
             <div className="var-offer">
               <span>
-                Add {pendingVar.label} as a variation of{" "}
+                {pendingVar.label} als Variante zu{" "}
                 {game?.sans[pendingVar.ply - 1]}?
               </span>
               <button className="btn" onClick={onAcceptVar}>
@@ -840,8 +840,8 @@ export default function GameView({
         <div className="right-pane">
           {explainOn && preview && (
             <div className="preview-note">
-              Variation preview — the explanation and eval bar track the main
-              game and are paused.{" "}
+              Variantenvorschau: Erklärung und Bewertungsanzeige beziehen sich
+              weiterhin auf die Hauptvariante.{" "}
               <button onClick={onExitPreview}>Zur Partie</button>
             </div>
           )}
@@ -894,9 +894,9 @@ export default function GameView({
           />
           {game && game.sans.length > 0 && (
             <div className="rep-footer">
-              <span title="Adds the moves up to the current ply (whole game at ply 0) as training cards">
-                {gv.ply > 0 ? `Line (first ${gv.ply} plies)` : "Mainline"} →
-                repertoire:
+              <span title="Übernimmt die Züge bis zum aktuellen Halbzug als Trainingskarten">
+                {gv.ply > 0 ? `Variante (erste ${gv.ply} Halbzüge)` : "Hauptvariante"} →
+                Repertoire:
               </span>
               <button onClick={() => onAddToRepertoire("white")}>
                 für Weiß
