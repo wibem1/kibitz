@@ -79,13 +79,13 @@ export function HomeContent({
 
   const continueCard = summary.lastGame && (
     <div className="home-card accented">
-      <div className="home-card-label">CONTINUE</div>
+      <div className="home-card-label">WEITERARBEITEN</div>
       <div className="home-card-title">
         {summary.lastGame.white} — {summary.lastGame.black}
       </div>
       <div className="home-card-prose">
         {/* Stored UTC → the user's local date (audit #10). */}
-        Stopped at ply {summary.lastGame.ply} · opened {utcDateLocal(summary.lastGame.openedAt)}.
+        Bei Halbzug {summary.lastGame.ply} unterbrochen · geöffnet am {utcDateLocal(summary.lastGame.openedAt)}.
       </div>
       <button
         className="btn-primary"
@@ -93,7 +93,7 @@ export function HomeContent({
           onOpenGame(summary.lastGame!.id, summary.lastGame!.ply, summary.lastGame!.flipped)
         }
       >
-        Resume review
+        Analyse fortsetzen
       </button>
     </div>
   );
@@ -111,13 +111,13 @@ export function HomeContent({
           </div>
         )}
         <div className="home-degraded">
-          <p>Nothing due today.</p>
-          <p>No new games this week.</p>
+          <p>Heute keine Aufgaben fällig.</p>
+          <p>Diese Woche keine neuen Partien.</p>
           <p>
             <button className="home-link" onClick={() => onNavigate("profile")}>
-              Build a profile
+              Spielprofil erstellen
             </button>{" "}
-            to surface findings.
+            und damit Hinweise zu deinem Spiel erhalten.
           </p>
         </div>
       </div>
@@ -141,46 +141,46 @@ export function HomeContent({
       <div className="home-cards">
         {continueCard}
         <div className="home-card">
-          <div className="home-card-label">DUE TODAY</div>
+          <div className="home-card-label">HEUTE FÄLLIG</div>
           <div className="home-due-row">
             <span className="home-due-num">{summary.dueSrs}</span>
-            <span className="home-due-unit">openings</span>
+            <span className="home-due-unit">Eröffnungen</span>
             {/* Tactics have no honest due count (endless queue): grayed, never a number. */}
             <span
               className="home-due-num muted"
-              title="The tactics queue is endless — weakness-weighted selection has no due count."
+              title="Taktikaufgaben sind jederzeit verfügbar und haben keinen Fälligkeitstermin."
             >
               –
             </span>
-            <span className="home-due-unit">tactics</span>
+            <span className="home-due-unit">Taktikaufgaben</span>
           </div>
           <div className="home-card-buttons">
             <button className="btn-secondary" onClick={() => onNavigate("train")}>
-              Review openings
+              Eröffnungen üben
             </button>
             <button className="btn-secondary" onClick={() => onNavigate("tactics")}>
-              Solve tactics
+              Taktik üben
             </button>
           </div>
         </div>
         <div className="home-card">
-          <div className="home-card-label">PREP AN OPPONENT</div>
+          <div className="home-card-label">GEGNER VORBEREITEN</div>
           <div className="home-prep-row">
             <input
               type="text"
               value={prepQuery}
               onChange={(e) => setPrepQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && goPrep()}
-              placeholder="Search a name…"
+              placeholder="Gegner suchen …"
               spellCheck={false}
             />
             <button className="btn-secondary" onClick={goPrep}>
-              Go
+              Suchen
             </button>
           </div>
           {prepState.length > 0 && (
             <div className="home-recents">
-              Recent: {prepState.map((p) => p.opponent).join(" · ")}
+              Zuletzt: {prepState.map((p) => p.opponent).join(" · ")}
             </div>
           )}
         </div>
@@ -190,14 +190,14 @@ export function HomeContent({
         <div className="home-panel home-findings">
           <div className="home-panel-head">
             <span className="home-panel-title">
-              {summary.profilePlayer ? `YOUR CHESS · ${summary.profilePlayer.toUpperCase()}` : "YOUR CHESS"}
+              {summary.profilePlayer ? `DEIN SCHACH · ${summary.profilePlayer.toUpperCase()}` : "DEIN SCHACH"}
             </span>
             {summary.profileBuiltAt && (
-              <span className="home-pill">BUILT {utcDateLocal(summary.profileBuiltAt)}</span>
+              <span className="home-pill">Erstellt {utcDateLocal(summary.profileBuiltAt)}</span>
             )}
             <div className="home-panel-spacer" />
             <button className="btn-ghost" onClick={() => onNavigate("profile")}>
-              Full profile
+              Ganzes Profil
             </button>
           </div>
           {summary.findingsAvailable ? (
@@ -216,7 +216,7 @@ export function HomeContent({
                       {f.value}
                     </span>
                     <span className="home-finding-evidence">
-                      {f.evidenceCount} game{f.evidenceCount === 1 ? "" : "s"}
+                      {f.evidenceCount} {f.evidenceCount === 1 ? "Partie" : "Partien"}
                     </span>
                   </button>
                 ))}
@@ -224,8 +224,8 @@ export function HomeContent({
             </>
           ) : (
             <p className="home-prose dim">
-              No profile has been built yet. Build one to surface findings here — static
-              analysis plus stored evals, no engine run.
+              Noch kein Spielprofil erstellt. Ein Profil zeigt dir Hinweise aus gespeicherten
+              Partien und Bewertungen – ohne zusätzliche Engineberechnung.
             </p>
           )}
         </div>
@@ -233,7 +233,7 @@ export function HomeContent({
         <div className="home-side">
           <div className="home-panel">
             <div className="home-panel-head">
-              <span className="home-panel-title">{since ?? "NEW THIS WEEK"}</span>
+              <span className="home-panel-title">{since ?? "NEU DIESE WOCHE"}</span>
             </div>
             {summary.newGames.length === 0 ? (
               <p className="home-prose dim">No new games this week.</p>
@@ -258,19 +258,19 @@ export function HomeContent({
           </div>
           <div className="home-panel">
             <div className="home-panel-head">
-              <span className="home-panel-title">RUNNING</span>
+              <span className="home-panel-title">AKTIV</span>
             </div>
             {working ? (
               <>
                 {netLine && (
                   <div className="home-progress">
-                    <span className="home-progress-label">NETWORK</span>
+                    <span className="home-progress-label">NETZWERK</span>
                     <span className="home-progress-detail">{netLine}</span>
                   </div>
                 )}
                 {engineWorking && (
                   <div className="home-progress">
-                    <span className="home-progress-label">ENGINE JOBS</span>
+                    <span className="home-progress-label">ENGINEAUFTRÄGE</span>
                     {batchFraction !== null && (
                       <span className="home-progress-track">
                         <span
@@ -282,20 +282,20 @@ export function HomeContent({
                     <span className="home-progress-detail">
                       {batchFraction !== null
                         ? `${Math.round(batchFraction * 100)}%`
-                        : `${jobs.pending} pending · ${jobs.running} running`}
+                        : `${jobs.pending} offen · ${jobs.running} aktiv`}
                     </span>
                   </div>
                 )}
                 <p className="home-prose dim">
                   {engineWorking
                     ? jobs.workerActive
-                      ? "The job worker is running the queue you started."
-                      : "Jobs are queued but the worker is not running — the engine is cold."
-                    : "A network sync is running — the engine stays cold."}
+                      ? "Die gestarteten Analyseaufträge werden bearbeitet."
+                      : "Aufträge warten, die Engine ist derzeit ausgeschaltet."
+                    : "Die Konten werden abgeglichen; die Engine bleibt ausgeschaltet."}
                 </p>
               </>
             ) : (
-              <p className="home-prose dim">Nothing is running — the engine is cold.</p>
+              <p className="home-prose dim">Keine laufenden Aufgaben – die Engine ist ausgeschaltet.</p>
             )}
           </div>
         </div>
