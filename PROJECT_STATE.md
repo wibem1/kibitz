@@ -1,3 +1,17 @@
+# Kibitz DE – 10.11.2026: Offline-Partie automatisch wiederherstellen
+
+**Code auf Entwicklungsbranch implementiert, nicht freigegeben:** `app/src/lib/offlineSession.ts` speichert ein versioniertes, kompaktes JSON mit UCI-Zügen und Brettorientierung unter `kibitz.offlineGame.v1` im lokalen Anwendungsspeicher. Beim Wiederöffnen werden sämtliche Züge mit der vorhandenen Schachbibliothek und Legalitätsprüfung aus der Ausgangsstellung rekonstruiert; inkompatible oder beschädigte Daten werden verworfen und führen zu einer verständlichen deutschen Warnmeldung. Fehler bei verweigertem Speicherzugriff führen nicht zum Abbruch des Spielmodus; Nutzer wird zum PGN-Sichern aufgefordert. `OfflinePlayView.tsx` lädt beim ersten Mount, speichert nach Partie-/Ausrichtungsänderung; bisheriges PGN bleibt erhalten. Neuer Unit-Test `app/src/lib/offlineSession.test.ts` prüft Roundtrip, fehlende Daten, ungültige Daten und verweigerten Speicher.
+
+**Commits:** `520e19dc` (Session-Replay/Speicherformat), `91acc5fc` (Anbindung), `9b57a671` (Regressionstests), `243cc226` (Speicherzugriffsfehler abfangen).
+
+**Prüfstand:** Nur statische Quelltextprüfung. Vitest, TypeScript und eine echte Intel-Mac-App sind noch nicht geprüft. Der zugehörige CI-Lauf [42845534397](https://github.com/wibem1/kibitz/actions/runs/42845534397) meldete bei Abfrage `queued`; für den aktuellsten Commit war noch kein Lauf zugeordnet. **Nicht als getestete, installierbare Funktion darstellen.**
+
+**Grenzen:** Ein einzelner fortsetzbarer Spielstand auf demselben Rechner/Anwendungsprofil, keine Cloud- oder SQLite-Partiearchivierung, keine manuelle Auswahl früherer Partien. Ein Browser-/App-Speicherreset löscht diesen Zwischenstand; PGN-Export bleibt separate Sicherung. Offlinepartien gegen Stockfish/Maia 2 und KI-Chat weiterhin nicht eingebaut.
+
+**Nächster einzelner Schritt:** Neueste CI-Fehler/Buildresultate prüfen und beheben; anschließend Anwenderprüfung am Intel Mac: Züge ausführen, Ansicht verlassen und wieder öffnen, App neu starten, Umwandlung/Rücknahme, PGN-Datei und korrektes Ergebnis kontrollieren. Erst dann Engine-Spiel hinzufügen.
+
+---
+
 # Kibitz DE – 10.11.2026: korrekter PGN-Ausgang im Offline-Modus
 
 **Implementiert:** `lib/localPlay.ts` ermittelt den regulären Endstand aus `chessops`-Position/`outcome()`: Weiß gewinnt `1-0`, Schwarz gewinnt `0-1`, regelkonformes Remis `1/2-1/2`, laufende Partie `*`. Die PGN-Kopfzeile `Result` und der Abschlussmarker nutzen denselben Wert. `OfflinePlayView.tsx` zeigt eine deutsche Meldung bei Partieende. Isolierter Regressionstest für das Narrenmatt `1. f3 e5 2. g4 Dh4#` ergänzt; normaler unvollendeter Export bleibt `*`. Commits: `bab5accf`, `144e0524`, `7828789e`.
