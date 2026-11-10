@@ -578,7 +578,7 @@ fn development_prior_prose() {
         assert!(!lower.contains("rule"), "{out}");
     }
     // Coach voices the maintainer's framing on the mixed sleeper list.
-    assert!(coach.contains("die Leichtfiguren"), "{coach}");
+    assert!(coach.contains("Die Leichtfiguren"), "{coach}");
     assert!(!coach.is_empty(), "Eine Erklärung muss ausgegeben werden");
     assert!(
         !coach.contains("White's")
