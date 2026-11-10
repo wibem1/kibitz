@@ -173,7 +173,7 @@ function initialGameView(): GameViewState {
       localStorage.getItem(TREATMENT_KEY) === "instrument"
         ? "instrument"
         : "walnut",
-    theme: localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark",
+    theme: localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light",
     flipped: false,
   };
 }
@@ -195,24 +195,24 @@ interface PendingVariation {
 }
 
 const VIEW_TITLES: Record<ViewId, string> = {
-  home: "Home",
-  database: "Database",
-  game: "Game",
-  tree: "Opening tree",
-  search: "Position search",
-  profile: "Player profile",
-  prep: "Opponent prep",
-  train: "Openings SRS",
-  triage: "Opening triage",
-  lab: "Opening lab",
-  tactics: "Tactics",
-  endgames: "Endgames",
-  play: "Play online",
-  import: "Import PGN / SCID",
-  twic: "TWIC ingest",
-  syncs: "Account syncs",
-  jobs: "Jobs",
-  settings: "Settings",
+  home: "Start",
+  database: "Partien",
+  game: "Partie & Analyse",
+  tree: "Eröffnungsbaum",
+  search: "Stellung suchen",
+  profile: "Spielerprofil",
+  prep: "Gegnervorbereitung",
+  train: "Eröffnungen üben",
+  triage: "Eröffnungen prüfen",
+  lab: "Eröffnungslabor",
+  tactics: "Taktik",
+  endgames: "Endspiele",
+  play: "Online spielen",
+  import: "Partien importieren",
+  twic: "TWIC importieren",
+  syncs: "Konten abgleichen",
+  jobs: "Aufträge",
+  settings: "Einstellungen",
 };
 
 export default function App() {
@@ -228,7 +228,7 @@ export default function App() {
 
   const [game, setGame] = useState<LoadedGame | null>(null);
   const [status, setStatus] = useState(
-    "Open a game from the Database, or paste a PGN under Import.",
+    "Öffne eine Partie oder importiere eine PGN-Datei.",
   );
   const [annot, setAnnot] = useState<AnnotState | null>(null);
   const [saving, setSaving] = useState(false);
