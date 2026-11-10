@@ -22,7 +22,7 @@ import EngineSection from "./settings/EngineSection";
 import LichessSection from "./settings/LichessSection";
 import StorageSection from "./settings/StorageSection";
 import UpdatesSettings from "./UpdatesSettings";
-import { saveDiagnosticReport } from "./lib/diagnostics";
+import { clearDiagnostics, saveDiagnosticReport } from "./lib/diagnostics";
 import {
   batchEstimate,
   batchStart,
@@ -367,9 +367,14 @@ export default function SettingsView({
             <div className="set-group-head">DIAGNOSE</div>
             <Row
               label="Fehlerbericht"
-              help="Speichert einen JSON-Bericht mit bis zu 120 Ereignistypen aus der laufenden Sitzung. Enthält keine API-Schlüssel, Dateipfade, Partien oder Fehlermeldungstexte. Nur beim Klick wird eine Datei erzeugt."
+              help="Speichert einen JSON-Bericht mit bis zu 120 Ereignissen – auch nach Neustart verfügbar. Enthält keine API-Schlüssel, Dateipfade, Partien oder Fehlermeldungstexte. Keine automatische Übertragung."
               value={<div className="set-value">Lokaler Diagnosebericht · ohne automatische Übertragung</div>}
-              action={ghost("Diagnose speichern", () => saveDiagnosticReport())}
+              action={
+                <div className="set-stack">
+                  {ghost("Diagnose speichern", () => saveDiagnosticReport())}
+                  {ghost("Diagnose löschen", () => clearDiagnostics())}
+                </div>
+              }
             />
           </div>
 
