@@ -1,3 +1,23 @@
+# Kibitz DE – 11.11.2026: Offline-Engine fehlt, Brett zu klein/oben abgeschnitten – konkreter Reparaturstand
+
+**Echter Intel-Mac-Screenshot:** Im Bildschirm `Offline spielen` nach dem weißen Zug `d4` meldet die App `Kein ausführbares Stockfish-Programm gefunden`; das Brett ist nur ca. 520px und der obere Rand abgeschnitten. Der Nutzer kann faktisch nicht gegen die Engine spielen. Dies ist **nicht** durch erfolgreiche GitHub-CI-Läufe widerlegt.
+
+**Nachgewiesene Ursachen:** `OfflinePlayView.tsx` hat `<Board ... />` bisher ohne `size` gerendert; `Board.tsx` verwendet dann starr `size=520`. Anders als die Partienansicht hatte der Offline-Screen keine responsive Brettgrößenberechnung. Der Spielbereich hatte keinerlei eigene obere Innenabstände, und eine lange Engine-Fehlermeldung konnte die linke Brettspalte in einem Flex-Layout verbreitern, sodass Einstellungen und Zugliste unterhalb statt daneben landeten. Die Rust-Auflösung `uci::resolve_engine_path()` suchte nur die GUI-Prozess-`PATH`-Variable und das für Intel bewusst unbrauchbare Repo-Apple-Silicon-Binary (auf Intel deaktiviert); Finder-Apps sehen häufig die Homebrew-`/usr/local/bin`-Verzeichnisse nicht im PATH.
+
+**Implementierte Änderungen, noch nicht auf dem Intel-Mac erprobt:**
+- Neue testbare `offlineBoardSize(windowWidth,windowHeight)` in `app/src/lib/offlineLayout.ts`: bei 1536×934 wird statt 520 nun 720px Brettgröße angestrebt; bei niedrigen Fenstern kleiner; vier Regressionstests in `offlineLayout.test.ts`. `OfflinePlayView` beobachtet `window.resize` und übergibt `size={boardSize}` explizit ans Brett.
+- `app.css`: offline-spezifische Innenabstände oben, begrenzte Brettspaltenbreite, Umbruch langer Diagnosemeldungen und eigene Enginehilfe. Ziel: erste Reihe nicht vom Kopf verdecken; rechte Modusspalte auf Desktop daneben.
+- `uci.rs`: macOS-Fallback für bereits installierte Stockfish-Programme in `/usr/local/bin/stockfish`, `/opt/homebrew/bin/stockfish`, `/opt/local/bin/stockfish` und Homebrew-`opt`-Verzeichnissen. **Installiert keine Engine!** Wenn Stockfish nicht vorhanden ist, kann die Software nicht selbst spielen.
+- `OfflinePlayView` erhält einen Schalter `Stockfish in Einstellungen einrichten` (über `App` verdrahtet) und zeigt eine Anleitung für Intel-Mac und Homebrew `brew install stockfish` statt nur des allgemeinen Fehlers.
+
+**Letzte Code-Commits:** `2a4dbaba`, `0be23a20`, `bb47e139`, `99443e41`, `ffccac46`, `1ce74d98`, `1bdc0c33`, `98902854`, `ab593260`, `bce64cff`.
+
+**Prüfstatus:** Code in GitHub gesichert; CI und x86_64-DMG für diese Änderungen noch **nicht bestätigt**. Keine neue Download-Freigabe, bis Tests erfolgreich sind. Ein reales Spiel nach `1.d4` benötigt zudem eine auf dem Mac installierte kompatible Engine und eine echte `bestmove`-Antwort.
+
+**Nächster Schritt:** GitHub-CI dieser Commits prüfen und ggf. korrigieren, anschließend ausschließlich mit frischem Intel-x86_64-DMG sowie installiertem Stockfish den Zug `1.d4` auf Antwort und unveränderte Brettgeometrie testen. Bei fehlender Installation kann der Nutzer Homebrew `brew install stockfish` nutzen oder eine vorhandene Stockfish-Binary unter `Einstellungen → Engineprogramm` auswählen; ohne Engine bleibt der Fehler erwartbar.
+
+---
+
 # Kibitz DE – 11.11.2026: Funktionsprüfung nach realem Intel-Mac-Test (Audit, keine Freigabe)
 
 **Nutzerbestätigung:** Die zuletzt korrigierten Größenproportionen und das stabile Brett funktionieren im realen Test. Gesamte App noch nicht als vollständig funktionsfähig bestätigt.
