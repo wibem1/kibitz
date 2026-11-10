@@ -1,3 +1,13 @@
+# Kibitz DE – 10.11.2026: CI-Korrektur erfolgreich, UCI-Ende-zu-Ende-Test ergänzt
+
+**Nachgewiesener Stand:** GitHub-Actions-Lauf [42869075650](https://github.com/wibem1/kibitz/actions/runs/42869075650) für Commit `a1f70ffc`: `app (ubuntu-latest)` **success** einschließlich Frontend-Tests, TypeScript/Vite-Build sowie src-tauri fmt/clippy/test; `rust (ubuntu-latest)` **success**. Die drei Clippy-Dokumentationsfehler vom vorherigen Lauf sind damit nachweislich korrigiert. `app (macos-latest)` und `rust (macos-latest)` wurden vor Ausführung **cancelled**; diese Jobs haben keine aufgezeichneten Steps, und Job-Logs sind nicht verfügbar (BlobNotFound). Ursache der macOS-Abbrüche nicht belegt; keine Aussage über Mac-Quellcode-Kompilierung möglich. Die bestehende CI-Workflow-Datei enthält bereits `macos-latest` mit `fail-fast: false`; **kein ungezielter Workflow-Umbau**.
+
+**Neuer Schritt:** Commit `eb630e83` in `app/src-tauri/src/uci.rs` fügt einen `#[cfg(unix)]`-Integrationstest `scripted_engine_returns_a_bounded_bestmove` hinzu. Dieser erzeugt ein temporäres ausführbares Shell-Skript als simulierte UCI-Engine, prüft denselben `Engine::spawn`-Handshake (`uci`, `isready`) und danach `position fen`, `go nodes 1234`, `info` und `bestmove e7e5`. Zeitlimit 3 Sekunden, Auswertung des erhaltenen Zugs und der Bewertung; keine echte Stockfish-Binary, kein neuer Fremdcode. GitHub-Quelltext statisch gegengeprüft; **Test selbst noch nicht ausgeführt**. Kein Release.
+
+**Nächster einzelner Schritt:** CI des neuen UCI-Tests auswerten; wenn grün, macOS-GitHub-Runner-Verfügbarkeit unabhängig vom Quellcode klären und einen realen Intel-Mac-Test mit korrekt installierter Stockfish-Engine durchführen. Maia 2 weiterhin nachgeordnet.
+
+---
+
 # Kibitz DE – 10.11.2026: aktuellen CI-Clippy-Fehler gezielt behoben
 
 **Nachgewiesene CI-Ergebnisse:** GitHub-Actions-Lauf [42866034166](https://github.com/wibem1/kibitz/actions/runs/42866034166) auf Commit `979d157b`: `rust (ubuntu-latest)` **success**; `app (ubuntu-latest)` **failure** im Schritt `src-tauri fmt/clippy/test`. Davor liefen **alle 611 Vitest-Einzeltests in 62 Dateien erfolgreich** sowie `tsc --noEmit && vite build` erfolgreich. Das App-Job-Log lokalisiert den anschließenden Fehler auf **drei Clippy-Meldungen `doc_lazy_continuation`** in `app/src-tauri/src/uci.rs`, Zeilen 230–232: nach einer Dokumentationsliste fehlte ein Leerabsatz. Die beiden macOS-Jobs wurden **cancelled**, also nicht bestanden.
