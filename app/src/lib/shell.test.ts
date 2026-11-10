@@ -37,6 +37,7 @@ describe("rail structure", () => {
       "tactics",
       "endgames",
       "play",
+      "offline",
       "import",
       "twic",
       "syncs",
