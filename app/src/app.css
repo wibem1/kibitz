@@ -5355,3 +5355,22 @@ button.mv-var-line:hover {
 .sentence-scheme .sentence-dot {
   background: var(--accent, currentColor);
 }
+
+
+/* German accessible layout: preserves original board geometry and semantic colours. */
+body { font-size: 16px; line-height: 1.45; }
+.rail:not(.collapsed) { flex-basis: 238px; }
+.rail-item { font-size: 15px; min-height: 37px; }
+.rail-heading, .col-label { font-size: 12px; letter-spacing: .07em; }
+.rail-db, .rail-badge, .header-meta, .status-strip { font-size: 12px; }
+.header-title { font-size: 21px; }
+button, input, select, textarea, .btn, .btn-primary, .btn-secondary, .btn-ghost, .btn-save {
+  font-size: 15px; min-height: 32px;
+}
+.set-label, .set-value, .set-help, .help-article, .help-reader, .modal-prose {
+  font-size: 15px; line-height: 1.5;
+}
+.kibitz-more { font-weight: 600; color: var(--accent); }
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid var(--info); outline-offset: 2px;
+}
