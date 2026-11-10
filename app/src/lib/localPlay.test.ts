@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { localLegalMoves, localPgn, localPosition, newLocalGame, playLocalMove, undoLocalMove } from "./localPlay";
+import { localLegalMoves, localPgn, localPosition, localResult, localResultText, newLocalGame, playLocalMove, undoLocalMove } from "./localPlay";
 
 describe("Offline-Partie für zwei Menschen", () => {
   it("beginnt in der Ausgangsstellung mit legalen weißen Zügen", () => {
@@ -34,5 +34,9 @@ describe("Offline-Partie für zwei Menschen", () => {
       g = playLocalMove(g,from,to)!;
     }
     expect(localPosition(g).isEnd()).toBe(true);
+    expect(localResult(g)).toBe("0-1");
+    expect(localResultText(g)).toContain("Schwarz gewinnt");
+    expect(localPgn(g)).toContain('[Result "0-1"]');
+    expect(localPgn(g)).toContain("Qh4# 0-1");
   });
 });
