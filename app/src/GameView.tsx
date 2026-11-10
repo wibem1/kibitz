@@ -564,22 +564,22 @@ export default function GameView({
           {game && crosstableEligible(headers["Event"]) && (
             <button
               className="header-event-link"
-              title="Open the crosstable for this event"
+              title="Kreuztabelle dieses Turniers öffnen"
               onClick={() => onCrosstable(headers["Event"]!)}
             >
-              {headers["Event"]} · crosstable
+              {headers["Event"]} · Kreuztabelle
             </button>
           )}
         </div>
         <div className="header-actions">
-          <span className="seg" role="group" aria-label="Board treatment">
+          <span className="seg" role="group" aria-label="Brettdarstellung">
             {(["walnut", "instrument"] as const).map((t) => (
               <button
                 key={t}
                 className={gv.boardTreatment === t ? "cur" : ""}
                 onClick={() => dispatch({ type: "setTreatment", treatment: t })}
               >
-                {t}
+                {t === "walnut" ? "Holz" : "Neutral"}
               </button>
             ))}
           </span>
@@ -588,24 +588,24 @@ export default function GameView({
             className="btn"
             onClick={() => void doAnnotate()}
             disabled={gameId === null || acting}
-            title="The coach: write prose comments for the whole game (static, free) and engine-verify any tactical alerts"
+            title="Die ganze Partie erläutern; taktische Hinweise bei Bedarf mit der Engine prüfen"
           >
-            Annotate
+            Partie erläutern
           </button>
           <button
             className="btn"
             onClick={() => void doReanalyze()}
             disabled={gameId === null || acting}
-            title="The numbers: fresh engine evaluation of every position — fills the eval column and eval bar"
+            title="Alle Stellungen neu mit der Engine bewerten"
           >
-            Re-analyze
+            Neu bewerten
           </button>
           <button
             className="btn"
             onClick={() => void doExport()}
             disabled={gameId === null}
           >
-            Export PGN
+            PGN exportieren
           </button>
         </div>
       </header>
@@ -613,7 +613,7 @@ export default function GameView({
       {gameBatch && (
         <div className="inline-job-row game-inline-job" role="status">
           <span className="inline-job-label">
-            {gameBatch.kind === "reanalyze" ? "REANALYZING" : "ANNOTATING"} ·{" "}
+            {gameBatch.kind === "reanalyze" ? "NEUBEWERTUNG" : "ERLÄUTERUNG"} ·{" "}
             {gameBatch.positions.toLocaleString("en-US")} position
             {gameBatch.positions === 1 ? "" : "s"}
           </span>
@@ -625,7 +625,7 @@ export default function GameView({
           </span>
           <span className="inline-job-detail">
             {gameBatch.done
-              ? "done — evals and annotations refreshed"
+              ? "Fertig – Bewertungen und Kommentare aktualisiert"
               : `${Math.round(batchFraction * 100)}% · ${Math.max(
                   0,
                   gameBatch.total - (batchRemaining ?? gameBatch.total),
@@ -637,7 +637,7 @@ export default function GameView({
             <button
               className="btn-ghost"
               onClick={() => setGameBatch(null)}
-              title="Dismiss"
+              title="Schließen"
             >
               ✕
             </button>
@@ -647,7 +647,7 @@ export default function GameView({
               onClick={() => void doPauseBatch()}
               disabled={pausing}
             >
-              {pausing ? "Pausing…" : "Pause"}
+              {pausing ? "Wird pausiert …" : "Pause"}
             </button>
           )}
         </div>
@@ -702,33 +702,33 @@ export default function GameView({
 
           {preview && (
             <div className="preview-pill" role="status">
-              <span className="preview-tag">PREVIEWING VARIATION</span>
+              <span className="preview-tag">VARIANTE ANSEHEN</span>
               <span className="preview-label">{preview.label}</span>
               <span className="btn-group preview-nav">
                 <button
                   onClick={() => onPreviewStep(-1)}
                   disabled={preview.at === 0}
-                  title="Back within the variation (←)"
+                  title="In der Variante zurück (←)"
                 >
                   ◀
                 </button>
                 <button
                   onClick={() => onPreviewStep(1)}
                   disabled={preview.at >= preview.sans.length}
-                  title="Forward within the variation (→)"
+                  title="In der Variante vorwärts (→)"
                 >
                   ▶
                 </button>
               </span>
               <span className="ply-pill">
-                move {preview.at} / {preview.sans.length}
+                Zug {preview.at} / {preview.sans.length}
               </span>
               <button
                 className="btn preview-exit"
                 onClick={onExitPreview}
-                title="Esc also exits"
+                title="Auch Esc beendet die Vorschau"
               >
-                ← Back to game
+                ← Zur Partie
               </button>
             </div>
           )}
@@ -738,45 +738,45 @@ export default function GameView({
               <button
                 onClick={() => setPly(0)}
                 disabled={!game || gv.ply === 0}
-                title="Start (Home)"
+                title="Partieanfang (Pos1)"
               >
                 |◀
               </button>
               <button onClick={() => step(-1)} disabled={!game || gv.ply === 0}>
-                ◀ Prev
+                ◀ Zurück
               </button>
               <button
                 onClick={() => step(1)}
                 disabled={!game || gv.ply >= plyCount}
               >
-                Next ▶
+                Weiter ▶
               </button>
               <button
                 onClick={() => setPly(plyCount)}
                 disabled={!game || gv.ply >= plyCount}
-                title="End (End)"
+                title="Partieende (Ende)"
               >
                 ▶|
               </button>
             </span>
             <span className="ply-pill">
-              ply {gv.ply} / {plyCount}
+              Halbzug {gv.ply} / {plyCount}
             </span>
             <button
               className="btn"
               onClick={() => dispatch({ type: "toggleFlip" })}
             >
-              Flip
+              Brett drehen
             </button>
             <button
               className={`btn live-toggle${live.on ? " live-on" : ""}`}
               onClick={() => liveDispatch({ type: "toggle", fen })}
-              title="Infinite engine analysis of the shown position — runs until switched off"
+              title="Fortlaufende Engineanalyse der angezeigten Stellung bis zum Ausschalten"
             >
-              {live.on ? "■ Live analysis" : "Live analysis"}
+              {live.on ? "■ Live-Analyse" : "Live-Analyse"}
             </button>
             <span className="kbd-hint">
-              ← → step · ↑ ↓ jump 5 · f flip · e explain
+              ← → Zug · ↑ ↓ 5 Züge · f Brett drehen · e erklären
             </span>
           </div>
 
@@ -817,11 +817,11 @@ export default function GameView({
                               : "Waiting for an engine line"
                     }
                   >
-                    + Add as variation
+                    + Als Variante
                   </button>
                 </>
               ) : (
-                <span className="live-text">engine thinking…</span>
+                <span className="live-text">Engine rechnet …</span>
               )}
             </div>
           )}
@@ -833,10 +833,10 @@ export default function GameView({
                 {game?.sans[pendingVar.ply - 1]}?
               </span>
               <button className="btn" onClick={onAcceptVar}>
-                Add as variation
+                Als Variante einfügen
               </button>
               <button className="btn" onClick={onDismissVar}>
-                Dismiss
+                Verwerfen
               </button>
             </div>
           )}
@@ -847,7 +847,7 @@ export default function GameView({
             <div className="preview-note">
               Variation preview — the explanation and eval bar track the main
               game and are paused.{" "}
-              <button onClick={onExitPreview}>Back to game</button>
+              <button onClick={onExitPreview}>Zur Partie</button>
             </div>
           )}
           {explainOn && !preview && (
@@ -904,10 +904,10 @@ export default function GameView({
                 repertoire:
               </span>
               <button onClick={() => onAddToRepertoire("white")}>
-                as White
+                für Weiß
               </button>
               <button onClick={() => onAddToRepertoire("black")}>
-                as Black
+                für Schwarz
               </button>
             </div>
           )}
@@ -917,7 +917,7 @@ export default function GameView({
       {exportText !== null && (
         <div className="modal-overlay" onClick={() => setExportText(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Export PGN</h3>
+            <h3>PGN exportieren</h3>
             <textarea readOnly value={exportText} spellCheck={false} />
             <div className="modal-buttons">
               <button
@@ -926,10 +926,10 @@ export default function GameView({
                   void navigator.clipboard?.writeText(exportText);
                 }}
               >
-                Copy
+                Kopieren
               </button>
               <button className="btn" onClick={() => setExportText(null)}>
-                Close
+                Schließen
               </button>
             </div>
           </div>
