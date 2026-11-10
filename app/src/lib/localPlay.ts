@@ -58,7 +58,25 @@ export function undoLocalMove(game: LocalGame): LocalGame {
   };
 }
 
+/** The PGN result is based on the actual final position, never a guessed score. */
+export function localResult(game: LocalGame): "1-0" | "0-1" | "1/2-1/2" | "*" {
+  const outcome = localPosition(game).outcome();
+  if (!outcome) return "*";
+  if (!outcome.winner) return "1/2-1/2";
+  return outcome.winner === "white" ? "1-0" : "0-1";
+}
+
+/** Short localized status derived from the same rules as the PGN export. */
+export function localResultText(game: LocalGame): string {
+  const pos = localPosition(game);
+  const result = localResult(game);
+  if (result === "*") return `${pos.turn === "white" ? "Weiß" : "Schwarz"} ist am Zug`;
+  if (result === "1/2-1/2") return "Partie beendet – Remis";
+  return `Schachmatt – ${result === "1-0" ? "Weiß" : "Schwarz"} gewinnt`;
+}
+
 export function localPgn(game: LocalGame): string {
+  const result = localResult(game);
   const moves = game.sans.map((san, i) =>
     i % 2 === 0 ? `${Math.floor(i / 2) + 1}. ${san}` : san,
   ).join(" ");
@@ -67,9 +85,9 @@ export function localPgn(game: LocalGame): string {
     '[Site "Lokal"]',
     '[White "Weiß"]',
     '[Black "Schwarz"]',
-    '[Result "*"]',
+    `[Result "${result}"]`,
     "",
-    moves ? `${moves} *` : "*",
+    moves ? `${moves} ${result}` : result,
     "",
   ].join("\n");
 }
