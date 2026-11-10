@@ -71,6 +71,23 @@ export function undoLocalMove(game: LocalGame): LocalGame {
   };
 }
 
+/** Take back to the human's previous decision point in a local engine game.
+ * This never leaves the engine to move (which would immediately trigger a replay).
+ * Returns the unchanged game if there is no earlier human decision point. */
+export function undoLocalTurn(
+  game: LocalGame,
+  opponent: "human" | "stockfish",
+  humanColor: "white" | "black",
+): LocalGame {
+  if (opponent === "human") return undoLocalMove(game);
+  let previous = game;
+  for (let i = 0; i < 2 && previous.sans.length > 0; i++) {
+    previous = undoLocalMove(previous);
+    if (localPosition(previous).turn === humanColor) return previous;
+  }
+  return game;
+}
+
 /** The PGN result is based on the actual final position, never a guessed score. */
 export function localResult(game: LocalGame): "1-0" | "0-1" | "1/2-1/2" | "*" {
   const outcome = localPosition(game).outcome();
