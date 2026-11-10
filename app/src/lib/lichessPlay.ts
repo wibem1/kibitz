@@ -20,9 +20,9 @@ import { parseUci } from "chessops/util";
 
 /** Shown on the Play screen whenever a game is in progress. */
 export const FAIR_PLAY_NOTICE =
-  "Engine assistance is disabled while you play: no analysis, no explanations, " +
-  "no suggestions (lichess Terms of Service). The finished game imports " +
-  "automatically for review afterwards.";
+  "Während einer laufenden Lichess-Partie sind Engine-Hilfe, KI-Analyse, " +
+  "Erklärungen und Zugvorschläge ausgeschaltet (Lichess-Fair-Play-Regeln). " +
+  "Nach der Partie wird sie automatisch zur Analyse importiert.";
 
 /* ---- IPC types (serde camelCase mirrors of lichess_play.rs) ---- */
 
@@ -263,14 +263,14 @@ export function clocksAt(
 }
 
 const STATUS_NAMES: Record<string, string> = {
-  mate: "Checkmate",
-  resign: "Resignation",
-  outoftime: "Flag fell",
-  timeout: "Left the game",
-  draw: "Draw",
-  stalemate: "Stalemate",
-  aborted: "Aborted",
-  nostart: "Never started",
+  mate: "Schachmatt",
+  resign: "Aufgabe",
+  outoftime: "Zeitüberschreitung",
+  timeout: "Partie verlassen",
+  draw: "Remis",
+  stalemate: "Patt",
+  aborted: "Abgebrochen",
+  nostart: "Nicht begonnen",
 };
 
 /** One-line result for a finished game; null while it is in progress. */
@@ -282,6 +282,6 @@ export function resultLine(
   if (!snap.winner) return what;
   const winnerName = snap.winner === "white" ? snap.white : snap.black;
   const you =
-    snap.myColor === null ? "" : snap.winner === snap.myColor ? " — you won" : " — you lost";
-  return `${what} · ${winnerName} wins${you}`;
+    snap.myColor === null ? "" : snap.winner === snap.myColor ? " — du hast gewonnen" : " — du hast verloren";
+  return `${what} · ${winnerName} gewinnt${you}`;
 }
