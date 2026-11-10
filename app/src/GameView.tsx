@@ -49,7 +49,7 @@ import {
   COACH_HOVER_INDEX,
   deriveEvidence,
   deriveIntensity,
-  fitBoardSize,
+  fitGameBoardSize,
   selectPlyAnalysis,
   type ExplanationJson,
   type GameViewAction,
@@ -384,7 +384,7 @@ export default function GameView({
     if (!el) return;
     const measure = () => {
       const r = el.getBoundingClientRect();
-      setBoardSize(fitBoardSize(r.width - 98, r.height - 220, gv.boardTreatment));
+      setBoardSize(fitGameBoardSize(r.width, r.height, gv.boardTreatment));
     };
     measure();
     const ro = new ResizeObserver(measure);
