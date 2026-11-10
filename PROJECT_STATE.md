@@ -1,3 +1,19 @@
+# Kibitz DE – 10.11.2026: englische Analysen und springendes Brett korrigiert (Praxistest ausstehend)
+
+**Auslöser:** Nutzer meldet, dass die Stellungserklärungen weiterhin englisch sind und das Schachbrett beim Vor-/Zurückblättern springt. Diese Mängel der bisherigen Intel-Testversion sind bestätigt durch Quellprüfung.
+
+**Brettlayout:** `GameView.tsx` ermittelt die Brettgröße jetzt aus der unveränderlichen Brettspaltengeometrie statt aus dem durch optionale Analyseleisten schrumpfenden Bühnenbereich. `app.css` verankert das Brett oben (`flex-start`) und lässt zusätzliche Bedienelemente gegebenenfalls separat in der Spalte scrollen, statt Brett und Bedienelemente bei jedem Halbzug neu zu zentrieren. Commits `e58d4c20`, `e2c513cd`. **Keine reale GUI-Abnahme**, das Springen gilt damit als *im Quellcode adressiert*, nicht als vom Nutzer bestätigt.
+
+**Deutsche Analyse:** Sämtliche bekannten Ausgabe-Templates der deterministischen Erläuterungsengine in `crates/kibitz-verbalize/templates/{common,alerts,imbalances,evidence,plans,schemes,coach}.tmpl` übersetzt (insgesamt 451 textuelle Template-Einträge inkl. mehrfacher Varianten). Fachbegriffe, Erklärungen, strategische Pläne, Langfristpläne, KI-Trainer-Ton und Engine-Urteile sind deutsch; Platzhalter und maschinenlesbare Schlüssel blieben erhalten. Ergänzend Rust-Ausdrücke für Zugzahl/Seiten sowie deutsche Darstellung der technischen Bewertungstags und Variantenbedienung angepasst; letzte deutsche Satzverbindungen korrigiert. Codes `a94c30f4` bis `567d387d`, `0b730e88`.
+
+**Tests:** Die zuvor auf englischen Formulierungen basierenden Tests in `foldback.rs`, `jobs_and_annotate.rs`, `app/src-tauri/src/explain.rs` an die deutsche Ausgabe angepasst. Ein 4-teiliger `foldback`-Testlauf und 11 Tests von `jobs_and_annotate` liefen in älteren Zwischen-Commits unter Ubuntu **erfolgreich**. Der englische Komplett-PGN-Snapshot in `app/kibitz-db/tests/narration.rs` blockierte erwartungsgemäß die CI; Commit `732de095` ersetzt dessen wortlautabhängigen Vergleich durch deutsche Inhaltsprüfungen, während Wiederholungsprüfung und deterministische Re-Annotation bestehen bleiben. **Vollständige CI-Prüfung der aktuellen Änderungen noch offen**; [Run 42911255399](https://github.com/wibem1/kibitz/actions/runs/42911255399) bei letzter Abfrage in Bearbeitung. Keine erfolgreiche Mac-Praxissimulation, kein Release.
+
+**Einschränkung:** Bereits in Datenbanken gespeicherte frühere englische Kommentare können bestehen bleiben, bis sie neu erzeugt werden. Die Übersetzung betrifft die von der aktuellen Engine neu generierten Texte; noch nicht alle seltenen Oberflächen und importierten PGN-Fremdkommentare sind als deutsch verifiziert.
+
+**Nächster einzelner Schritt:** Den vollständigen CI-Lauf für den korrigierten Stand samt Rust-/Frontend-Tests prüfen und weitere konkrete Fehler beseitigen; dann frisches Intel-Mac-DMG und tatsächliche Vor-/Zurück-Navigation sowie deutsch erzeugte Erklärungen am Intel-Mac testen.
+
+---
+
 # Kibitz DE – 10.11.2026: korrigierte Diagnose besteht CI, frisches Intel-DMG vorhanden
 
 **Verifiziert:** Der Commit `80f4c3144ce5d1207956f79e191c59e78bde1a9f` wurde in [CI-Run 42896580363](https://github.com/wibem1/kibitz/actions/runs/42896580363) geprüft: `rust` und `app` sowohl auf Ubuntu als auch macOS jeweils **success**. Darin enthalten ist der neue Regressionstest der Diagnose-Zeitstempel.
