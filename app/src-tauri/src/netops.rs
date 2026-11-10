@@ -1876,7 +1876,7 @@ mod tests {
         // a silent auto-sync reads as broken).
         let last: AutoSyncOutcome =
             serde_json::from_str(&net::meta_get(&conn, META_AUTO_LAST).unwrap().unwrap()).unwrap();
-        assert_eq!(last.text, "imported TWIC 1506–1510 (newest first)");
+        assert_eq!(last.text, "imported 5 issues · 2 games from TWIC 1506–1510");
         assert!(!last.at.is_empty());
     }
 
