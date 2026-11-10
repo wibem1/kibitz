@@ -161,7 +161,7 @@ export default function MovesPanel({
               setNagFor((n) => (n === cell.tokenIndex ? null : cell.tokenIndex));
             }
           }}
-          title={editing ? "click: go to move · click again / right-click: annotate" : undefined}
+          title={editing ? "Klicken: Zug anzeigen · erneut klicken oder Rechtsklick: kommentieren" : undefined}
         >
           {cell.san}
           {nag && !nag.hidden && (
@@ -219,7 +219,7 @@ export default function MovesPanel({
       <textarea
         autoFocus
         value={draft?.text ?? ""}
-        placeholder="Comment (empty deletes) — Enter commits, Esc cancels"
+        placeholder="Kommentar (leer = löschen) – Enter speichert, Esc bricht ab"
         spellCheck={false}
         onChange={(e) => draft && setDraft({ ...draft, text: e.target.value })}
         onKeyDown={(e) => {
@@ -270,7 +270,7 @@ export default function MovesPanel({
               ) : (
                 <div
                   className={`mv-comment${editing ? " editable" : ""}`}
-                  title={editing ? "click to edit" : undefined}
+                  title={editing ? "Klicken zum Bearbeiten" : undefined}
                   onClick={() =>
                     editing && setDraft({ index: row.tokenIndex, isNew: false, text: row.text })
                   }
@@ -303,7 +303,7 @@ export default function MovesPanel({
                 onMouseEnter={evidenceHover ? () => evidenceHover(true) : undefined}
                 onMouseLeave={evidenceHover ? () => evidenceHover(false) : undefined}
               >
-                <span className="mv-narration-tag">COACH</span>
+                <span className="mv-narration-tag">TRAINER</span>
                 {row.text}
               </button>
             </div>
@@ -322,7 +322,7 @@ export default function MovesPanel({
               {previewable ? (
                 <button
                   className="mv-var-line mv-var-clickable"
-                  title="Preview this line on the board"
+                  title="Variante auf dem Brett ansehen"
                   onClick={() => onPreviewVariation(row)}
                 >
                   {row.line}
@@ -333,7 +333,7 @@ export default function MovesPanel({
               {editing && (
                 <button
                   className="mv-x"
-                  title="Delete variation"
+                  title="Variante löschen"
                   onClick={() => change(deleteVariation(editing.tokens, row.varStartIndex))}
                 >
                   ×
@@ -349,8 +349,8 @@ export default function MovesPanel({
   return (
     <section className="moves-panel">
       <header className="panel-header">
-        <span className="panel-label">MOVES</span>
-        <span className="seg" role="group" aria-label="Annotation display">
+        <span className="panel-label">ZÜGE</span>
+        <span className="seg" role="group" aria-label="Kommentare anzeigen">
           {(["full", "hover", "hidden"] as const).map((m) => (
             <button key={m} className={annotationMode === m ? "cur" : ""} onClick={() => onAnnotationMode(m)}>
               {m}
@@ -367,12 +367,12 @@ export default function MovesPanel({
           onClick={() => editing?.onSave()}
           disabled={!editing?.dirty || editing.saving}
         >
-          {editing?.saving ? "Saving…" : "Save"}
+          {editing?.saving ? "Wird gespeichert …" : "Save"}
         </button>
       </header>
       <div className="moves-body" ref={bodyRef}>
         {body}
-        {rows.length === 0 && <div className="mv-empty-note">No game loaded.</div>}
+        {rows.length === 0 && <div className="mv-empty-note">Keine Partie geladen.</div>}
       </div>
     </section>
   );
