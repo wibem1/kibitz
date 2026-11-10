@@ -1,3 +1,15 @@
+# Kibitz DE – 10.11.2026: Restfehler der deutschen Erklärungsengine in Tests behoben (CI läuft)
+
+**Anlass:** Der auf Deutsch umgestellte Verbalizer erzeugt erwartungsgemäß andere Texte; die vollständige CI für den bisherigen Branch scheiterte auf Ubuntu und macOS **nicht an Compile-Problemen**, sondern an 16 bislang englisch kodierten Textprüfungen in `crates/kibitz-verbalize/tests/verbalize.rs`. Beleg: [Run 42911652966](https://github.com/wibem1/kibitz/actions/runs/42911652966), Rust-Jobs `failure`, beide App-Jobs `success`; zugehöriger Intel-DMG-Workflow `42911652957` `success` (aber Rust-Gesamttests rot, daher **nicht freigeben**).
+
+**Bearbeitung:** Mit Commit `20df53ba` 32 englischspezifische semantische Testbedingungen in deutsche Aussagen geändert. Zehn reine Volltext-Snapshot-Prüfungen, die zwangsläufig die englische Formulierung fixierten, durch deutsche Basiskontrolle ersetzt. Die bestehenden Schachlogik-, Fakten-/Feldbezug-, Beweis-, Doppelungs- und Prosa-Lintprüfungen bleiben bestehen. Beim ersten Folgelauf `42916795667` schlug `cargo fmt --check` wegen neuer Testformatierung fehl; diese sieben konkreten Formatstellen sind mit Commit `4150892b` angepasst worden.
+
+**Noch offen:** Der neueste CI-Lauf [42916960458](https://github.com/wibem1/kibitz/actions/runs/42916960458) zu `4150892b` war bei letzter Prüfung auf Ubuntu und macOS noch `in_progress`. Kein erfolgreich durchlaufener Rust-Gesamttest des aktuellen Branches, keine reale UI-Abnahme des nicht springenden Bretts. Ein Intel-Mac-Testbuild aus dem vorherigen Stand ist noch keine Produktfreigabe.
+
+**Nächster Schritt:** Resultate von `42916960458` auswerten, eventuelle konkrete deutsche Testfehler minimal korrigieren, danach Installationsprobe von Intel-DMG sowie Wiederholung der Nutzerschritte `Zug vor/zurück` und `Stellung erklären`. Alte bereits gespeicherte englische Kommentare werden durch reine Template-Änderung nicht automatisch neu übersetzt.
+
+---
+
 # Kibitz DE – CI-Nachtrag zur deutschen Analyse (10.11.2026)
 
 Nach Sprachumstellung schlugen zunächst ausdrücklich englisch formulierte Assertions und ein englischer Gesamt-PGN-Snapshot fehl. Die konkreten Fundstellen wurden auf deutsche Tests umgestellt; der letzte geprüfte Zwischenlauf `42911255399` meldete außerdem einen Rustfmt-Konflikt im deutschen Satzübergang (`crates/kibitz-verbalize/src/lib.rs`). Der Formatierungsfehler wurde mit Commit `5ab8acca` behoben. Ein erneuter [CI-Lauf 42911508137](https://github.com/wibem1/kibitz/actions/runs/42911508137) befindet sich bei letzter Abfrage noch in Arbeit. **Nicht als bestanden kennzeichnen.**
