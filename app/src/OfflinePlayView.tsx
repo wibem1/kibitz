@@ -6,7 +6,7 @@ import { usePromotionPicker } from "./PromotionPicker";
 import type { PromoRole } from "./lib/promotion";
 import type { BoardTreatmentChoice } from "./lib/gameView";
 import { restoreOfflineSession, storeOfflineSession } from "./lib/offlineSession";
-import { requestOfflineEngineMove } from "./lib/offlineEngine";
+import { requestOfflineEngineMove, offlineEngineError } from "./lib/offlineEngine";
 import { getSavedEnginePath } from "./lib/engine";
 import {
   localLegalMoves, localPgn, localPosition, localResultText, newLocalGame,
@@ -64,7 +64,7 @@ export default function OfflinePlayView({ treatment }: Props) {
         if (cancelled) return;
         setThinking(false);
         setFailedFen(fen);
-        setNotice(`Stockfish konnte nicht ziehen: ${String(error)}`);
+        setNotice(offlineEngineError(error));
       });
     return () => { cancelled = true; };
   }, [engineTurn, failedFen, fen, game]);
