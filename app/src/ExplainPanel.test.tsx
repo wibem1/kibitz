@@ -68,7 +68,7 @@ describe("summary first", () => {
     // buries it. Advice about the future must survive the summary.
     expect(container.textContent).toContain("third finding");
     const expander = container.querySelector(".explain-expander")!;
-    expect(expander.textContent).toBe("▾ 1 weitere Hinweise – bereits auf dem Brett markiert");
+    expect(expander.textContent).toBe("▾ 1 weiterer Hinweis – bereits auf dem Brett markiert");
     fireEvent.click(expander);
     expect(props.onToggleFindings).toHaveBeenCalled();
   });
@@ -115,7 +115,7 @@ describe("pinned foot meta", () => {
     const { container } = renderPanel({ selectedSquare: "d7" });
     const meta = container.querySelector(".explain-meta")!;
     expect(meta.textContent).toContain("Stellungsprüfung · ohne Engine");
-    expect(meta.textContent).toContain("Trainer voice · templates");
+    expect(meta.textContent).toContain("Trainer · Textbausteine");
     expect(meta.textContent).toContain("d7");
     // One element, no nested rows — the nowrap/ellipsis contract.
     expect(container.querySelectorAll(".explain-meta").length).toBe(1);
