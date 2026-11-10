@@ -39,15 +39,15 @@ export default function StatusStrip({
     <footer className="status-strip">
       <div className="strip-cell">
         <span className={`strip-dot${engineOn ? " on" : ""}`} />
-        <span>{engineOn ? "ENGINE RUNNING" : "ENGINE IDLE"}</span>
+        <span>{engineOn ? "Engine läuft" : "Engine bereit"}</span>
         <span className="strip-detail">{engineDetail}</span>
       </div>
       <div className="strip-cell">
-        <span className="strip-label">JOBS</span>
+        <span className="strip-label">AUFTRÄGE</span>
         <span className="strip-detail">
           {jobs
-            ? `${jobs.pending} pending · ${jobs.running} running · ${jobs.done} done · ${jobs.failed} failed`
-            : "no database open"}
+            ? `${jobs.pending} offen · ${jobs.running} laufend · ${jobs.done} erledigt · ${jobs.failed} fehlgeschlagen`
+            : "Keine Datenbank geöffnet"}
         </span>
       </div>
       {batchProgress && (
@@ -75,7 +75,7 @@ export default function StatusStrip({
       )}
       {due > 0 && (
         <button className="strip-cell strip-nudge" onClick={onNudge}>
-          Openings SRS · {due} due today
+          Eröffnungen üben · {due} heute fällig
         </button>
       )}
     </footer>
