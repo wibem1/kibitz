@@ -56,6 +56,7 @@ export default function NavRail({
         key={it.id}
         className={`rail-item${isActive ? " active" : ""}`}
         onClick={onClick}
+        aria-pressed={it.id === "explain" ? data.explainOn : undefined}
         title={collapsed ? `${it.label}${badge ? ` — ${badge}` : ""}` : undefined}
       >
         {collapsed ? (
@@ -86,6 +87,7 @@ export default function NavRail({
       </div>
       <div className="rail-footer">
         <button type="button" className="rail-item kibitz-more" aria-expanded={advanced}
+          aria-label={advanced ? "Weniger Funktionen anzeigen" : "Weitere Funktionen anzeigen"}
           onClick={() => setAdvanced((x) => !x)}>
           {collapsed ? "⋯" : advanced ? "Weniger anzeigen" : "Weitere Funktionen"}
         </button>
