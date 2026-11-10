@@ -6,7 +6,7 @@ import { usePromotionPicker } from "./PromotionPicker";
 import type { PromoRole } from "./lib/promotion";
 import type { BoardTreatmentChoice } from "./lib/gameView";
 import {
-  localLegalMoves, localPgn, localPosition, newLocalGame,
+  localLegalMoves, localPgn, localPosition, localResultText, newLocalGame,
   playLocalMove, undoLocalMove,
 } from "./lib/localPlay";
 
@@ -70,7 +70,7 @@ export default function OfflinePlayView({ treatment }: Props) {
           <div className="play-columns">
             <div className="play-board-col">
               <div className="play-player">
-                {completed ? "Partie beendet" : `${pos.turn === "white" ? "Weiß" : "Schwarz"} ist am Zug`}
+                {localResultText(game)}
               </div>
               <div style={{ position: "relative" }}>
                 <Board fen={fen} movable={movable} lastMove={lastMove}
