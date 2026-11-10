@@ -227,6 +227,7 @@ pub fn parse_bestmove_line(line: &str) -> Option<BestMove> {
 /// 3. Repo-local Apple Silicon dev binary, only on macOS ARM64.
 ///    It must not be auto-selected on Intel macOS, Linux or Windows.
 /// 4. `stockfish` on `PATH` (including Intel macOS).
+///
 /// The repository's bundled development binary targets Apple Silicon.
 /// Using it as the default on Intel Macs or other operating systems
 /// would produce an unusable engine even though the file exists.
