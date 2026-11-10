@@ -1383,7 +1383,7 @@ pub fn rank_study(paths: &[std::path::PathBuf]) -> anyhow::Result<()> {
     }
     println!("  score-blocked (rival's lead hint -> book move's lead hint):");
     let mut pairs: Vec<_> = score_pairs.into_iter().collect();
-    pairs.sort_by(|a, b| b.1.cmp(&a.1));
+    pairs.sort_by_key(|a| std::cmp::Reverse(a.1));
     for ((r, bk), n) in pairs.iter().take(15) {
         println!(
             "    {n:3}  {r} beats {}",
