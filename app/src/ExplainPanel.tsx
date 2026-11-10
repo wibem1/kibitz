@@ -74,8 +74,13 @@ export default function ExplainPanel({
   collapsed,
   onToggleCollapsed,
 }: ExplainPanelProps) {
+  const verdictLabels: Record<string, string> = {
+    "FORCED MATE": "ERZWUNGENES MATT",
+    "TACTICAL SCREEN FIRED": "TAKTISCHE GEFAHR",
+    "POSITIONAL": "POSITIONELLE BEWERTUNG",
+  };
   const pill = explanation
-    ? `${explanation.tag}${explanation.eval ? `  ${explanation.eval.display}` : ""}`
+    ? `${verdictLabels[explanation.tag] ?? explanation.tag}${explanation.eval ? `  ${explanation.eval.display}` : ""}`
     : null;
   const pillBad = explanation?.tag === "FORCED MATE";
 
@@ -211,7 +216,7 @@ export default function ExplainPanel({
             </button>
             {explainedPlies.length > 0 && (
               <div className="explain-empty-note">
-                Explanations cached for {explainedPlies.length === 1 ? "ply" : "plies"}{" "}
+                Erklärungen vorhanden für {explainedPlies.length === 1 ? "Halbzug" : "Halbzüge"}{" "}
                 {explainedPlies.join(", ")}.
               </div>
             )}
