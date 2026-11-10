@@ -167,7 +167,6 @@ export default function GameView({
   onCrosstable,
 }: GameViewProps) {
   const colRef = useRef<HTMLDivElement | null>(null);
-  /** The box the board is fitted to: everything the strips leave behind. */
   const stageRef = useRef<HTMLDivElement | null>(null);
   const [boardSize, setBoardSize] = useState(656);
 
@@ -375,21 +374,17 @@ export default function GameView({
   // Resize (deliverable 2c): the board column absorbs extra width; the
   // board snaps to the largest multiple of 8 that fits (min 496).
   //
-  // Measure the STAGE — the flex child that owns whatever vertical space
-  // is left once the strips and controls have taken theirs. The previous
-  // version measured the whole column and subtracted a fixed 120px for
-  // its chrome, which is right only when none of the conditional rows
-  // (live analysis, preview pill, variation offer) is showing. With one
-  // up, the board was sized for more room than existed and `overflow:
-  // hidden` cropped it — read as the board changing size while stepping
-  // (2026-08-02 field report). The strip row now also reserves its
-  // height, so the stage is the same box whether a strip is up or not.
+  // Stable board geometry: measure the BOARD COLUMN, not the remaining
+  // flexible stage. Conditional live/preview/explanation rows must never
+  // resize or vertically recenter the board when stepping through moves.
+  // Keep room for controls and optional strips; on smaller windows the
+  // column scrolls instead of cropping the board.
   useLayoutEffect(() => {
-    const el = stageRef.current;
+    const el = colRef.current;
     if (!el) return;
     const measure = () => {
       const r = el.getBoundingClientRect();
-      setBoardSize(fitBoardSize(r.width - 46, r.height, gv.boardTreatment));
+      setBoardSize(fitBoardSize(r.width - 98, r.height - 220, gv.boardTreatment));
     };
     measure();
     const ro = new ResizeObserver(measure);
