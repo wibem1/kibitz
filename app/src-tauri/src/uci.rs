@@ -627,6 +627,8 @@ done
         std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
 
         let mut engine = Engine::spawn(&script).await.unwrap();
+        assert!(engine.set_stockfish_elo(1000).await.is_err());
+        engine.set_stockfish_elo(1500).await.unwrap();
         let fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
         let mut infos = Vec::new();
         let result = tokio::time::timeout(
