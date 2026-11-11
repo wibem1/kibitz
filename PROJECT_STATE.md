@@ -1,3 +1,15 @@
+# Kibitz DE – 11.11.2026: Intel-Test-DMG mit Analysekorrekturen erfolgreich gebaut
+
+**Verifizierter GitHub-Actions-Stand:** [CI 43099437895](https://github.com/wibem1/kibitz/actions/runs/43099437895) vollständig erfolgreich, alle vier macOS-/Ubuntu-/App-/Rust-Jobs. [Intel-Mac-Workflow 43099437865](https://github.com/wibem1/kibitz/actions/runs/43099437865) vollständig erfolgreich; Build, x86_64-Architekturprüfung und Artefakt-Upload jeweils grün.
+
+**Download:** [ZIP-Artefakt `kibitz-de-intel-mac-unsigned-test` ID 13890264118](https://github.com/wibem1/kibitz/actions/runs/43099437865/artifacts/13890264118), 11.703.790 Byte, `Kibitz_0.1.2_x64.dmg` enthalten. Das GitHub-Buildlog nennt `Mach-O 64-bit executable x86_64`, `Intel x86_64 app and one DMG found`. SHA256 des hochgeladenen ZIP laut GitHub-Log: `9dfaf63c893143c1517f7a05bc0c3242a7cd521bb94996e6dfb0813246a4c187`. Workflow verwendet erstmals `macos-15-intel`. **Unsignierter, temporärer Testbuild, keine Release-Freigabe.**
+
+**Enthaltene Korrekturen:** Ruhige Stellungen werden auch ohne Taktiktreffer erklärt, sobald die statische Erklärung vorliegt; `Partie erläutern` für direkt geladene PGN-Partien verarbeitet die Hauptvariante statisch auch ohne Datenbankeintrag; `Stellung bewerten` startet bei direkt geladenen Partien ausdrücklich die bestehende Stockfish-Live-Analyse der angezeigten Stellung. **Keine vollständige Stockfish-Neubewertung aller Züge ohne Datenbank-ID.** Maia 2 ist nicht eingebaut.
+
+**Nächster einzelner Schritt – Nutzer-Praxistest auf Intel-Mac:** Vorherige Partie bei Bedarf als PGN sichern, neue ZIP/DMG installieren, Offline-Partie öffnen, zu ruhiger Stellung navigieren und Text prüfen; dann `Partie erläutern` und die Fortschrittsanzeige sowie `Stellung bewerten` auf Engineausgabe prüfen. Besonderheit: Beide Testversionen tragen weiterhin die interne Versionsnummer 0.1.2. Reale Laufzeitabnahme ist noch ausstehend.
+
+---
+
 # Kibitz DE – 11.11.2026: Intel-Build läuft, Artefakt-Upload gescheitert; Runner gezielt geändert
 
 **Neue Beobachtung:** Die lange wartende [Intel-DMG-Action 43092026401](https://github.com/wibem1/kibitz/actions/runs/43092026401) wurde schließlich gestartet. **Build von `Kibitz.app` und DMG sowie der Prüfschritt auf x86_64 und genau eine DMG waren laut GitHub-Jobschritten erfolgreich.** Der Job scheiterte erst bei **„Upload unsigned test DMG (NOT a release)“**; es ist daher **kein herunterladbares Artefakt** vorhanden. Der Abruf des vollständigen Joblogs liefert derzeit GitHub-BlobNotFound (404), sodass der genaue Uploadfehler *nicht belegt* ist. Es ist nach dieser Beobachtung falsch, pauschal von einem nicht bauenden Programm zu sprechen.
