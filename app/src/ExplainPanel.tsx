@@ -208,8 +208,8 @@ export default function ExplainPanel({
         ) : (
           <div className="explain-body explain-empty">
             <p className="explain-empty-prose">
-              Zu dieser Stellung gibt es noch keine Erklärung. Die Engine bleibt aus,
-              bis ein taktischer Hinweis eine Prüfung auslöst.
+              Die Stellungserklärung wird geladen. Für eine zusätzliche
+              Stockfish-Bewertung bitte „Live-Analyse“ einschalten.
             </p>
             <button className="btn-primary" onClick={onExplain} disabled={explaining}>
               {explaining ? "Erklärung wird erstellt …" : "Stellung erklären"}
