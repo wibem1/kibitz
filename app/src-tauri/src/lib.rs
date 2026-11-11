@@ -126,6 +126,7 @@ async fn offline_engine_move(
     fen: String,
     nodes: Option<u64>,
     user_path: Option<String>,
+    elo: Option<u32>,
 ) -> Result<String, String> {
     use std::time::Duration;
     // Avoid sending arbitrary control sequences to the UCI subprocess.
@@ -140,6 +141,9 @@ async fn offline_engine_move(
     let count = nodes.unwrap_or(20_000).clamp(1_000, 250_000);
     tokio::time::timeout(Duration::from_secs(30), async move {
         let mut engine = Engine::spawn(&path).await?;
+        if let Some(elo) = elo {
+            engine.set_stockfish_elo(elo).await?;
+        }
         let response = engine
             .analyze(&UciPosition::Fen(fen), Some(count), |_| {})
             .await?;
