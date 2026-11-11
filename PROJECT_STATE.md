@@ -1,3 +1,13 @@
+# Kibitz DE – 11.11.2026: Eindeutige Versionierung jeder neuen Test-App
+
+**Verbindlicher Nutzerwunsch:** Jede künftig erstellte und zum Download angebotene Kibitz-DE-Version erhält eine **neue, sichtbare Versionsnummer**. Keine verschiedenen Builds mehr mit derselben App-Version.
+
+**Nächster Versionskandidat:** `0.1.3` (nach `0.1.2`), konsistent eingetragen in `app/package.json`, `app/package-lock.json`, `app/src-tauri/tauri.conf.json`, `app/src-tauri/Cargo.toml`, `app/src-tauri/Cargo.lock`. Das ist zunächst **nur ein Versionskandidat im Quellstand**, kein erfolgreich getesteter Installer und kein Release. Bei weiteren separat veröffentlichten Testpaketen die Version vor dem Build erneut anheben.
+
+**Weiter offener Fehler auf echtem Intel-Mac:** Screenshot zeigt nach 12 Sekunden Live-Analyse weiterhin `Engine rechnet …` und keinerlei Bewertung. Der Warnhinweis belegt nur das Fehlen empfangener Scores; die genaue Ursache ist nicht diagnostiziert. Der Screenshot zeigt zugleich die laufende Engine sowie ein deaktiviertes `Stellung bewerten`, solange Live-Analyse aktiv ist (beabsichtigt, um parallele Jobs zu vermeiden). **Keine Behauptung einer behobenen Engine-Ausgabe.** Zuerst event-/backend-seitig klären, dann erst 0.1.3 zur Abnahme freigeben.
+
+---
+
 # Kibitz DE – 11.11.2026: TypeScript-Fehler der Stockfish-Diagnose behoben, Prüfung offen
 
 **CI-Auswertung:** [Run 43109558337](https://github.com/wibem1/kibitz/actions/runs/43109558337): Beide Rust-Jobs erfolgreich, beide App-Jobs fehlgeschlagen wegen `src/GameView.tsx(208,106): error TS1005: ')' expected`. Die 631 Vitest-Tests auf den App-Runnern waren zuvor erfolgreich. [Intel-Build 43109558193](https://github.com/wibem1/kibitz/actions/runs/43109558193) scheiterte beim vorgeschalteten `tsc --noEmit` mit derselben Meldung; **kein DMG veröffentlicht**.
