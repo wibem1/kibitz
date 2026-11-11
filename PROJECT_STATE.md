@@ -1,3 +1,13 @@
+# Kibitz DE – 11.11.2026: CI-Formatierungsfehler der Elo-Funktion korrigiert
+
+**Konkret geprüft:** GitHub-Actions-CI [Run 43017929339](https://github.com/wibem1/kibitz/actions/runs/43017929339) für die neue Spielstärke/Analyseübergabe: 631 Vitest-Tests in 65 Dateien erfolgreich; TypeScript- und Vite-Build erfolgreich. App-Job scheiterte danach an genau zwei Rustfmt-Zeilen für `set_stockfish_elo` in `app/src-tauri/src/uci.rs`. Das ist ein Formatierungsfehler, kein nachgewiesener UCI-Laufzeitfehler.
+
+**Korrektur gesichert:** Commit `f795735abead1b5aef79b9903eac3a5febf61567` übernimmt die vom CI angezeigte Rustfmt-Formatierung. Für diesen Stand wurden [CI 43019061343](https://github.com/wibem1/kibitz/actions/runs/43019061343) und [Intel-DMG-Workflow 43019061307](https://github.com/wibem1/kibitz/actions/runs/43019061307) automatisch gestartet. Bei Abfrage beide **in Bearbeitung**; keine Ergebnisse vorwegnehmen.
+
+**Nächster einzelner Schritt:** Ergebnis beider Läufe und DMG-Artefakt prüfen. Danach neue Elo-Auswahl (einschließlich Volle Stärke) und „Partie zur Analyse öffnen“ auf dem Intel-Mac praktisch testen. Maia ist noch nicht integriert. Keine Veröffentlichung ohne diese Überprüfung.
+
+---
+
 # Kibitz DE – 11.11.2026: Spielstärke und Übergabe zur Analyse implementiert
 
 **Nutzerfeedback vom realen Intel-Mac:** Stockfish antwortet nun tatsächlich im Offline-Spiel. Offen waren eine einstellbare Spielstärke, die Übergabe der laufenden Partie zur Analyse und Maia (1/2).
