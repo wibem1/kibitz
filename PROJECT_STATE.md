@@ -1,3 +1,18 @@
+# Kibitz DE – 11.11.2026: Erklärung und Analysebefehle bei PGN-Partien korrigiert
+
+**Nutzerfehlerbild:** Bei einer aus dem Offline-Spiel übernommenen bzw. per PGN geladenen Partie erschien wiederholt „Zu dieser Stellung gibt es noch keine Erklärung. Die Engine bleibt aus …“; die oberen Aktionen „Partie erläutern“ und „Neu bewerten“ waren deaktiviert. **Ursache im Quellcode verifiziert:** Die App ließ ruhige Stellungen trotz vorhandener berechneter Erklärung absichtlich unsichtbar, und die GameView-Aktionen waren bei `gameId === null` deaktiviert. Das ist keine Aussage über die tatsächliche technische Erreichbarkeit der Engine.
+
+**Änderungen (noch nicht CI-geprüft oder real auf Intel-Mac getestet):**
+- `App.tsx`: auch ruhige Stellungen zeigen die bereits automatisch berechnete Erklärung. Für direkt geladene PGN-Partien verarbeitet `explainWholePgn` nach ausdrücklichem Klick die Hauptvariante Stellung für Stellung (maximal 300 Stellungen pro Durchlauf) mittels der vorhandenen statischen Kibitz-`explain_position`-Funktion, mit Fortschrittsanzeige und Fehlermeldung. Keine automatische Stockfish-Suche als Nebeneffekt.
+- `GameView.tsx`: „Partie erläutern“ funktioniert nun auch ohne Datenbank-ID. Für direkt geladene Partien heißt die bisher datenbankgebundene Aktion „Neu bewerten“ nun **„Stellung bewerten“** und schaltet die bereits vorhandene Live-Analyse der aktuellen Stellung ausdrücklich ein beziehungsweise aus. Dies ist **keine vollständige Engine-Neubewertung aller Partiestellungen**; für DB-Partien bleibt die bisherige Batch-Bewertung unverändert.
+- `ExplainPanel.tsx`: bisher irreführende Meldung ersetzt durch Lade- und Live-Analyse-Hinweis.
+
+**Letzter Code-Commit:** `e6df2b57bfa81b3e2760e9f7688f6488266b90b4`. **Tests für diese neue Änderung noch offen**. Alter Testbuild `13855000712` enthält diese Korrekturen nicht. Kein Release.
+
+**Nächster einzelner Schritt:** CI auf den neuen Code auswerten, gegebenenfalls Fehler korrigieren. Danach aktualisierte Intel-Test-DMG bauen und die Erklärung für ruhige Stellungen sowie beide Aktionen an einer direkt übernommenen Offline-Partie prüfen. **Maia weiterhin separat offen.**
+
+---
+
 # Kibitz DE – 11.11.2026: Spielstärke und direkte Analyseübergabe CI-grün, Intel-Test-DMG gebaut
 
 **Quellstand:** Commit `f795735abead1b5aef79b9903eac3a5febf61567` (letzte Codekorrektur), Branch `feat/de-simple-readable-ui`.
