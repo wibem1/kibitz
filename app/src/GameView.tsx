@@ -205,7 +205,7 @@ export default function GameView({
     if (event.type === "toggle" && next.on) setLiveError(null);
     for (const c of commands) {
       if (c.kind === "stop") {
-        void stopAnalysis().catch((e) => onStatus(`Stockfish konnte nicht gestoppt werden: ${String(e)}`);
+        void stopAnalysis().catch((e) => onStatus(`Stockfish konnte nicht gestoppt werden: ${String(e)}`));
       } else {
         void analyzeLive(c.fen, getSavedEnginePath()).catch((e) => {
           setLiveError(String(e));
