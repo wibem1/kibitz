@@ -1,3 +1,13 @@
+# Kibitz DE – 11.11.2026: Intel-Build läuft, Artefakt-Upload gescheitert; Runner gezielt geändert
+
+**Neue Beobachtung:** Die lange wartende [Intel-DMG-Action 43092026401](https://github.com/wibem1/kibitz/actions/runs/43092026401) wurde schließlich gestartet. **Build von `Kibitz.app` und DMG sowie der Prüfschritt auf x86_64 und genau eine DMG waren laut GitHub-Jobschritten erfolgreich.** Der Job scheiterte erst bei **„Upload unsigned test DMG (NOT a release)“**; es ist daher **kein herunterladbares Artefakt** vorhanden. Der Abruf des vollständigen Joblogs liefert derzeit GitHub-BlobNotFound (404), sodass der genaue Uploadfehler *nicht belegt* ist. Es ist nach dieser Beobachtung falsch, pauschal von einem nicht bauenden Programm zu sprechen.
+
+**Gezielte Workflow-Änderung:** [Commit 834e5d3e](https://github.com/wibem1/kibitz/commit/834e5d3e0cf8bf0d520b4036e6c4e70218f818f6) ersetzt nur im Intel-DMG-Workflow den GitHub-Runner `macos-latest` (aktuell ARM64) durch `macos-15-intel` (offizieller Intel-Standardrunner); der Tauri-Befehl und die Architekturprüfung bleiben gleich. Grund: GitHub-Community-Meldungen über Schwierigkeiten mit der Runner-Zuteilung bei macOS ARM64 und die offiziell dokumentierte native Intel-Alternative. **Ein tatsächlicher kausaler Nachweis für die frühere Warteschlange ist das noch nicht.** Neuer [Intel-Testworkflow 43099437865](https://github.com/wibem1/kibitz/actions/runs/43099437865) wurde ausgelöst; bei letzter Abfrage noch `queued`. Neue [CI 43099437895](https://github.com/wibem1/kibitz/actions/runs/43099437895) ebenfalls `queued`. Kein Release, keine angepriesene DMG.
+
+**Nächster einzelner Schritt:** Neuen Intel-Lauf und insbesondere Upload-Artefakt-ID kontrollieren; bei erneutem Uploadfehler dessen tatsächliche Fehlermeldung beschaffen, bevor weitere Retry- oder Workflow-Änderungen erfolgen. Erst danach praktische Intel-Mac-Abnahme der Analysefunktionen.
+
+---
+
 # Kibitz DE – 11.11.2026: Maia-2-UCI-Kompatibilität recherchiert; Intel-Builder noch blockiert
 
 **Intel-Testbuild:** [Run 43092026401](https://github.com/wibem1/kibitz/actions/runs/43092026401) wurde erneut abgefragt: x86_64-DMG-Job bleibt `queued`, ohne Artefakt. [CI 43092026266](https://github.com/wibem1/kibitz/actions/runs/43092026266) ist vollständig erfolgreich. **Keine neue DMG und kein weiterer identischer Build gestartet.** Die Ursache des GitHub-Runners ist derzeit nicht verifiziert.
