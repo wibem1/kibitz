@@ -1,3 +1,13 @@
+# Kibitz DE – 11.11.2026: TypeScript-Fehler der Stockfish-Diagnose behoben, Prüfung offen
+
+**CI-Auswertung:** [Run 43109558337](https://github.com/wibem1/kibitz/actions/runs/43109558337): Beide Rust-Jobs erfolgreich, beide App-Jobs fehlgeschlagen wegen `src/GameView.tsx(208,106): error TS1005: ')' expected`. Die 631 Vitest-Tests auf den App-Runnern waren zuvor erfolgreich. [Intel-Build 43109558193](https://github.com/wibem1/kibitz/actions/runs/43109558193) scheiterte beim vorgeschalteten `tsc --noEmit` mit derselben Meldung; **kein DMG veröffentlicht**.
+
+**Gezielte Korrektur:** [Commit b5d10b2e](https://github.com/wibem1/kibitz/commit/b5d10b2e1dd6fd4fce3b6154d09b7088a7dd78a5) ergänzt die fehlende schließende Klammer bei `stopAnalysis().catch(...)` in `GameView.tsx`. Die Funktionalität wurde ansonsten in diesem Commit nicht verändert. **Neue CI und neuer Intel-Build müssen erst erfolgreich geprüft werden; keine Freigabe oder Behauptung eines erfolgreichen Praxistests.**
+
+**Nächster einzelner Schritt:** CI auf korrigierten Code prüfen. Erst nach grüner CI und erfolgreichem Build die diagnostische Intel-DMG zum Nutzertest bereitstellen, um die Ursache des fehlenden `engine-info`-Streams besser eingrenzen zu können.
+
+---
+
 # Kibitz DE – 11.11.2026: Intel-Praxistest – Stockfish liefert keine sichtbare Bewertung
 
 **Nutzerbefund auf realem Intel-Mac nach Test-DMG 13890264118:** Sowohl `Stellung bewerten` als auch die eigenständige `Live-Analyse` zeigen trotz gestarteter Berechnung **kein Ergebnis**. Beide Wege nutzen dieselbe `analyze_position`-/`engine-info`-Infrastruktur. Der letzte Testbuild ist daher **nicht funktionsabgenommen** für diese Funktionen. Der genaue Ausfallpunkt der Engine-Ereignisübertragung ist noch **nicht nachgewiesen**.
