@@ -1,3 +1,13 @@
+# Kibitz DE – 11.11.2026: Korrigierte Analyse – CI grün, Intel-Build noch ausstehend
+
+**Nachgeprüfte CI:** [Run 43092026266](https://github.com/wibem1/kibitz/actions/runs/43092026266): vier von vier Jobs erfolgreich (App/Rust, macOS/Ubuntu). Enthält Code-Commit `7cc159ef130819e91e1626af5f4bc4db8aff4f3b` mit der Korrektur der PGN-Analysefunktionen und stabilisiertem SyncsView-Test.
+
+**Intel-Mac-Test-DMG:** [Run 43092026401](https://github.com/wibem1/kibitz/actions/runs/43092026401) bei aktueller Abfrage **queued**; noch kein bestätigtes Artefakt. Frühere DMGs sind für die neue Analyse-Korrektur nicht ausreichend.
+
+**Nächster einzelner Schritt:** Abschluss von Run 43092026401 und korrekte Intel-x86_64-Architektur/Artefakt prüfen, dann konkreten Testdownload nennen. Danach reale Abnahme: ruhige Stellung erläutern, direkte Offline-Partie „Partie erläutern“ und „Stellung bewerten“ prüfen. Maia 2 ist noch nicht integriert.
+
+---
+
 # Kibitz DE – 11.11.2026: Auswertung des neuen Analyse-CI-Laufs
 
 **Aktueller Code-Commit:** `7cc159ef130819e91e1626af5f4bc4db8aff4f3b`, Branch `feat/de-simple-readable-ui`. Die Änderungen für direkt geladene PGN-Partien befinden sich in `App.tsx`, `GameView.tsx` und `ExplainPanel.tsx`; kein Release.
