@@ -15,9 +15,9 @@ import {
   playLocalMove, playLocalUci, undoLocalTurn,
 } from "./lib/localPlay";
 
-interface Props { treatment: BoardTreatmentChoice; onEngineSettings: () => void }
+interface Props { treatment: BoardTreatmentChoice; onEngineSettings: () => void; onAnalyze: (pgn: string) => void }
 
-export default function OfflinePlayView({ treatment, onEngineSettings }: Props) {
+export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze }: Props) {
   const [restored] = useState(() => {
     try { return restoreOfflineSession(window.localStorage); }
     catch { return restoreOfflineSession({ getItem: () => { throw Error("blocked"); }, setItem: () => {} }); }
@@ -168,6 +168,8 @@ export default function OfflinePlayView({ treatment, onEngineSettings }: Props) 
                   Zug zurücknehmen
                 </button>
                 <button className="btn-primary" onClick={savePgn}>PGN speichern</button>
+                <button className="btn-secondary" disabled={game.sans.length === 0}
+                  onClick={() => onAnalyze(localPgn(game))}>Partie zur Analyse öffnen</button>
               </div>
               {notice && <p role="status">{notice}</p>}
               {opponent === "stockfish" && failedFen === fen && (
