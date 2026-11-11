@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { loadGame } from "./game";
 import { localLegalMoves, localPgn, localPosition, localResult, localResultText, newLocalGame, playLocalMove, playLocalUci, undoLocalMove, undoLocalTurn } from "./localPlay";
 
 describe("Offline-Partie für zwei Menschen", () => {
@@ -52,6 +53,17 @@ describe("Offline-Partie für zwei Menschen", () => {
     g = playLocalMove(g, "e7", "e5")!;
     expect(localPgn(g)).toContain("1. e4 e5 *");
     expect(localPgn(g)).toContain('[Result "*"]');
+  });
+  it("übergibt eine laufende Offline-Partie verlustfrei an die Analyseansicht", () => {
+    let g = newLocalGame();
+    g = playLocalMove(g, "d2", "d4")!;
+    g = playLocalUci(g, "d7d5")!;
+    const loaded = loadGame(localPgn(g));
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) return;
+    expect(loaded.game.ucis).toEqual(g.ucis);
+    expect(loaded.game.fens).toEqual(g.fens);
+    expect(loaded.game.sans).toEqual(g.sans);
   });
   it("erkennt ein Matt als Partieende", () => {
     let g = newLocalGame();
