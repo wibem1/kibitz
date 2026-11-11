@@ -14,7 +14,8 @@ permissions:
 jobs:
   intel-mac-preview:
     name: Unsigned Intel Mac DMG (x86_64)
-    runs-on: macos-latest
+    # Native Intel runner avoids the macos-latest ARM64 runner acquisition queue.
+    runs-on: macos-15-intel
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
