@@ -95,6 +95,8 @@ interface GameViewProps {
   /** CONSIDER-chip verification state for the current ply (run 11). */
   verification: VerificationState | null;
   onExplain: () => void;
+  onExplainGame: () => Promise<void>;
+  gameExplainProgress: string | null;
   pendingVar: PendingVariation | null;
   onAcceptVar: () => void;
   onDismissVar: () => void;
@@ -154,6 +156,8 @@ export default function GameView({
   explainedPlies,
   verification,
   onExplain,
+  onExplainGame,
+  gameExplainProgress,
   pendingVar,
   onAcceptVar,
   onDismissVar,
@@ -482,7 +486,12 @@ export default function GameView({
     : "Open a game from the Database, or paste a PGN under Import.";
 
   const doAnnotate = async () => {
-    if (gameId === null) return;
+    if (gameId === null) {
+      setActing(true);
+      try { await onExplainGame(); }
+      finally { setActing(false); }
+      return;
+    }
     setActing(true);
     try {
       const s: AnnotateSummary = await annotateGame(gameId);
@@ -581,18 +590,20 @@ export default function GameView({
           <button
             className="btn"
             onClick={() => void doAnnotate()}
-            disabled={gameId === null || acting}
-            title="Die ganze Partie erläutern; taktische Hinweise bei Bedarf mit der Engine prüfen"
+            disabled={!game || acting || gameExplainProgress !== null}
+            title={gameId === null ? "Alle Stellungen ohne Datenbank erläutern (ohne Enginebewertung)" : "Die ganze Partie erläutern; taktische Hinweise bei Bedarf mit der Engine prüfen"}
           >
             Partie erläutern
           </button>
           <button
             className="btn"
-            onClick={() => void doReanalyze()}
-            disabled={gameId === null || acting}
-            title="Alle Stellungen neu mit der Engine bewerten"
+            onClick={() => gameId === null
+              ? liveDispatch({ type: "toggle", fen })
+              : void doReanalyze()}
+            disabled={!game || acting}
+            title={gameId === null ? "Aktuelle Stellung mit Stockfish live bewerten" : "Alle Stellungen neu mit der Engine bewerten"}
           >
-            Neu bewerten
+            {gameId === null ? (live.on ? "Bewertung stoppen" : "Stellung bewerten") : "Neu bewerten"}
           </button>
           <button
             className="btn"
@@ -604,6 +615,7 @@ export default function GameView({
         </div>
       </header>
 
+      {gameExplainProgress && <p role="status" className="game-inline-job">{gameExplainProgress}</p>}
       {gameBatch && (
         <div className="inline-job-row game-inline-job" role="status">
           <span className="inline-job-label">
