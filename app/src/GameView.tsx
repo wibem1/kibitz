@@ -31,7 +31,9 @@ import {
 import { repGlyphsByPly, type RepertoireMark } from "./lib/repMarks";
 import {
   analyzeLive,
+  analyzePosition,
   getSavedEnginePath,
+  onEngineDone,
   onEngineInfo,
   stopAnalysis,
 } from "./lib/engine";
@@ -185,6 +187,14 @@ export default function GameView({
     info: EngineInfo;
     fen: string;
   } | null>(null);
+  const [singleEval, setSingleEval] = useState<{
+    fen: string;
+    status: "running" | "done" | "error";
+    info: EngineInfo | null;
+    error?: string;
+  } | null>(null);
+  const singleEvalRef = useRef<string | null>(null);
+  const [engineEventsReady, setEngineEventsReady] = useState(false);
   const liveRef = useRef(live);
   liveRef.current = live;
   const liveDispatch = useCallback((event: LiveEvent) => {
@@ -192,28 +202,88 @@ export default function GameView({
     liveRef.current = next;
     setLive(next);
     for (const c of commands) {
-      if (c.kind === "stop") void stopAnalysis().catch(() => {});
-      else void analyzeLive(c.fen, getSavedEnginePath()).catch(() => {});
+      if (c.kind === "stop") {
+        void stopAnalysis().catch((e) => onStatus(`Stockfish konnte nicht gestoppt werden: ${String(e)}`);
+      } else {
+        void analyzeLive(c.fen, getSavedEnginePath()).catch((e) => {
+          onStatus(`Stockfish-Live-Analyse fehlgeschlagen: ${String(e)}`);
+          liveRef.current = liveInitial;
+          setLive(liveInitial);
+        });
+      }
     }
     if (!next.on) setLiveInfo(null);
-  }, []);
+  }, [onStatus]);
   useEffect(() => {
     // Follow the shown position while live; no-op when off.
     liveDispatch({ type: "fenChanged", fen });
   }, [fen, liveDispatch]);
   useEffect(() => {
-    // Streamed PV/eval while live only, attributed to the fen the search
-    // actually ran on (the event's own stamp — see the note above).
-    let un: (() => void) | undefined;
-    onEngineInfo((info) => {
-      if (liveRef.current.on && info.fen) {
-        setLiveInfo({ info, fen: info.fen });
+    // Subscribe before enabling explicit position evaluation. Every info
+    // is stamped by the backend with the actual FEN searched.
+    let cancelled = false;
+    let unsubscribeInfo: (() => void) | undefined;
+    let unsubscribeDone: (() => void) | undefined;
+    Promise.all([
+      onEngineInfo((info) => {
+        if (liveRef.current.on && info.fen) {
+          setLiveInfo({ info, fen: info.fen });
+        }
+        if (singleEvalRef.current === info.fen) {
+          setSingleEval((v) =>
+            v?.fen === info.fen ? { ...v, info } : v,
+          );
+        }
+      }),
+      onEngineDone((done) => {
+        const searchedFen = singleEvalRef.current;
+        if (searchedFen === null) return;
+        singleEvalRef.current = null;
+        setSingleEval((v) => {
+          if (v?.fen !== searchedFen) return v;
+          if (done.error) return { ...v, status: "error", error: done.error };
+          if (!v.info) return {
+            ...v, status: "error", error: "Stockfish beendete die Berechnung ohne Stellungsbewertung.",
+          };
+          return { ...v, status: "done" };
+        });
+      }),
+    ]).then(([unInfo, unDone]) => {
+      if (cancelled) { unInfo(); unDone(); }
+      else {
+        unsubscribeInfo = unInfo;
+        unsubscribeDone = unDone;
+        setEngineEventsReady(true);
       }
-    }).then((u) => {
-      un = u;
+    }).catch((e) => onStatus(`Stockfish-Ereignisse konnten nicht abonniert werden: ${String(e)}`));
+    return () => {
+      cancelled = true;
+      unsubscribeInfo?.();
+      unsubscribeDone?.();
+    };
+  }, [onStatus]);
+
+  const doSingleEvaluation = useCallback(() => {
+    if (!engineEventsReady || singleEvalRef.current !== null || liveRef.current.on) return;
+    const searchedFen = fen;
+    singleEvalRef.current = searchedFen;
+    setSingleEval({ fen: searchedFen, status: "running", info: null });
+    // A bounded request terminates with engine-done; unlike "go infinite"
+    // it produces a stable result for the user's explicit evaluation button.
+    void analyzePosition(searchedFen, 250_000, getSavedEnginePath()).catch((e) => {
+      if (singleEvalRef.current === searchedFen) {
+        singleEvalRef.current = null;
+        setSingleEval({ fen: searchedFen, status: "error", info: null, error: String(e) });
+      }
     });
-    return () => un?.();
-  }, []);
+  }, [engineEventsReady, fen]);
+
+  useEffect(() => {
+    if (singleEvalRef.current !== null && singleEvalRef.current !== fen) {
+      singleEvalRef.current = null;
+      void stopAnalysis().catch(() => {});
+    }
+  }, [fen]);
   useEffect(
     () => () => {
       // Unmount (view change / game close) hard-stops the search.
@@ -224,6 +294,7 @@ export default function GameView({
 
   // Info for the SHOWN position only (see the stamped-fen note above).
   const liveCur = liveInfo && liveInfo.fen === fen ? liveInfo.info : null;
+  const currentSingleEval = singleEval?.fen === fen ? singleEval : null;
   const pvSans = useMemo(
     () => (liveCur?.pv ? uciPvToSan(fen, liveCur.pv) : []),
     [liveCur, fen],
@@ -598,12 +669,12 @@ export default function GameView({
           <button
             className="btn"
             onClick={() => gameId === null
-              ? liveDispatch({ type: "toggle", fen })
+              ? doSingleEvaluation()
               : void doReanalyze()}
-            disabled={!game || acting}
-            title={gameId === null ? "Aktuelle Stellung mit Stockfish live bewerten" : "Alle Stellungen neu mit der Engine bewerten"}
+            disabled={!game || acting || (gameId === null && (!engineEventsReady || live.on || singleEvalRef.current !== null))}
+            title={gameId === null ? "Einmalige Stockfish-Bewertung der aktuellen Stellung (250.000 Knoten)" : "Alle Stellungen neu mit der Engine bewerten"}
           >
-            {gameId === null ? (live.on ? "Bewertung stoppen" : "Stellung bewerten") : "Neu bewerten"}
+            {gameId === null ? (currentSingleEval?.status === "running" ? "Stockfish bewertet …" : "Stellung bewerten") : "Neu bewerten"}
           </button>
           <button
             className="btn"
@@ -616,6 +687,15 @@ export default function GameView({
       </header>
 
       {gameExplainProgress && <p role="status" className="game-inline-job">{gameExplainProgress}</p>}
+      {gameId === null && currentSingleEval && (
+        <div className="game-inline-job" role="status">
+          {currentSingleEval.status === "error"
+            ? `Stockfish-Fehler: ${currentSingleEval.error}`
+            : currentSingleEval.info
+              ? `Stockfish: ${formatScore(currentSingleEval.info, fen)}${currentSingleEval.info.depth !== undefined ? ` · Tiefe ${currentSingleEval.info.depth}` : ""}${currentSingleEval.status === "running" ? " · rechnet …" : " · fertig"}`
+              : "Stockfish berechnet die Stellung …"}
+        </div>
+      )}
       {gameBatch && (
         <div className="inline-job-row game-inline-job" role="status">
           <span className="inline-job-label">
