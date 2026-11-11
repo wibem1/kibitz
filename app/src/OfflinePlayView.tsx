@@ -28,6 +28,17 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
   const [confirmNew, setConfirmNew] = useState(false);
   const [opponent, setOpponent] = useState<"human" | "stockfish">(restored.opponent);
   const [humanColor, setHumanColor] = useState<"white" | "black">(restored.humanColor);
+  const [elo, setElo] = useState<number | null>(() => {
+    try {
+      const value = window.localStorage.getItem("kibitz.offlineStockfishElo.v1");
+      const parsed = value === null || value === "full" ? null : Number(value);
+      return parsed !== null && Number.isInteger(parsed) && parsed >= 1320 && parsed <= 3190 ? parsed : null;
+    } catch { return null; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("kibitz.offlineStockfishElo.v1", elo === null ? "full" : String(elo)); }
+    catch { /* private browsing may disable storage */ }
+  }, [elo]);
   const [thinking, setThinking] = useState(false);
   const [failedFen, setFailedFen] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -72,7 +83,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
     let path = "";
     try { path = getSavedEnginePath(); } catch { /* use default binary search */ }
     recordDiagnostic("offline_engine_request");
-    requestOfflineEngineMove(fen, 20_000, path)
+    requestOfflineEngineMove(fen, 20_000, path, elo)
       .then((uci) => {
         if (cancelled) return;
         setThinking(false);
@@ -95,7 +106,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
         setNotice(offlineEngineError(error));
       });
     return () => { cancelled = true; };
-  }, [engineTurn, failedFen, fen, game]);
+  }, [engineTurn, failedFen, fen, game, elo]);
   const lastUci = game.ucis[game.ucis.length - 1];
   const lastMove: [string, string] | undefined = lastUci
     ? [lastUci.slice(0, 2), lastUci.slice(2, 4)] : undefined;
@@ -206,6 +217,23 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                       <option value="white">Weiß</option>
                       <option value="black">Schwarz</option>
                     </select>
+                  </label>
+                )}
+                {opponent === "stockfish" && (
+                  <label>Stockfish-Spielstärke{" "}
+                    <select value={elo === null ? "full" : String(elo)}
+                      onChange={(e) => setElo(e.target.value === "full" ? null : Number(e.target.value))}>
+                      <option value="1320">1320 Elo – leicht</option>
+                      <option value="1500">1500 Elo</option>
+                      <option value="1700">1700 Elo</option>
+                      <option value="1900">1900 Elo</option>
+                      <option value="2100">2100 Elo</option>
+                      <option value="2400">2400 Elo</option>
+                      <option value="2700">2700 Elo</option>
+                      <option value="3000">3000 Elo</option>
+                      <option value="full">Volle Stärke</option>
+                    </select>
+                    <span className="sync-blurb">Stockfish-Elo ist ein Näherungswert, keine garantierte Spielstärke.</span>
                   </label>
                 )}
                 <div className="sync-card-head">PARTIEVERLAUF</div>
