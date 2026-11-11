@@ -1,3 +1,15 @@
+# Kibitz DE – 11.11.2026: Maia-2-UCI-Kompatibilität recherchiert; Intel-Builder noch blockiert
+
+**Intel-Testbuild:** [Run 43092026401](https://github.com/wibem1/kibitz/actions/runs/43092026401) wurde erneut abgefragt: x86_64-DMG-Job bleibt `queued`, ohne Artefakt. [CI 43092026266](https://github.com/wibem1/kibitz/actions/runs/43092026266) ist vollständig erfolgreich. **Keine neue DMG und kein weiterer identischer Build gestartet.** Die Ursache des GitHub-Runners ist derzeit nicht verifiziert.
+
+**Separat geprüfte Maia-2-Option:** Unabhängiges [ChessWaveIO/maia2-uci](https://github.com/ChessWaveIO/maia2-uci) stellt einen UCI-Prozess in Rust bereit, MIT-Lizenz und ONNX Runtime; Modellgewichte laut Projekt-README ebenfalls MIT (Original: [CSSLab/maia2](https://github.com/CSSLab/maia2)). Relevante UCI-Optionen: `Model=rapid|blitz`, `SelfElo`, `OppElo`, außerdem `UCI_Elo` als Alias zu `SelfElo`. Die Engine liefert `bestmove`, ohne traditionelle Tiefensuche; CPU-Inferenz wird unterstützt. Modellgewicht/Binary-Verpackung über `embed-weights` wird dokumentiert. **Das ist eine technische Eignungsprüfung anhand der öffentlichen Projektdokumentation; kein Intel-x86_64-Build, keine Signatur-/Laufzeitprüfung, keine Kibitz-Integration.**
+
+**Architekturhinweis:** Für Maia darf die bestehende `Stockfish`-Option `UCI_LimitStrength` nicht einfach weiterverwendet werden. Die künftige Auswahl benötigt engine-spezifische UCI-Optionen, expliziten Engine-Pfad bzw. geprüfte eigene Binary, passende Modellkonfiguration und differenzierte Fehlermeldungen. Maia-Spielstärke stellt human-like Vorhersage dar, keine garantierte Elo-Leistungsgrenze. Lizenzhinweise gehören in `docs/LICENSES.md`; das BSD-Crate-Grenzprinzip bleibt unverändert. Maia-3 wird vom Originalprojekt für Neuprojekte empfohlen, ersetzt aber nicht ohne Auftrag den Maia-2-Wunsch.
+
+**Nächster einziger Auslieferungsschritt:** Überfällige macOS-x86_64-Job-Warteschlange auf GitHub Actions klären und den vorhandenen, vollständig CI-geprüften Analyse-Fix real als DMG testen; nicht gleichzeitig ein weiteres ungeprüftes Engine-Feature in den Testbuild mischen.
+
+---
+
 # Kibitz DE – 11.11.2026: Korrigierte Analyse – CI grün, Intel-Build noch ausstehend
 
 **Nachgeprüfte CI:** [Run 43092026266](https://github.com/wibem1/kibitz/actions/runs/43092026266): vier von vier Jobs erfolgreich (App/Rust, macOS/Ubuntu). Enthält Code-Commit `7cc159ef130819e91e1626af5f4bc4db8aff4f3b` mit der Korrektur der PGN-Analysefunktionen und stabilisiertem SyncsView-Test.
