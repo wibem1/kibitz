@@ -1,3 +1,20 @@
+# Kibitz DE – 11.11.2026: Spielstärke und Übergabe zur Analyse implementiert
+
+**Nutzerfeedback vom realen Intel-Mac:** Stockfish antwortet nun tatsächlich im Offline-Spiel. Offen waren eine einstellbare Spielstärke, die Übergabe der laufenden Partie zur Analyse und Maia (1/2).
+
+**Neu implementiert auf `feat/de-simple-readable-ui`, noch nicht durch CI oder Mac-Laufzeit bestätigt:**
+- `OfflinePlayView.tsx`: Stockfish-Spielstärke in Stufen 1320–3000 Elo plus volle Stärke; lokal gespeicherte Auswahl. Pro Anforderung wird das gewählte Elo-Limit übergeben.
+- `offlineEngine.ts`, `src-tauri/src/lib.rs`, `src-tauri/src/uci.rs`: optionaler Elo-Parameter; `UCI_LimitStrength=true`, `UCI_Elo=<n>`, anschließend `isready`/ `readyok`; begrenzte gültige Werte 1320–3190. **Elo-Werte sind Stockfish-Näherungen, kein exaktes Rating**. Analyse-Engine und bisheriger Standard bleiben unverändert.
+- `OfflinePlayView.tsx` → `App.tsx`: Schaltfläche **„Partie zur Analyse öffnen“** übergibt den aktuellen PGN direkt an die vorhandene Partienansicht; nicht erst Datei speichern/importieren. Es wird **keine Datenbank-ID** angelegt: Live-Stellungsanalyse und Stellungserklärung stehen zur Verfügung, aber datenbankgebundene Funktionen „Partie erläutern“/„Neu bewerten“ bleiben für diese direkt geladene Partie deaktiviert. Dies ist eine noch offene Funktionserweiterung.
+- Regressionsprüfung im Code: PGN-Roundtrip über `loadGame` sowie simulierter UCI-Elo-Handshake und Grenze der Elo-Eingabe. **Noch kein Testergebnis für neue Commits**.
+- Zuletzt geschriebener Code-Commit: `914a5021`.
+
+**Maia:** Bisher weiterhin **nicht eingebaut**. Der reine Maia-2-Modellcode ist keine auf Intel-Mac sofort verwendbare Engine. Externe Maia-2-UCI-Implementierung `ChessWaveIO/maia2-uci` hat Optionen `SelfElo`/`OppElo`, Modelle und ONNX-Runtime. Ziel für separaten Schritt: Intel-x86_64-Kompatibilität, Modell-Dateien/Lizenzen, UCI-Optionen und Engine-Auswahl abklären; Stockfish nicht mit Maia-spezifischen Optionen ansteuern. Die offiziellen Maia-2-Autoren verweisen inzwischen auf Maia-3 für Neuprojekte.
+
+**Nächster einzelner Schritt:** CI für Code-Commit `914a5021` auswerten, nötige TypeScript-/Rust-Korrekturen vornehmen. Erst danach neues Intel-Test-DMG erstellen und tatsächliche Elo-Einschränkung sowie Analyseübergabe in der App testen. Kein Release ohne Laufzeitabnahme.
+
+---
+
 # Kibitz DE – 11.11.2026: Offline-Spiel-Korrektur technisch abgeschlossen, Intel-Test-DMG verfügbar
 
 **Zuletzt technisch vollständig geprüfter Code-Commit:** `dea2e4b5f83aec95de1a15526292a221c551836a`, Branch `feat/de-simple-readable-ui`.
