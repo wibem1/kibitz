@@ -286,9 +286,9 @@ pub fn resolve_engine_path(user_path: Option<&str>) -> Result<PathBuf, String> {
     // locations directly, rather than requiring a Terminal launch.
     #[cfg(target_os = "macos")]
     for candidate in [
-        "/usr/local/bin/stockfish",       // Homebrew on Intel Macs
-        "/opt/homebrew/bin/stockfish",    // Homebrew on Apple Silicon
-        "/opt/local/bin/stockfish",       // MacPorts
+        "/usr/local/bin/stockfish",    // Homebrew on Intel Macs
+        "/opt/homebrew/bin/stockfish", // Homebrew on Apple Silicon
+        "/opt/local/bin/stockfish",    // MacPorts
         "/usr/local/opt/stockfish/bin/stockfish",
         "/opt/homebrew/opt/stockfish/bin/stockfish",
     ] {
