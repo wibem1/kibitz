@@ -1,3 +1,15 @@
+# Kibitz DE – 11.11.2026: Auswertung des neuen Analyse-CI-Laufs
+
+**Aktueller Code-Commit:** `7cc159ef130819e91e1626af5f4bc4db8aff4f3b`, Branch `feat/de-simple-readable-ui`. Die Änderungen für direkt geladene PGN-Partien befinden sich in `App.tsx`, `GameView.tsx` und `ExplainPanel.tsx`; kein Release.
+
+**CI-Fakten für [Run 43089793369](https://github.com/wibem1/kibitz/actions/runs/43089793369):** Rust Ubuntu erfolgreich. App Ubuntu **fehlgeschlagen**, weil in einem bereits vorhandenen, nicht zur Analysefunktion gehörenden SyncsView-Test das asynchron geladene Lichess-Namensfeld innerhalb des bisherigen 1-Sekunden-Timeouts nicht gefüllt war: `expected '' to be 'SomeUser'`. Die übrigen 630 Frontend-Tests bestanden. Die macOS-Jobs waren bei der letzten Abfrage noch `queued`, ebenso das Intel-DMG aus [Run 43089793372](https://github.com/wibem1/kibitz/actions/runs/43089793372). Es ist **kein bewiesener Fehler der Analysefunktion**, aber die CI ist nicht grün.
+
+**Isolierte Teststabilisierung:** Im betreffenden Test wurde nur die `waitFor`-Frist von 1 auf 3 Sekunden erhöht; derselbe erwartete Benutzername bleibt Pflicht. Commit `7cc159ef`. Für den neuen Stand wurde ein [Intel-Testbuild 43092026401](https://github.com/wibem1/kibitz/actions/runs/43092026401) automatisch in die Warteschlange aufgenommen; keine Freigabe, solange CI und Artefakt nicht bestätigt sind.
+
+**Nächster einzelner Schritt:** Die GitHub-Actions-Checks für `7cc159ef` prüfen und erst bei vollständig erfolgreichen Prüfungen das neue x86_64-Testpaket bereitstellen. Vorherigen Testbuild `13855000712` nicht als Fix für die Analyselücken ausgeben. Ein realer macOS-Test der neuen Analyse bleibt anschließend erforderlich.
+
+---
+
 # Kibitz DE – 11.11.2026: Erklärung und Analysebefehle bei PGN-Partien korrigiert
 
 **Nutzerfehlerbild:** Bei einer aus dem Offline-Spiel übernommenen bzw. per PGN geladenen Partie erschien wiederholt „Zu dieser Stellung gibt es noch keine Erklärung. Die Engine bleibt aus …“; die oberen Aktionen „Partie erläutern“ und „Neu bewerten“ waren deaktiviert. **Ursache im Quellcode verifiziert:** Die App ließ ruhige Stellungen trotz vorhandener berechneter Erklärung absichtlich unsichtbar, und die GameView-Aktionen waren bei `gameId === null` deaktiviert. Das ist keine Aussage über die tatsächliche technische Erreichbarkeit der Engine.
