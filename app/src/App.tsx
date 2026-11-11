@@ -1258,7 +1258,7 @@ export default function App() {
       case "play":
         return <PlayView treatment={gv.boardTreatment} onNavigate={navigate} />;
       case "offline":
-        return <OfflinePlayView treatment={gv.boardTreatment} onEngineSettings={() => navigate("settings")} />;
+        return <OfflinePlayView treatment={gv.boardTreatment} onEngineSettings={() => navigate("settings")} onAnalyze={doLoad} />;
       case "import":
         return <ImportView onLoad={doLoad} status={status} />;
       case "twic":
