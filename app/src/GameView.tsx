@@ -202,7 +202,7 @@ export default function GameView({
     const { next, commands } = liveReduce(liveRef.current, event);
     liveRef.current = next;
     setLive(next);
-    if (next.on && !liveRef.current.searching) setLiveError(null);
+    if (event.type === "toggle" && next.on) setLiveError(null);
     for (const c of commands) {
       if (c.kind === "stop") {
         void stopAnalysis().catch((e) => onStatus(`Stockfish konnte nicht gestoppt werden: ${String(e)}`);
@@ -312,6 +312,15 @@ export default function GameView({
   // Info for the SHOWN position only (see the stamped-fen note above).
   const liveCur = liveInfo && liveInfo.fen === fen ? liveInfo.info : null;
   const currentSingleEval = singleEval?.fen === fen ? singleEval : null;
+  // A running engine with no score is not a successful analysis. Make the
+  // missing stream visible instead of showing a perpetual "rechnet".
+  useEffect(() => {
+    if (!live.on || liveCur) return;
+    const timeout = window.setTimeout(() => {
+      setLiveError((prev) => prev ?? "Stockfish liefert nach 12 Sekunden noch keine Bewertungsdaten. Engine-Pfad und Ereignisübertragung prüfen.");
+    }, 12000);
+    return () => window.clearTimeout(timeout);
+  }, [live.on, liveCur, fen]);
   const pvSans = useMemo(
     () => (liveCur?.pv ? uciPvToSan(fen, liveCur.pv) : []),
     [liveCur, fen],
