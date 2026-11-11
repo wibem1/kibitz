@@ -1,3 +1,19 @@
+# Kibitz DE – 11.11.2026: Offline-Spiel-Korrektur technisch abgeschlossen, Intel-Test-DMG verfügbar
+
+**Zuletzt technisch vollständig geprüfter Code-Commit:** `dea2e4b5f83aec95de1a15526292a221c551836a`, Branch `feat/de-simple-readable-ui`.
+
+**CI:** [Run 42982579536](https://github.com/wibem1/kibitz/actions/runs/42982579536) `completed/success`, alle vier Jobs (`rust` und `app`, jeweils Ubuntu und macOS) erfolgreich. Nach der ersten roten CI durch reine Rustfmt-Abweichungen in `uci.rs` wurden diese in `dea2e4b5` korrigiert.
+
+**Intel-Mac-Build:** [Run 42982579540](https://github.com/wibem1/kibitz/actions/runs/42982579540) `completed/success`, [ZIP-Artefakt `kibitz-de-intel-mac-unsigned-test` ID 13838540570](https://github.com/wibem1/kibitz/actions/runs/42982579540/artifacts/13838540570), 11.691.404 Byte; darin `Kibitz_0.1.2_x64.dmg`. Buildlog: `Mach-O 64-bit executable x86_64`, `lipo -archs` bestätigt Intel, genau eine DMG. Unsignierter **Testbuild**, kein Release. ZIP-SHA256 laut GitHub-Log `e450567e6a3839792c736a21f02a6678ba8359090e3550b692234c39ef1ed610`.
+
+**Im Testbuild enthalten:** Offline-Brettgröße fensterabhängig statt starr 520px; bei 1536×934 nominell 720px, Responsive-/Ausrichtungs-CSS; bei View-Wechsel Rücksetzen des Scrollstands vor dem Zeichnen; Engine-Pfad-Fallback für Homebrew/MacPorts-Stockfish auch bei Finder-App mit eingeschränktem PATH; direkter Link aus Fehlerzustand zu Engine-Einstellungen mit Installationshinweis. Vorhandene automatische Unit-Tests werden CI-seitig erfolgreich durchlaufen.
+
+**Externe Voraussetzung:** Das Intel-DMG enthält **keine Stockfish-Binary**. Der Nutzer muss eine kompatible Stockfish-Engine (beispielsweise per `brew install stockfish`) installieren oder ihren Pfad in Einstellungen eingeben; erst dann kann `offline_engine_move` tatsächlich einen gegnerischen Zug ausführen. Kein echtes Intel-Mac-Engine-Spiel oder UI-Abnahme dieser Änderung nachgewiesen. **Nicht als vollständig funktionsfähig oder Release ausgeben**.
+
+**Nächster einzelner Abnahmeschritt:** Neue DMG öffnen, Fenster vollständig ausfüllen, `Offline spielen` → Stockfish und nach `1.d4` eine schwarze Antwort prüfen. Falls keine Engine gefunden wird: macOS `command -v stockfish` / `/usr/local/bin/stockfish` kontrollieren und Engine-Verbindung in App-Einstellungen testen. Bildausschnitt mit oberer Brettreihe und Modusspalte nach Neuöffnung prüfen. Erst nach realer Abnahme einen Release erwägen.
+
+---
+
 # Ergänzung 11.11.2026 – Offline-Brett beim Ansichtswechsel oben abgeschnitten
 
 Neben der Größenkorrektur `offlineBoardSize()` wird in `OfflinePlayView.tsx` jetzt der Scrollstand der neuen Offline-Ansicht über `useLayoutEffect` auf Null zurückgesetzt. Begründung: React kann den `.page-scroll`-Knoten einer vorherigen, bereits heruntergescrollten Ansicht weiterverwenden. Dies kann die oberste Figurenreihe hinter der Kopfzeile verschwinden lassen. Commit `6f687f0c`. Die tatsächliche Reproduktion/Behebung auf Intel-Mac steht weiterhin aus.
