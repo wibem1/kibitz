@@ -195,17 +195,20 @@ export default function GameView({
   } | null>(null);
   const singleEvalRef = useRef<string | null>(null);
   const [engineEventsReady, setEngineEventsReady] = useState(false);
+  const [liveError, setLiveError] = useState<string | null>(null);
   const liveRef = useRef(live);
   liveRef.current = live;
   const liveDispatch = useCallback((event: LiveEvent) => {
     const { next, commands } = liveReduce(liveRef.current, event);
     liveRef.current = next;
     setLive(next);
+    if (next.on && !liveRef.current.searching) setLiveError(null);
     for (const c of commands) {
       if (c.kind === "stop") {
         void stopAnalysis().catch((e) => onStatus(`Stockfish konnte nicht gestoppt werden: ${String(e)}`);
       } else {
         void analyzeLive(c.fen, getSavedEnginePath()).catch((e) => {
+          setLiveError(String(e));
           onStatus(`Stockfish-Live-Analyse fehlgeschlagen: ${String(e)}`);
           liveRef.current = liveInitial;
           setLive(liveInitial);
@@ -237,7 +240,21 @@ export default function GameView({
       }),
       onEngineDone((done) => {
         const searchedFen = singleEvalRef.current;
-        if (searchedFen === null) return;
+        if (searchedFen === null) {
+          // Live mode is unbounded; an unexpected engine-done means
+          // the search stopped or failed. Never leave "Engine rechnet"
+          // indefinitely without an explanation.
+          if (liveRef.current.on) {
+            const message = done.error
+              ? `Stockfish-Fehler: ${done.error}`
+              : "Stockfish hat die Live-Analyse beendet.";
+            setLiveError(message);
+            liveRef.current = liveInitial;
+            setLive(liveInitial);
+            onStatus(message);
+          }
+          return;
+        }
         singleEvalRef.current = null;
         setSingleEval((v) => {
           if (v?.fen !== searchedFen) return v;
@@ -696,6 +713,7 @@ export default function GameView({
               : "Stockfish berechnet die Stellung …"}
         </div>
       )}
+      {liveError && <p role="alert" className="game-inline-job">{liveError}</p>}
       {gameBatch && (
         <div className="inline-job-row game-inline-job" role="status">
           <span className="inline-job-label">
@@ -856,7 +874,10 @@ export default function GameView({
             </button>
             <button
               className={`btn live-toggle${live.on ? " live-on" : ""}`}
-              onClick={() => liveDispatch({ type: "toggle", fen })}
+              onClick={() => {
+                setLiveError(null);
+                liveDispatch({ type: "toggle", fen });
+              }}
               title="Fortlaufende Engineanalyse der angezeigten Stellung bis zum Ausschalten"
             >
               {live.on ? "■ Live-Analyse" : "Live-Analyse"}
