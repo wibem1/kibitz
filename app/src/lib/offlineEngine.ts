@@ -5,11 +5,13 @@ export function requestOfflineEngineMove(
   fen: string,
   nodes = 20_000,
   userPath = "",
+  elo: number | null = null,
 ): Promise<string> {
   return invoke<string>("offline_engine_move", {
     fen,
     nodes,
     userPath: userPath.trim() || null,
+    elo,
   });
 }
 
