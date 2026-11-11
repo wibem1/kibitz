@@ -1,3 +1,16 @@
+# Kibitz DE – 11.11.2026: Intel-Praxistest – Stockfish liefert keine sichtbare Bewertung
+
+**Nutzerbefund auf realem Intel-Mac nach Test-DMG 13890264118:** Sowohl `Stellung bewerten` als auch die eigenständige `Live-Analyse` zeigen trotz gestarteter Berechnung **kein Ergebnis**. Beide Wege nutzen dieselbe `analyze_position`-/`engine-info`-Infrastruktur. Der letzte Testbuild ist daher **nicht funktionsabgenommen** für diese Funktionen. Der genaue Ausfallpunkt der Engine-Ereignisübertragung ist noch **nicht nachgewiesen**.
+
+**Gezielte Korrektur/Diagnose, noch ungetestet:**
+- `GameView.tsx` Commit `da8204eb`: Die bisherige Aktion `Stellung bewerten` für PGN-Partien ohne Datenbank nutzt jetzt eine **begrenzte** Suche (`go nodes 250000`) mit sichtbarer Bewertung, Tiefe, Abschlussstatus oder Fehlermeldung. Im Gegensatz zur bisherigen unendlichen Live-Suche liefert sie einen Endpunkt. Ereignis-Listener für `engine-info` und `engine-done` werden vor der Aktion abonniert.
+- `GameView.tsx` Commits `c86f2c24`, `58e59331`: Live-Analyse zeigt Engine-Startfehler und `engine-done`-Fehler explizit an statt sie zu verschlucken, meldet ein unerwartetes Ende und warnt bei 12 Sekunden ohne Score-Ereignis. Ergebnisloses Rechnen gilt nicht als Erfolg. Alte Live-Analyse ist weiterhin optional.
+- Diagnose ist nicht mit einer bewiesenen Reparatur des gemeinsamen Backend-Problems gleichzusetzen; statische Prüfung/CI des aktuellen Code-Commits `58e593317a4e13dd2e88dfd7d4d6da6c8ddb7496` steht aus. Kein neuer Installer freigegeben.
+
+**Nächster einzelner Schritt:** Neue CI-Prüfung auswerten und eventuelle Compile-/Testfehler korrigieren. Erst danach Intel-Test-DMG erstellen und mit einem Positions-Bewertungstest klären, ob `engine-info` ankommt bzw. welche Fehler angezeigt werden. Kein Release bis zur realen Abnahme.
+
+---
+
 # Kibitz DE – 11.11.2026: Intel-Test-DMG mit Analysekorrekturen erfolgreich gebaut
 
 **Verifizierter GitHub-Actions-Stand:** [CI 43099437895](https://github.com/wibem1/kibitz/actions/runs/43099437895) vollständig erfolgreich, alle vier macOS-/Ubuntu-/App-/Rust-Jobs. [Intel-Mac-Workflow 43099437865](https://github.com/wibem1/kibitz/actions/runs/43099437865) vollständig erfolgreich; Build, x86_64-Architekturprüfung und Artefakt-Upload jeweils grün.
