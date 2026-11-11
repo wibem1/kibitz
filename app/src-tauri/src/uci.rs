@@ -372,8 +372,10 @@ impl Engine {
         if !(1320..=3190).contains(&elo) {
             return Err("Ungültige Stockfish-Spielstärke".to_owned());
         }
-        self.send("setoption name UCI_LimitStrength value true").await?;
-        self.send(&format!("setoption name UCI_Elo value {elo}")).await?;
+        self.send("setoption name UCI_LimitStrength value true")
+            .await?;
+        self.send(&format!("setoption name UCI_Elo value {elo}"))
+            .await?;
         self.send("isready").await?;
         self.wait_for("readyok", Duration::from_secs(10)).await
     }
