@@ -1,3 +1,17 @@
+# Kibitz DE – 11.11.2026: Spielstärke und direkte Analyseübergabe CI-grün, Intel-Test-DMG gebaut
+
+**Quellstand:** Commit `f795735abead1b5aef79b9903eac3a5febf61567` (letzte Codekorrektur), Branch `feat/de-simple-readable-ui`.
+
+**Technische Prüfung bestätigt:** [CI 43019061343](https://github.com/wibem1/kibitz/actions/runs/43019061343) und [CI 43019191089](https://github.com/wibem1/kibitz/actions/runs/43019191089) jeweils alle vier Jobs erfolgreich (Ubuntu/macOS, App/Rust). Im macOS-App-Log des zweiten Laufs: 631 Vitest-Tests/65 Dateien, TypeScript/Vite-Build, Cargo fmt/clippy/test sowie 107 Rust-Unit-Tests und 2 UCI-Integrationstests erfolgreich. Diese Tests beweisen nicht, dass die Elo-Einschränkung auf dem realen Stockfish-Programm wirkt.
+
+**Aktuelles Intel-Mac-Testpaket:** [Build 43019191176](https://github.com/wibem1/kibitz/actions/runs/43019191176) erfolgreich; [ZIP-Artefakt 13855000712](https://github.com/wibem1/kibitz/actions/runs/43019191176/artifacts/13855000712) mit `Kibitz_0.1.2_x64.dmg`, Größe 11.696.259 Byte, x86_64-Architektur im Log kontrolliert. SHA256 des ZIP-Artefakts laut GitHub-Upload-Log: `267ec1be1ac7361d3035755182d65d7a9d050a3ca7665af7c2b649f42ad6ddda`. **Unsignierter, nicht veröffentlichter Testbuild.** Artefakt-Aufbewahrung 7 Tage.
+
+**Für den Intel-Mac real zu prüfen:** In der Offline-Ansicht Stockfish-Spielstärke 1500 Elo einstellen, einen Engine-Zug spielen lassen, auf „Volle Stärke“ umstellen, danach „Partie zur Analyse öffnen“ anklicken; Zugliste und Stellung müssen identisch bleiben. In der Analyseansicht sind Live-Analyse/Einzelerklärung vorhanden, automatische komplette Partieerläuterung ohne DB-ID noch nicht. Test anschließend mit einer schon laufenden Partie wiederholen, ohne Verlust des lokalen Autosaves. Maia 2 weiterhin **nicht integriert**.
+
+**Nächster einzelner Schritt:** Realen Intel-Mac-Praxistest der neuen Elo-Auswahl und der PGN-Übergabe anhand dieses Pakets auswerten; bei Fehlern Diagnose erfassen. Danach Maia-Kompatibilität und Integration separat bearbeiten. Keine Release-Freigabe aus CI allein.
+
+---
+
 # Kibitz DE – 11.11.2026: CI-Formatierungsfehler der Elo-Funktion korrigiert
 
 **Konkret geprüft:** GitHub-Actions-CI [Run 43017929339](https://github.com/wibem1/kibitz/actions/runs/43017929339) für die neue Spielstärke/Analyseübergabe: 631 Vitest-Tests in 65 Dateien erfolgreich; TypeScript- und Vite-Build erfolgreich. App-Job scheiterte danach an genau zwei Rustfmt-Zeilen für `set_stockfish_elo` in `app/src-tauri/src/uci.rs`. Das ist ein Formatierungsfehler, kein nachgewiesener UCI-Laufzeitfehler.
