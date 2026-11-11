@@ -514,7 +514,6 @@ export default function App() {
       setStatus(label + (warning ? ` ${warning}` : ""));
       setExplanations(new Map());
       setVerifications(new Map());
-      setRevealedQuiet(new Set());
       setPendingVar(null);
       setPreview(null);
     },
@@ -808,23 +807,15 @@ export default function App() {
   }, []);
 
   /* ---- explain (cache per ply; both voices arrive at once) ---- */
-  // Quiet positions keep the empty state until the user explicitly asks;
-  // fired screens show their explanation as soon as the (static, free)
-  // analysis lands.
-  const [revealedQuiet, setRevealedQuiet] = useState<Set<number>>(new Set());
-  const fetched = explainOn ? (explanations.get(gv.ply) ?? null) : null;
-  const currentExplanation =
-    fetched && (fetched.tag !== "QUIET POSITION" || revealedQuiet.has(gv.ply))
-      ? fetched
-      : null;
+  // A completed explanation must always be visible, including quiet
+  // positions. Hiding them created an endless "no explanation" state.
+  const currentExplanation = explainOn ? (explanations.get(gv.ply) ?? null) : null;
   const explainedPlies = useMemo(
     () => [...explanations.keys()].sort((a, b) => a - b),
     [explanations],
   );
 
   const doExplain = useCallback(async () => {
-    // An explicit request also reveals a quiet position's explanation.
-    setRevealedQuiet((r) => (r.has(gv.ply) ? r : new Set(r).add(gv.ply)));
     if (explaining || explanations.has(gv.ply)) return;
     const ply = gv.ply;
     setExplaining(true);
@@ -871,6 +862,51 @@ export default function App() {
       stale = true;
     };
   }, [explainOn, game, explanations, gv.ply, fen, gv.voice]);
+
+  // The direct-PGN workflow has no database ID. Let the explicit "Partie
+  // erläutern" action populate the existing per-ply explanation cache.
+  // This is static Kibitz narration, not a Stockfish full-game evaluation.
+  const [gameExplainProgress, setGameExplainProgress] = useState<string | null>(null);
+  const explainWholePgn = useCallback(async () => {
+    if (!game) return;
+    const requestedGame = game;
+    const requestToken = tokenReqRef.current;
+    const total = requestedGame.sans.length + 1;
+    const limit = Math.min(total, 300);
+    let completed = 0;
+    setGameExplainProgress(`0 / ${limit} Stellungen erklärt`);
+    setExplainOn(true);
+    for (let ply = 0; ply < limit; ply++) {
+      if (requestToken !== tokenReqRef.current) return;
+      try {
+        const res = await explainPosition(
+          requestedGame.fens[ply],
+          gv.voice,
+          ply > 0 ? requestedGame.fens[ply - 1] : undefined,
+          ply > 0 ? requestedGame.sans[ply - 1] : undefined,
+          requestedGame.sans.slice(0, ply),
+          requestedGame.fens[0],
+        );
+        if (requestToken !== tokenReqRef.current) return;
+        setExplanations((m) => new Map(m).set(ply, res.explanation));
+        completed++;
+      } catch (e) {
+        if (requestToken === tokenReqRef.current) {
+          setStatus(`Partieerläuterung bei Halbzug ${ply} abgebrochen: ${String(e)}`);
+          setGameExplainProgress(null);
+        }
+        return;
+      }
+      setGameExplainProgress(`${completed} / ${limit} Stellungen erklärt`);
+    }
+    if (requestToken !== tokenReqRef.current) return;
+    setGameExplainProgress(null);
+    setStatus(
+      limit < total
+        ? `${completed} Stellungen erläutert. Lange Partie: maximal 300 Stellungen pro Durchlauf.`
+        : `Alle ${completed} Stellungen der Partie erläutert. Keine Enginebewertung berechnet.`,
+    );
+  }, [game, gv.voice]);
 
   const toggleExplain = useCallback(() => setExplainOn((v) => !v), []);
 
@@ -1341,6 +1377,8 @@ export default function App() {
             explainedPlies={explainedPlies}
             verification={verifications.get(gv.ply) ?? null}
             onExplain={() => void doExplain()}
+            onExplainGame={explainWholePgn}
+            gameExplainProgress={gameExplainProgress}
             pendingVar={pendingVar}
             onAcceptVar={acceptPendingVar}
             onDismissVar={() => setPendingVar(null)}
