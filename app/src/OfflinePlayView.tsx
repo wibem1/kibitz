@@ -8,6 +8,7 @@ import type { BoardTreatmentChoice } from "./lib/gameView";
 import { numberedSans, type LoadedGame } from "./lib/game";
 import { restoreOfflineSession, storeOfflineSession } from "./lib/offlineSession";
 import { requestOfflineEngineMove, offlineEngineError } from "./lib/offlineEngine";
+import { importPgnIntoDatabase } from "./lib/db";
 import { getSavedEnginePath } from "./lib/engine";
 import { offlineBoardSize } from "./lib/offlineLayout";
 import { diagnoseEngineFailure, recordDiagnostic } from "./lib/diagnostics";
@@ -30,6 +31,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
     catch { return restoreOfflineSession({ getItem: () => { throw Error("blocked"); }, setItem: () => {} }); }
   });
   const [game, setGame] = useState(restored.game);
+  const [savedFingerprint, setSavedFingerprint] = useState<string | null>(null);
   const [browsePly, setBrowsePly] = useState(() => Math.max(0, Math.min(sourcePly, sourceGame?.sans.length ?? 0)));
   const [browsing, setBrowsing] = useState(Boolean(sourceGame));
   useEffect(() => {
@@ -39,6 +41,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
   }, [browsing, game, onPlayerStateChange]);
   const [flipped, setFlipped] = useState(restored.flipped);
   const [notice, setNotice] = useState(restored.warning ?? "");
+  const [databaseSave, setDatabaseSave] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [confirmNew, setConfirmNew] = useState(false);
   const [opponent, setOpponent] = useState<"human" | "stockfish" | "maia2">(restored.opponent);
   const [humanColor, setHumanColor] = useState<"white" | "black">(restored.humanColor);
@@ -103,6 +106,8 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
       setNotice("Automatisches Speichern ist auf diesem Rechner nicht verfügbar. Bitte die Partie als PGN sichern.");
     }
   }, [game, flipped, opponent, humanColor, sourceGame]);
+  const gameFingerprint = useMemo(() => game.fens[0] + "|" + game.ucis.join(","), [game]);
+  const savedInDatabase = databaseSave === "saved" && savedFingerprint === gameFingerprint;
   const pos = useMemo(() => localPosition(game), [game]);
   const completed = pos.isEnd();
   const fen = game.fens[game.fens.length - 1];
@@ -184,6 +189,31 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
     } catch (e) { setNotice(String(e)); }
   };
 
+  async function saveToDatabase() {
+    if (browsing || game.sans.length === 0 || databaseSave === "saving") return;
+    const fingerprint = gameFingerprint;
+    setDatabaseSave("saving");
+    try {
+      const report = await importPgnIntoDatabase(
+        localPgn(game),
+        sourceGame ? "Kibitz DE – Übungsfortsetzung" : "Kibitz DE – Offline-Partie",
+      );
+      if (report.imported === 1 || report.duplicates >= 1) {
+        setSavedFingerprint(fingerprint);
+        setDatabaseSave("saved");
+        setNotice(report.imported === 1
+          ? "Partie dauerhaft in der geöffneten Kibitz-Datenbank gespeichert."
+          : "Diese Partie ist bereits in der geöffneten Datenbank vorhanden (Duplikat erkannt).");
+      } else {
+        setDatabaseSave("error");
+        setNotice(`Datenbankspeicherung nicht bestätigt: ${report.failed} Fehler. ${report.failures.join(" · ")}`);
+      }
+    } catch (e) {
+      setDatabaseSave("error");
+      setNotice(`Nicht in der Datenbank gespeichert: ${String(e)}. Die Partie bleibt geöffnet; als PGN exportieren ist weiterhin möglich.`);
+    }
+  }
+
   function savePgn() {
     const file = new Blob([localPgn(game)], { type: "application/x-chess-pgn;charset=utf-8" });
     const url = URL.createObjectURL(file);
@@ -246,10 +276,20 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                   Zug zurücknehmen
                 </button>
                 <button className="btn-primary" disabled={browsing} onClick={savePgn}>{sourceGame ? "Fortsetzung als PGN speichern" : "PGN speichern"}</button>
+                <button className="btn-primary"
+                  disabled={browsing || game.sans.length === 0 || databaseSave === "saving" || savedInDatabase}
+                  onClick={() => void saveToDatabase()}>
+                  {databaseSave === "saving" ? "Speichert …" : savedInDatabase ? "In Datenbank gesichert ✓" : "In Datenbank speichern"}
+                </button>
                 <button className="btn-secondary" disabled={browsing || game.sans.length === 0}
                   onClick={() => onAnalyze(localPgn(game))}>Partie zur Analyse öffnen</button>
               </div>
-              {notice && <p role="status">{notice}</p>}
+              {sourceGame && <p className="sync-blurb">Speicherort: Übungsfortsetzungen sind erst nach bestätigtem Datenbankimport oder PGN-Export dauerhaft gesichert. Die ursprüngliche Partie bleibt unabhängig erhalten.</p>}
+              {!sourceGame && <p className="sync-blurb">Speicherort: Die laufende Offline-Partie wird lokal automatisch zwischengespeichert. Mit „In Datenbank speichern“ legst du eine dauerhafte Datenbankkopie an.</p>}
+              {!browsing && game.sans.length > 0 && <p role="status">
+                Datenbank: {savedInDatabase ? "Diese Fassung gespeichert" : "Aktuelle Fassung nicht in der Datenbank bestätigt"}
+              </p>}
+              {notice && <p role="status">{notice}</p>
               {opponent === "stockfish" && failedFen === fen && (
                 <div className="offline-engine-help">
                   <button className="btn-secondary" onClick={onEngineSettings}>
