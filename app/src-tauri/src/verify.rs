@@ -16,8 +16,8 @@
 //! #5): the frontend must drop results whose stamp no longer matches
 //! the position it is showing.
 
-use serde::Serialize;
 use crate::uci::{self, UciPosition};
+use serde::Serialize;
 
 /// One reviewed candidate: `verdict` is `"cleared"` or `"refuted"`.
 #[derive(Debug, Clone, Serialize)]
