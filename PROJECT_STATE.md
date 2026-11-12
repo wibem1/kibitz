@@ -1,3 +1,11 @@
+# Kibitz DE – 12.11.2026: Einstellungsseite als Aufräumziel konkretisiert
+
+**Dokumentierte Anforderung, noch keine UI-Änderung:** Codeprüfung der aktuellen `app/src/SettingsView.tsx` und zugehörigen Komponenten bestätigt die Vermischung echter Einstellungen mit Datenbank-Stapelaktionen, Kontosynchronisation, Statusanzeigen und technischen, teils unveränderbaren Zeilen. Weiterhin zahlreiche englische Schaltflächen und Meldungen. [docs/KIBITZ_DE_SCHACHSTUDIO.md, Abschnitt 9](docs/KIBITZ_DE_SCHACHSTUDIO.md) legt die Vereinfachungsziele und sichere Reihenfolge fest: Kibitz-Layout beibehalten, echte Einstellungen bündeln, ausführende Aufgaben an passende Arbeitsorte verlegen, technische Werte nachordnen, vollständig Deutsch, keine bestehenden Werte oder Funktionen verlieren.
+
+**Prüfstatus:** Dokumentation anhand aktuellen Codes gesichtet; keine Codekorrektur, keine App-Tests, kein Build und keine neue Version. Der unmittelbare technische nächste Schritt bleibt die reale Intel-Mac-Abnahme der Engine-Ausgabe und Maia 2; die Einstellungsbereinigung folgt in kleinen eigenen Prüfaufträgen.
+
+---
+
 # Kibitz DE – 12.11.2026: Windows 11 x64 als zweite verbindliche Desktop-Zielplattform
 
 **Beschlossene Anforderung, noch keine Windows-Auslieferung:** [docs/KIBITZ_DE_SCHACHSTUDIO.md, Abschnitt 8](docs/KIBITZ_DE_SCHACHSTUDIO.md) fordert installierbare Windows-11-x64-Pakete mit derselben Kibitz-Oberfläche und gleichem Funktionsumfang wie auf macOS. Stockfish, Maia 2 und ihre Windows-spezifischen Binärdateien/Runtime-Abhängigkeiten, Tauri-Installer, PGN/Datenbank, UI/DPI, KI-Funktionen und Diagnose sind separat zu prüfen. Windows-CI und echte Windows-11-Laufzeitabnahme vor Freigabe. Intel-Mac bleibt erster aktueller Diagnoserechner; Windows wird nicht als nachrangige unverbindliche Option geführt.
