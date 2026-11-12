@@ -219,7 +219,8 @@ const VIEW_TITLES: Record<ViewId, string> = {
 export default function App() {
   // Home is the startup screen (round-2 maintainer ruling: Direction A).
   const [view, setView] = useState<ViewId>("home");
-  const [exerciseFen, setExerciseFen] = useState<string | null>(null);
+  const [exerciseGame, setExerciseGame] = useState<LoadedGame | null>(null);
+  const [exercisePly, setExercisePly] = useState(0);
   const [exerciseSerial, setExerciseSerial] = useState(0);
   // One-shot per-screen navigation params (lib/shell.ts ViewParams):
   // e.g. navigate("profile", { claim }) pre-selects a claim's evidence.
@@ -312,7 +313,7 @@ export default function App() {
   const navigate = useCallback((id: ViewId, params?: ViewParams) => {
     // Selecting Offline spielen via navigation returns to the ordinary saved game.
     // A new exercise is started exclusively with the game-view action.
-    if (id === "offline") setExerciseFen(null);
+    if (id === "offline") setExerciseGame(null);
     setView(id);
     setViewParams(params ?? {});
   }, []);
@@ -1299,7 +1300,7 @@ export default function App() {
       case "play":
         return <PlayView treatment={gv.boardTreatment} onNavigate={navigate} />;
       case "offline":
-        return <OfflinePlayView key={exerciseFen ? `exercise-${exerciseSerial}` : "normal-offline"} initialFen={exerciseFen} treatment={gv.boardTreatment} onEngineSettings={() => navigate("settings")} onAnalyze={doLoad} />;
+        return <OfflinePlayView key={exerciseGame ? `exercise-${exerciseSerial}` : "normal-offline"} sourceGame={exerciseGame} sourcePly={exercisePly} onReturnToAnalysis={() => setView("game")} treatment={gv.boardTreatment} onEngineSettings={() => navigate("settings")} onAnalyze={doLoad} />;
       case "import":
         return <ImportView onLoad={doLoad} status={status} />;
       case "twic":
@@ -1396,7 +1397,9 @@ export default function App() {
             onExitPreview={exitPreview}
             onCrosstable={setCrosstableEvent}
             onPlayFromPosition={() => {
-              setExerciseFen(shownFen);
+              if (!game) return;
+              setExerciseGame(game);
+              setExercisePly(preview ? 0 : gv.ply);
               setExerciseSerial((n) => n + 1);
               setView("offline");
             }}
