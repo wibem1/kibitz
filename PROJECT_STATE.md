@@ -1,3 +1,13 @@
+# Kibitz DE – 12.11.2026: Intel-ONNX-Runtime in Maia-Build eingebunden (Prüfung ausstehend)
+
+**Änderung:** [Commit a76f6376](https://github.com/wibem1/kibitz/commit/a76f63769f98e1cd75d85ef79ffe9a706e75dbac) passt ausschließlich den Intel-Mac-Preview-Workflow an. Auf dem Intel-Runner wird die Homebrew-ONNX-Runtime installiert. Maia 2 wird mit `ORT_LIB_LOCATION` und `ORT_PREFER_DYNAMIC_LINK=1` dagegen gebaut. Die x86_64-Dylib wird als zusätzliche Tauri-Ressource mit verpackt; der Maia-Executable-Verweis wird auf `@loader_path/libonnxruntime.dylib` gesetzt, und die Verknüpfung wird geprüft. Quelle und Gewichte der Maia-Engine bleiben am bestehenden Commit gepinnt; Schachlogik und übrige Plattformen unverändert.
+
+**Prüfstatus:** Code auf GitHub gesichert, aber **noch nicht erfolgreich ausgeführt**. Das tatsächliche Linkverhalten, eventuelle weitere dylib-Abhängigkeiten, Maia-UCI-Ausgabe und DMG-Paket müssen im neuen Intel-Workflow geprüft werden. Frühere CI [43166820393](https://github.com/wibem1/kibitz/actions/runs/43166820393) war grün, der vorherige Intel-Build [43166820431](https://github.com/wibem1/kibitz/actions/runs/43166820431) scheiterte mangels vorkompilierter ONNX-Runtime. `npm ci` meldete außerdem sieben Abhängigkeits-Schwachstellen (davon zwei kritisch); vor einem formalen Release ist die Relevanz für das ausgelieferte Produkt zu bewerten.
+
+**Nächster Schritt:** Ein gezielter Intel-Mac-Workflow auf Commit a76f6376, bei Fehlern dessen konkrete Ursache prüfen. Bei Erfolg UCI-Smoke-Test und DMG-Inhalt kontrollieren und erst danach 0.1.4 als **unsignierten Testbuild**, nicht als formal freigegebene Version, anbieten; echte Nutzer-Mac-Abnahme bleibt erforderlich.
+
+---
+
 # Kibitz DE – 12.11.2026: Intel-Maia-2-Buildfehler eindeutig diagnostiziert
 
 **Aktuelle Prüfung:** CI [43166820393](https://github.com/wibem1/kibitz/actions/runs/43166820393) ist vollständig grün (Rust und App jeweils auf Ubuntu und macOS). Der Intel-Build [43166820431](https://github.com/wibem1/kibitz/actions/runs/43166820431) ist fehlgeschlagen; es gibt kein DMG-Artefakt für 0.1.4.
