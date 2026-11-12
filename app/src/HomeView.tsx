@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   commitmentGet,
+  commitmentSet,
   homeSummary,
   prepStateGet,
   type Commitment,
@@ -324,6 +325,32 @@ export default function HomeView({
 }: HomeViewProps) {
   const [data, setData] = useState<HomeData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editCommitment, setEditCommitment] = useState(false);
+  const [commitLabel, setCommitLabel] = useState("");
+  const [commitOpponent, setCommitOpponent] = useState("");
+  const [commitBusy, setCommitBusy] = useState(false);
+  const [commitError, setCommitError] = useState<string | null>(null);
+
+  const openCommitmentEditor = () => {
+    setCommitLabel(data?.commitment?.label ?? "");
+    setCommitOpponent(data?.commitment?.opponent ?? "");
+    setCommitError(null);
+    setEditCommitment(true);
+  };
+
+  const saveCommitment = async () => {
+    setCommitBusy(true);
+    setCommitError(null);
+    try {
+      await commitmentSet(commitLabel.trim() || null, commitOpponent.trim() || null);
+      setEditCommitment(false);
+      refresh();
+    } catch (e) {
+      setCommitError(String(e));
+    } finally {
+      setCommitBusy(false);
+    }
+  };
 
   const refresh = useCallback(() => {
     if (!dbOpen) return;
@@ -373,12 +400,45 @@ export default function HomeView({
     return <div className="home"><p className="home-prose dim">Startseite nicht verfügbar: {error}</p></div>;
   }
   return (
-    <HomeContent
-      data={data!}
-      batchFraction={batchFraction}
-      netProgress={netProgress}
-      onNavigate={onNavigate}
-      onOpenGame={onOpenGame}
-    />
+    <>
+      <div className="home" style={{ paddingBottom: 0 }}>
+        <button className="home-link" onClick={() => editCommitment ? setEditCommitment(false) : openCommitmentEditor()}>
+          {editCommitment ? "Terminbearbeitung schließen" : "Schachtermin bearbeiten"}
+        </button>
+        {editCommitment && (
+          <div className="home-card" style={{ marginTop: 8 }}>
+            <div className="home-card-label">WIEDERKEHRENDER SCHACHTERMIN</div>
+            <p className="home-prose dim">Optionaler Termin auf der Startseite. Zum Entfernen beide Felder leeren und speichern.</p>
+            <div className="home-prep-row">
+              <input
+                type="text"
+                value={commitLabel}
+                placeholder="Terminbezeichnung"
+                aria-label="Terminbezeichnung"
+                onChange={(e) => setCommitLabel(e.target.value)}
+              />
+              <input
+                type="text"
+                value={commitOpponent}
+                placeholder="Gegner (optional)"
+                aria-label="Gegner des Termins"
+                onChange={(e) => setCommitOpponent(e.target.value)}
+              />
+              <button className="btn-secondary" onClick={() => void saveCommitment()} disabled={commitBusy}>
+                {commitBusy ? "Wird gespeichert …" : "Speichern"}
+              </button>
+            </div>
+            {commitError && <p className="home-prose">{commitError}</p>}
+          </div>
+        )}
+      </div>
+      <HomeContent
+        data={data!}
+        batchFraction={batchFraction}
+        netProgress={netProgress}
+        onNavigate={onNavigate}
+        onOpenGame={onOpenGame}
+      />
+    </>
   );
 }
