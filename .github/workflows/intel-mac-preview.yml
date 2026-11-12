@@ -36,11 +36,46 @@ jobs:
         working-directory: app
         run: npm ci
 
+      - name: Build and smoke-test bundled Maia 2 (Intel CPU)
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v git-lfs >/dev/null || brew install git-lfs
+          git lfs install --skip-repo
+          export GIT_LFS_SKIP_SMUDGE=1
+          git clone --depth 1 https://github.com/ChessWaveIO/maia2-uci.git "$RUNNER_TEMP/maia2-uci"
+          git -C "$RUNNER_TEMP/maia2-uci" fetch --depth 1 origin 05d51ac73ca3ad006882f8956c848fe2411ce718
+          git -C "$RUNNER_TEMP/maia2-uci" checkout --detach 05d51ac73ca3ad006882f8956c848fe2411ce718
+          git -C "$RUNNER_TEMP/maia2-uci" lfs pull --include "models/maia2-rapid.onnx,models/maia2-blitz.onnx" --exclude ""
+          test "$(stat -f%z "$RUNNER_TEMP/maia2-uci/models/maia2-rapid.onnx")" -gt 90000000
+          test "$(stat -f%z "$RUNNER_TEMP/maia2-uci/models/maia2-blitz.onnx")" -gt 90000000
+          cargo build --manifest-path "$RUNNER_TEMP/maia2-uci/Cargo.toml" --release --features embed-weights
+          mkdir -p app/src-tauri/resources
+          cp "$RUNNER_TEMP/maia2-uci/target/release/maia2-uci" app/src-tauri/resources/maia2-uci
+          chmod +x app/src-tauri/resources/maia2-uci
+          cp "$RUNNER_TEMP/maia2-uci/LICENSE" app/src-tauri/resources/maia2-LICENSE
+          lipo -archs app/src-tauri/resources/maia2-uci | grep -qw x86_64
+          python3 - <<'PY'
+          import subprocess
+          result = subprocess.run(
+              ["app/src-tauri/resources/maia2-uci"],
+              input="uci\nisready\nposition startpos\ngo\nquit\n",
+              capture_output=True, text=True, timeout=120, check=True
+          )
+          assert "id name Maia2-UCI" in result.stdout, result.stdout[-2000:]
+          assert "readyok" in result.stdout, result.stdout[-2000:]
+          assert "bestmove " in result.stdout, result.stdout[-2000:]
+          print("Maia 2 Intel CPU UCI smoke test passed")
+          PY
+          cat > app/src-tauri/tauri.maia2-preview.json <<'JSON'
+          {"bundle":{"resources":{"resources/maia2-uci":"maia2-uci","resources/maia2-LICENSE":"maia2-LICENSE"}}}
+          JSON
+
       - name: Build unsigned Intel Mac DMG
         working-directory: app
         env:
           CI: "true"
-        run: npm run tauri build -- --target x86_64-apple-darwin --bundles app,dmg
+        run: npm run tauri build -- --target x86_64-apple-darwin --bundles app,dmg --config src-tauri/tauri.maia2-preview.json
 
       - name: Check Intel architecture and DMG exists
         shell: bash
@@ -55,7 +90,11 @@ jobs:
           test -d "$root/dmg"
           count=$(find "$root/dmg" -maxdepth 1 -name '*.dmg' -type f | wc -l | tr -d ' ')
           test "$count" -eq 1
-          echo "Intel x86_64 app and one DMG found."
+          maia="$app/Contents/Resources/maia2-uci"
+          test -x "$maia"
+          test -f "$app/Contents/Resources/maia2-LICENSE"
+          lipo -archs "$maia" | grep -qw x86_64
+          echo "Intel x86_64 app, bundled Maia 2 and one DMG found."
 
       - name: Upload unsigned test DMG (NOT a release)
         uses: actions/upload-artifact@v4
