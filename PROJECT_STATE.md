@@ -1,3 +1,17 @@
+# Kibitz DE – 12.11.2026: Engine-Konkurrenz zwischen taktischer Prüfung und Live-Analyse beseitigt (noch nicht abgenommen)
+
+**Ursache im Code verifiziert:** `verify_suggestions` lief nach einem WSUI-Taktiktreffer im Hintergrund automatisch und hielt die gemeinsame `EngineState.engine`-Mutex für bis zu vier UCI-Suchen (je 150.000 Knoten). Die manuelle `analyze_position`-Live-Analyse benötigt dieselbe Mutex und konnte deshalb in der Warteschlange ohne Score-Ereignis hängen. Das ist eine nachgewiesene **Blockademöglichkeit**, noch keine vollständige Erklärung sämtlicher Nutzerbeobachtungen.
+
+**Gezielte Änderung:** [Commit 755089ad](https://github.com/wibem1/kibitz/commit/755089adf938850f530b23d5f885b63cde5310c7) verlegt ausschließlich die automatische taktische Kandidatenprüfung auf einen **eigenen kurzlebigen UCI-Prozess**, statt den interaktiven, gemeinsam verwalteten Engine-Prozess zu belegen. Die statischen WSUI-Einschaltbedingungen, Kandidatenbewertungen, Node-Grenzen und Stockfish-Live-Analyse bleiben unverändert. Eigenständiger Prozess wird nach der Prüfung beendet. Es wird nur im GPL-App-Layer geändert.
+
+**Version:** Die nächste Test-App heißt `0.1.3`; `package.json`, `package-lock.json`, `tauri.conf.json`, `Cargo.toml` und der Eintrag für `kibitz-app` in `Cargo.lock` wurden in vorausgegangenen Commits auf `0.1.3` gebracht. **Jeder neue Installer bekommt ab jetzt eine neue Versionsnummer.**
+
+**Prüfstatus:** Code ist auf Branch `feat/de-simple-readable-ui` gesichert, aber eine vollständig grüne CI, Intel-x86_64-DMG und reale Mac-Laufzeitabnahme für diese Änderung sind **noch offen**. Keine offizielle Release-Freigabe.
+
+**Nächster einzelner Schritt:** CI und einmaligen Intel-Build auf dem aktuellen Code-Commit prüfen; bei Erfolg Test-DMG 0.1.3 zur praktischen Prüfung des Live-Scores und der einmaligen Bewertung anbieten. Sollte weiterhin kein Score kommen, Rohereignis/FEN-Zuordnung gezielt instrumentieren, nicht erneut blind den Button ändern.
+
+---
+
 # Kibitz DE – 11.11.2026: Eindeutige Versionierung jeder neuen Test-App
 
 **Verbindlicher Nutzerwunsch:** Jede künftig erstellte und zum Download angebotene Kibitz-DE-Version erhält eine **neue, sichtbare Versionsnummer**. Keine verschiedenen Builds mehr mit derselben App-Version.
