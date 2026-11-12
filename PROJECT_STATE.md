@@ -1,3 +1,20 @@
+# Kibitz DE – 12.11.2026: Release-Prüfung nach gezielten Korrekturen (noch kein Paket)
+
+**Nutzerziel:** Alle neu entwickelten Funktionen sollen in der nächsten **neuen** Version erscheinen; derzeit bleibt die Manifestversion **0.1.4**, weil die vollständige Freigabeprüfung noch aussteht. Weder ein neuer Installer noch eine neue Release-Version wurde veröffentlicht.
+
+**GitHub-CI-Befunde und Korrekturen:**
+1. GitHub Action [43199121413](https://github.com/wibem1/kibitz/actions/runs/43199121413): sieben Frontend-Tests veraltet, Rust-Formatierung in `profile.rs` fehlerhaft. Korrigiert in Commits `f908c158`, `23840a82`, `b5b475ba`.
+2. GitHub Action [43200320649](https://github.com/wibem1/kibitz/actions/runs/43200320649): 637 Frontend-Tests grün, nachfolgend TypeScript-Syntaxfehler wegen fehlender JSX-Klammer in `OfflinePlayView.tsx`. Korrigiert im Commit `3bf151b5`.
+3. GitHub Action [43200756100](https://github.com/wibem1/kibitz/actions/runs/43200756100): 637 Frontend-Tests grün, TypeScript-Frontend-Build erfolgreich, Root-Rust-Linux-Prüfung erfolgreich; `app/src-tauri`-Formatierung in `browse.rs`/`dbops.rs` zunächst fehlgeschlagen. Korrigiert in `408c0346`, `2f79d568`.
+4. Anschließende Action [43201162423](https://github.com/wibem1/kibitz/actions/runs/43201162423) für Commit `34fafdc2`: Root-Rust-Ubuntu erfolgreich; App-Ubuntu zuletzt in `src-tauri fmt/clippy/test` aktiv, macOS-Matrixjobs zuletzt queued. Aus vorherigem App-Linux-Log: `list_games_impl` wurde als unbenutzter Code unter `-D warnings` beanstandet, behoben mit `#[cfg(test)]` in Commit `34fafdc2`. **Finale App-Linux-Ergebnisse stehen noch aus.**
+5. Intel-Mac-Preview [43201162294](https://github.com/wibem1/kibitz/actions/runs/43201162294) zuletzt queued, noch **kein** neuer überprüfter DMG-Download. Die bekannten Maia-2-Intel-Laufzeit-/Link-Risiken sind nicht auf echter Hardware abgenommen.
+
+**Unverändert ausstehend:** Vollständiges erfolgreiches Gesamt-CI, Intel-Mac-Paket, echter Test der Speicher-/Import-/Fortsetzungs-/Diagnosefunktionen, Prüfung der im `npm ci`-Audit gemeldeten sieben Abhängigkeitswarnungen (davon zwei kritisch) auf konkrete Auslieferungsrelevanz. `docs/RELEASING.md` sieht zusätzlich Versionssynchronisierung in Root `Cargo.toml`, `app/src-tauri/Cargo.toml`, `app/src-tauri/tauri.conf.json`, `app/package.json` und Lockfiles vor. Erst **nach erfolgreichen erforderlichen Prüfungen** neue Versionsnummer vergeben und Pakete freigeben.
+
+**Nächster einzelner Schritt:** App-Ubuntu-Job [43201162423](https://github.com/wibem1/kibitz/actions/runs/43201162423) und Intel-Mac-Preview [43201162294](https://github.com/wibem1/kibitz/actions/runs/43201162294) auf Abschluss prüfen; gegebenenfalls exakte Logs korrigieren; erst dann Versionierung und Releasekette. Nicht aus queued oder green in einem einzelnen Matrix-Job auf einen vorhandenen Installer schließen.
+
+---
+
 # Kibitz DE – 12.11.2026: Releasevorbereitung und CI-Blocker
 
 **Nutzerauftrag:** Alle bislang implementierten Funktionen (PGN-Sammlungsimport, Lichess-Synchronisation, Partieübersicht/Schlüsselstellen, gesamte Partie auf Spielseite, Spielen ab beliebigem Halbzug, Speicherverwaltung, Diagnoseexport) in einer neuen Version zusammenführen und veröffentlichen.
