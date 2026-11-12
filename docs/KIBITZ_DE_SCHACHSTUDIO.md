@@ -159,3 +159,15 @@ Status: **beschlossene Anforderungen, noch nicht implementiert**. Fortführung d
 - **Keine Vorab-Funktionen vortäuschen:** nicht implementierte KI-Einstellungen bis zur echten Anbindung nicht als bedienbar anzeigen.
 
 **Leitlinie:** *Nur echte Einstellungen gehören in die Einstellungen. Aktionen gehören dorthin, wo man sie benötigt. Technische Statusangaben erscheinen bei Bedarf.*
+
+### Umsetzungsstand der Einstellungsbereinigung (12.11.2026)
+
+**Im Entwicklungsbranch implementiert, noch nicht durch vollständige CI und reale Desktop-Bedienabnahme bestätigt:**
+
+- Die Pseudoeinstellungen »Engine-Start«, »LLM verbaliser« und »Figurensatz« sowie doppelte Statusanzeigen sind aus der Einstellungsansicht entfernt. Vorhandene Engine-/Syzygy-Konfiguration bleibt erhalten.
+- »Datenbank erläutern« und »Partien neu bewerten« sind nicht mehr doppelt in den Einstellungen zu sehen: ihre tatsächlich vorhandenen Ausführungen mit Bestätigung, Fortschritt und Pause sind ausschließlich im Datenbankbereich. Bedienelemente und Auftragsdialoge dort wurden auf Deutsch gebracht.
+- Die TWIC-Automatik wird ausschließlich im TWIC-Bereich bedient; die bisher redundante Einstellung ist entfernt. Das bestehende gespeicherte Flag und seine Funktion werden nicht verändert.
+- Der optionale Schachtermin lässt sich statt über die Einstellungen über »Schachtermin bearbeiten« auf der Startseite bearbeiten; vorhandene Daten bleiben erhalten.
+- Einstellungen sind neu sortiert: Darstellung → Trainer → Engineverwaltung → Lichess → Daten/Speicher → Aktualisierungen → Diagnose. Einzelne restliche technische Bezeichnungen in anderen Ansichten sind gesondert über die Gesamtübersetzungsprüfung abzudecken.
+
+**Abnahmegrenze:** Die Änderung ist im Quellcode gesichert. Ein TypeScript-/Build-Erfolg und das Verhalten des Termineditors auf macOS/Windows sind bislang nicht belegt; keine Versionsfreigabe. Insbesondere prüfen: TWIC-Automatik nach Neustart, Termin speichern/entfernen und Anzeige auf Home, Datenbank-Aufträge start-/pausierbar, Enginepfad/Syzygy/Lichess und Darstellungsoptionen unverändert.
