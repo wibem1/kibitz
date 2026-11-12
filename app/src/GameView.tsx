@@ -707,7 +707,7 @@ export default function GameView({
           >
             {gameId === null ? (currentSingleEval?.status === "running" ? "Stockfish bewertet …" : "Stellung bewerten") : "Neu bewerten"}
           </button>
-          <button className="btn" disabled={!game || Boolean(preview)}
+          <button className="btn" disabled={!game}
             title="Neue Übungspartie ab der angezeigten Stellung gegen Stockfish starten"
             onClick={onPlayFromPosition}>Ab hier gegen Stockfish spielen</button>
           <button className="btn" disabled={!game}
