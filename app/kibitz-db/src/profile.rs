@@ -114,6 +114,28 @@ pub fn build_profile(
     player: &str,
     max_games: u32,
 ) -> anyhow::Result<PlayerProfile> {
+    build_profile_with_selection(conn, player, max_games, None)
+}
+
+/// Evaluate only the requested game IDs. Identity is still resolved against
+/// the player; unrelated IDs cannot leak into the profile.
+pub fn build_profile_selected(
+    conn: &Connection,
+    player: &str,
+    game_ids: &[i64],
+) -> anyhow::Result<PlayerProfile> {
+    if game_ids.is_empty() || game_ids.len() > 2000 || game_ids.iter().any(|&id| id <= 0) {
+        anyhow::bail!("Auswahl muss 1 bis 2000 gültige Partie-IDs enthalten");
+    }
+    build_profile_with_selection(conn, player, game_ids.len() as u32, Some(game_ids))
+}
+
+fn build_profile_with_selection(
+    conn: &Connection,
+    player: &str,
+    max_games: u32,
+    selected_ids: Option<&[i64]>,
+) -> anyhow::Result<PlayerProfile> {
     // Identity resolution (run 8.5): the same person under different name
     // forms ("O'Connor, Shawn" / "Shawn O'Connor") and declared aliases
     // (online handles) profiles as ONE player.
@@ -123,11 +145,16 @@ pub fn build_profile(
     }
     let id_list = ids.iter().map(i64::to_string).collect::<Vec<_>>().join(",");
 
+    // Only decimal IDs generated from i64 are interpolated. No raw user SQL.
+    let selection_clause = selected_ids
+        .map(|ids| format!(" AND id IN ({})", ids.iter().map(i64::to_string).collect::<Vec<_>>().join(",")))
+        .unwrap_or_default();
     let mut stmt = conn.prepare(&format!(
         "SELECT id, white_id IN ({id_list}), result, eco, movetext
          FROM games
          WHERE (white_id IN ({id_list}) OR black_id IN ({id_list}))
            AND start_fen IS NULL
+           {selection_clause}
          ORDER BY id DESC LIMIT ?1"
     ))?;
     type GameRow = (i64, bool, i64, Option<String>, Vec<u8>);
