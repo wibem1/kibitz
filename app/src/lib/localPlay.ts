@@ -16,6 +16,15 @@ export function newLocalGame(): LocalGame {
   return { fens: [makeFen(Chess.default().toSetup())], sans: [], ucis: [] };
 }
 
+/** A separate exercise continuation from any legal FEN, preserving the original game. */
+export function localGameFromFen(fen: string): LocalGame {
+  const parsed = parseFen(fen);
+  if (parsed.isErr) throw new Error("Ungültige Ausgangsstellung");
+  const position = Chess.fromSetup(parsed.unwrap());
+  if (position.isErr) throw new Error("Nicht spielbare Ausgangsstellung");
+  return { fens: [makeFen(position.unwrap().toSetup())], sans: [], ucis: [] };
+}
+
 export function localPosition(game: LocalGame) {
   const fen = game.fens[game.fens.length - 1];
   const setup = parseFen(fen);
@@ -107,11 +116,23 @@ export function localResultText(game: LocalGame): string {
 
 export function localPgn(game: LocalGame): string {
   const result = localResult(game);
-  const moves = game.sans.map((san, i) =>
-    i % 2 === 0 ? `${Math.floor(i / 2) + 1}. ${san}` : san,
-  ).join(" ");
+  const [,, , , , fullMove] = game.fens[0].split(" ");
+  const startMove = Math.max(1, Number(fullMove) || 1);
+  const startsBlack = game.fens[0].split(" ")[1] === "b";
+  const moves = game.sans.map((san, i) => {
+    const number = startMove + Math.floor((i + (startsBlack ? 1 : 0)) / 2);
+    const whiteMove = (i + (startsBlack ? 1 : 0)) % 2 === 0;
+    return whiteMove ? `${number}. ${san}` : i === 0 ? `${number}... ${san}` : san;
+  }).join(" ");
+  const startFen = game.fens[0];
+  const standard = newLocalGame().fens[0];
+  const setupTags = startFen === standard ? [] : [
+    '[SetUp "1"]',
+    `[FEN "${startFen}"]`,
+  ];
   return [
     '[Event "Kibitz DE – Offline-Partie"]',
+    ...setupTags,
     '[Site "Lokal"]',
     '[White "Weiß"]',
     '[Black "Schwarz"]',
