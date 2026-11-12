@@ -83,6 +83,22 @@ describe("Diagnose ohne vertrauliche Inhalte", () => {
       .toBe("offline_engine_failure");
   });
 
+  it("erfasst Import und Datenbankspeicherung ohne Nutzerinhalte", () => {
+    recordDiagnostic("pgn_import_request");
+    recordDiagnostic("pgn_import_partial");
+    recordDiagnostic("database_save_request");
+    recordDiagnostic("database_save_failure");
+    recordDiagnostic("game_handoff_cancelled");
+    const json = JSON.stringify(diagnosticsReport());
+    expect(diagnosticsReport().events.map((event) => event.code)).toEqual([
+      "pgn_import_request", "pgn_import_partial", "database_save_request",
+      "database_save_failure", "game_handoff_cancelled",
+    ]);
+    expect(json).not.toContain("sourceName");
+    expect(json).not.toContain("filename");
+    expect(json).not.toContain("pgnText");
+  });
+
   it("begrenzt den Bericht auf die letzten 120 Ereignisse", () => {
     for (let i = 0; i < 150; i++) recordDiagnostic("offline_engine_request");
     expect(diagnosticsReport().events).toHaveLength(120);
