@@ -35,6 +35,7 @@ import JobsView from "./JobsView";
 import PlayView from "./PlayView";
 import OfflinePlayView from "./OfflinePlayView";
 import { localPgn, type LocalGame } from "./lib/localPlay";
+import { recordDiagnostic } from "./lib/diagnostics";
 import { restoreOfflineSession } from "./lib/offlineSession";
 import PrepView from "./PrepView";
 import SyncsView from "./SyncsView";
@@ -244,6 +245,7 @@ export default function App() {
     setExercisePly(pending.ply);
     setExerciseSerial((n) => n + 1);
     setView("offline");
+    recordDiagnostic("game_handoff_confirmed");
     setTransferPending(false);
     setTransferExported(false);
     setTransferDbState("idle");
@@ -1511,6 +1513,7 @@ export default function App() {
           <div className="play-actions" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             <button className="btn-secondary" onClick={() => {
               setTransferPending(false);
+              recordDiagnostic("game_handoff_cancelled");
               setTransferExported(false);
               setTransferDbState("idle");
               setTransferDbError(null);
