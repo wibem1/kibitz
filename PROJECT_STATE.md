@@ -1,3 +1,19 @@
+# Kibitz DE – 12.11.2026: Releasevorbereitung und CI-Blocker
+
+**Nutzerauftrag:** Alle bislang implementierten Funktionen (PGN-Sammlungsimport, Lichess-Synchronisation, Partieübersicht/Schlüsselstellen, gesamte Partie auf Spielseite, Spielen ab beliebigem Halbzug, Speicherverwaltung, Diagnoseexport) in einer neuen Version zusammenführen und veröffentlichen.
+
+**Aktuelle Freigabeentscheidung: NO-GO / keine neue Versionsnummer**, bis Frontend- und Rust-CI sowie ein native Intel-Mac-Build erfolgreich geprüft sind. Dies ist kein fertiges Release. Ausgangsversion in allen aktuellen Manifesten: `0.1.4`.
+
+**Konkrete Befunde im GitHub Actions-Lauf [43199121413](https://github.com/wibem1/kibitz/actions/runs/43199121413):** Linux-Frontend 633 erfolgreich, 7 fehlgeschlagen (davon 6 veraltete `SettingsView.test.tsx`-Assertions auf aus der Einstellungsseite ausgelagerte Funktionen, 1 veralteter TWIC-Autosync-Text); Rust-Linux-`cargo fmt --all --check` scheiterte an `app/kibitz-db/src/profile.rs`, nicht an Rust-Tests. Aus diesem Lauf gibt es **keinen** Nachweis erfolgreichen `tsc --noEmit`, `cargo clippy`, Rust-Tests oder Intel-DMG-Builds.
+
+**Gezielt korrigiert:** `profile.rs` entsprechend `rustfmt`-Diff formatiert ([f908c158](https://github.com/wibem1/kibitz/commit/f908c158e7fcbeca138ec36003d6cf2d7e6bdfda)); `SettingsView.test.tsx` auf aktuelle deutsche Einstellungen/Diagnosefunktion umgestellt ([23840a82](https://github.com/wibem1/kibitz/commit/23840a824f088603384c05bf0329d263b08cf0dd)); `TwicView.test.tsx` auf tatsächlich angezeigten deutschen Autosync-Text angepasst ([b5b475ba](https://github.com/wibem1/kibitz/commit/b5b475ba4883281058202015798c82ff372beb45)). Diese Änderungen sind **statisch**, noch nicht grün verifiziert. CI-Lauf für vorherigen TWIC-Test-Commit [43199898141](https://github.com/wibem1/kibitz/actions/runs/43199898141) zeigte Linux-Jobs bei der Abfrage `in_progress`, Mac-Jobs `queued`; Intel-Mac-Preview [43199898291](https://github.com/wibem1/kibitz/actions/runs/43199898291) war `queued`. Für letzten TWIC-Korrekturcommit noch kein vollständiges Abschlussresultat ermittelt.
+
+**Weitere Release-Voraussetzungen:** Bekannten Intel-Maia-2-Runtime/Link-Blocker prüfen, vollständige Desktop-Spiel-/Speicher-/Import-/Diagnose-Schlüsselstellenabläufe auf echter Hardware testen. UI- und Unit-Tests allein belegen keine korrekte Engine-Laufzeit. Erst nach Testbestehen die Version in allen zusammengehörigen Manifesten/Lockdateien konsistent erhöhen und signierten/unsignierten Testbuild gemäß Projektstandard erzeugen. Keine Downloads oder Releases behaupten, die noch nicht als tatsächliches Artefakt vorliegen.
+
+**Nächster Einzelauftrag:** Aktuelle CI-Logs prüfen, weitere Fehlermeldungen mit genau einer gezielten Korrektur beheben und anschließend erfolgreiches Gesamtresultat nachweisen. Danach Version und Paket.
+
+---
+
 # Kibitz DE – 12.11.2026: Diagnoseexport für Speicher- und Importvorgänge erweitert
 
 **Bestandsprüfung:** Eine lokale Diagnosefunktion existierte bereits: `app/src/lib/diagnostics.ts` protokolliert maximal 120 Zeitstempel samt kontrollierten Ereigniscodes in `localStorage`; unter **Einstellungen → Diagnose → Diagnose speichern** wird bei ausdrücklichem Klick die JSON-Datei `Kibitz-DE-Diagnose.json` zum Download angeboten, und **Diagnose löschen** leert das Protokoll. Keine automatische Übertragung, keine API-Schlüssel, PGN/FEN, Spielernamen, Pfade oder unkontrollierten Fehlertexte im Bericht. Der Download-Aufruf selbst beweist nicht die erfolgreiche Speicherung auf der Festplatte.
