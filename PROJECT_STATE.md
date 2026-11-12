@@ -1,3 +1,17 @@
+# Kibitz DE – 12.11.2026: Diagnoseexport für Speicher- und Importvorgänge erweitert
+
+**Bestandsprüfung:** Eine lokale Diagnosefunktion existierte bereits: `app/src/lib/diagnostics.ts` protokolliert maximal 120 Zeitstempel samt kontrollierten Ereigniscodes in `localStorage`; unter **Einstellungen → Diagnose → Diagnose speichern** wird bei ausdrücklichem Klick die JSON-Datei `Kibitz-DE-Diagnose.json` zum Download angeboten, und **Diagnose löschen** leert das Protokoll. Keine automatische Übertragung, keine API-Schlüssel, PGN/FEN, Spielernamen, Pfade oder unkontrollierten Fehlertexte im Bericht. Der Download-Aufruf selbst beweist nicht die erfolgreiche Speicherung auf der Festplatte.
+
+**Ergänzt im Branch `feat/de-simple-readable-ui`:** Erlaubte Ereigniscodes für explizite Datenbankspeicherung (Anforderung, Erfolg, Duplikat, Fehler), PGN-Sammlungsimport (Anforderung, Erfolg, Teilerfolg, Fehler) und bestätigte/abgebrochene Spielseitenübergabe. Der getypte `importPgnIntoDatabase`-Wrapper in `app/src/lib/db.ts` protokolliert ausschließlich Codes (keine Inhalte oder Backend-Fehlertexte); `ImportView.tsx` protokolliert Sammelimport-Ausgänge; `App.tsx` protokolliert Übergabe-Abbruch bzw. Bestätigung. Ergänzter Vitest-Fall in `app/src/lib/diagnostics.test.ts` für die zulässigen Codes und die Abwesenheit sensibler Felder.
+
+**Commits:** [74f40777](https://github.com/wibem1/kibitz/commit/74f407777998457dde4777384c6a061e4e7f709c), [141e46d2](https://github.com/wibem1/kibitz/commit/141e46d20fa00b2e68367bda63d27c5021d60fbe), [de0e7044](https://github.com/wibem1/kibitz/commit/de0e70443191abd9c7503cadcd451ea5a18d21b1), [079bf184](https://github.com/wibem1/kibitz/commit/079bf184735b491c1142d35617a542e757e5858c), [413d3c52](https://github.com/wibem1/kibitz/commit/413d3c524dcb576709cf688439bc26b2c6eb1e13).
+
+**Prüfstatus:** Quellcode statisch kontrolliert, Test ergänzt, **noch kein erfolgreicher TS-/Vitest-/Desktop-Test nachgewiesen**. Der Bericht ist ein begrenztes Ereignisprotokoll und **noch kein vollständiger Systemzustandsbericht** (z. B. Engineversion, Job-IDs, redigierte Speicherstatistiken); diese Erweiterung bedarf einer getrennten Datenschutzprüfung. Kein neuer Versionsstand, keine Veröffentlichung.
+
+**Nächster Schritt:** Gezielten `diagnostics.test.ts`-Vitest und Frontend-Build prüfen, anschließend auf Intel-Mac einen Datenbank-Speicherfehler und einen erfolgreichen Import erzeugen, Diagnose als JSON exportieren, Inhalt und Ablage kontrollieren sowie `Diagnose löschen` testen.
+
+---
+
 # Kibitz DE – 12.11.2026: Definiertes Speichermanagement – Konzept und erste echte SQLite-Speicherung
 
 **Verbindliche Regeln und Grenzen:** In [docs/SPEICHERMANAGEMENT.md](docs/SPEICHERMANAGEMENT.md) sind Datenbankpartien, Offline-Autosave (`localStorage`), separate FEN-Übungen, PGN-Export und reine UI-Metadaten getrennt dokumentiert. „Gespeichert“ muss stets den bestätigten Speicherort nennen. Bestehende Originalpartien dürfen niemals durch eine Übungsfortsetzung überschrieben werden. PGN-Download-Aufruf ist keine bestätigte Dateisicherung. Spätere Zielstufen: mehrere benannte/verknüpfte Übungsfassungen, robustes Backup/Restore, Versionierung/Konflikte – **noch nicht umgesetzt**.
