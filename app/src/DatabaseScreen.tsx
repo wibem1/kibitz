@@ -36,6 +36,7 @@ import {
   type GameDetail,
   type GameList,
   type GameRow,
+  type GameSortBy,
   type JobsStatus,
 } from "./lib/db";
 import { fmtDurationMs, rangeReadout, sourceTagTone } from "./lib/home";
@@ -111,6 +112,8 @@ export default function DatabaseScreen({
   const [dateMaxFilter, setDateMaxFilter] = useState(() => dbScreenState().dateMax);
   const [sourceKindFilter, setSourceKindFilter] = useState(() => dbScreenState().sourceKind);
   const [page, setPage] = useState(() => dbScreenState().page);
+  const [sortBy, setSortBy] = useState<GameSortBy>("import");
+  const [sortDescending, setSortDescending] = useState(true);
   const [selectedId, setSelectedId] = useState<number | null>(
     () => dbScreenState().selectedGameId,
   );
@@ -236,6 +239,7 @@ export default function DatabaseScreen({
           },
           page * PAGE_SIZE,
           PAGE_SIZE,
+          { by: sortBy, descending: sortDescending },
         )
           .then((l) => {
             if (cancelled) return;
@@ -268,6 +272,8 @@ export default function DatabaseScreen({
     dateMinFilter,
     dateMaxFilter,
     sourceKindFilter,
+    sortBy,
+    sortDescending,
     page,
   ]);
 
@@ -474,6 +480,22 @@ export default function DatabaseScreen({
           {summary && (
             <>
               <div className="filter-bar">
+                <label htmlFor="db-sort">Sortieren:</label>
+                <select id="db-sort" className="filter-chip-select" value={sortBy}
+                  onChange={(e) => { setSortBy(e.target.value as GameSortBy); setPage(0); }}>
+                  <option value="import">Importreihenfolge</option>
+                  <option value="date">Datum</option>
+                  <option value="white">Weiß</option>
+                  <option value="black">Schwarz</option>
+                  <option value="result">Ergebnis</option>
+                  <option value="eco">Eröffnung (ECO)</option>
+                  <option value="event">Turnier</option>
+                  <option value="moves">Zugzahl</option>
+                </select>
+                <button className="filter-chip-clear" onClick={() => { setSortDescending((d) => !d); setPage(0); }}
+                  title="Sortierreihenfolge wechseln">
+                  {sortDescending ? "Absteigend ↓" : "Aufsteigend ↑"}
+                </button>
                 <input
                   className="filter-chip-input"
                   type="text"
