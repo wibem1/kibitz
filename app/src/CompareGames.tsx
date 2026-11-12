@@ -130,9 +130,15 @@ export default function CompareGames({ onLoadGameAt, mode = "two" }: Props) {
   return (
     <section className="pf2-build" aria-label={mode === "two" ? "Zwei Partien vergleichen" : "Ausgewählte Partien auswerten"}>
       <p className="pf2-build-prose">
-        Wähle genau zwei Partien aus der Datenbank. Verglichen werden Partiedaten und vorhandene
-        Enginebewertungen. Das ist noch kein strategischer KI-Vergleich; die Engine wird nicht gestartet.
+        {mode === "two"
+          ? "Wähle genau zwei Partien. Verglichen werden Partiedaten und gespeicherte Enginebewertungen."
+          : "Wähle einzelne Partien oder alle gefilterten Treffer (maximal 2.000). Die Profilanalyse erfasst nur diese Auswahl für den angegebenen Spieler; die Engine bleibt ausgeschaltet."}
       </p>
+      {mode === "group" && <div className="pf2-build-row">
+        <label htmlFor="group-player">Spieler für die Analyse</label>
+        <input id="group-player" value={subjectPlayer} placeholder="Spielername in der Datenbank"
+          onChange={(e) => { setSubjectPlayer(e.target.value); setGroupProfile(null); }} />
+      </div>}
       <input
         type="search" value={query} placeholder="Partien nach Spieler suchen …"
         aria-label="Partien nach Spieler suchen"
@@ -192,11 +198,45 @@ export default function CompareGames({ onLoadGameAt, mode = "two" }: Props) {
         <button className="btn-secondary" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Zurück</button>
         <span className="hint">Seite {page + 1} von {Math.max(1, Math.ceil(total / PAGE_SIZE))}</span>
         <button className="btn-secondary" disabled={(page + 1) * PAGE_SIZE >= total} onClick={() => setPage((p) => p + 1)}>Weiter</button>
-        <button className="btn-primary" disabled={loading || chosen.length !== 2} onClick={() => void compare()}>
+        {mode === "group" ? <>
+          <button className="btn-secondary" disabled={loading || total < 1 || total > 2000}
+            onClick={() => void selectAllFiltered()}>Alle Treffer auswählen</button>
+          <button className="btn-secondary" disabled={loading || chosen.length === 0}
+            onClick={() => { setChosen([]); setGroupProfile(null); }}>Auswahl leeren</button>
+          <button className="btn-primary" disabled={loading || chosen.length === 0 || !subjectPlayer.trim()}
+            onClick={() => void analyzeSelection()}>
+            {loading ? "Auswertung läuft …" : `${chosen.length} Partien auswerten`}
+          </button>
+        </> : <button className="btn-primary" disabled={loading || chosen.length !== 2}
+          onClick={() => void compare()}>
           {loading ? "Vergleich läuft …" : "Zwei Partien vergleichen"}
-        </button>
+        </button>}
       </div>
       {error && <div className="error">{error}</div>}
+      {groupProfile && <div className="pf2-panel" style={{ padding: 16 }}>
+        <h3>Auswertung: {groupProfile.player}</h3>
+        <p>{chosen.length} ausgewählt · {groupProfile.games} Partien tatsächlich berücksichtigt.
+          Nur abgeschlossene Partien mit mindestens zehn Halbzügen und Standardanfangsstellung gehen in die bestehende Profilanalyse ein.</p>
+        <p>Erzielte Punkte: {groupProfile.score_pct.toFixed(1)} % · Bewertungsabdeckung: {groupProfile.eval_coverage_pct.toFixed(1)} %.</p>
+        <p>Durchschnittlicher Bewertungsverlust (Mittelspiel): {groupProfile.acpl_middlegame.moves
+          ? groupProfile.acpl_middlegame.acpl.toFixed(1) : "Keine Daten"} Centibauern.</p>
+        <h4>Häufige taktische Motive</h4>
+        {groupProfile.motifs.length === 0 && <p>Keine entsprechenden Befunde.</p>}
+        {groupProfile.motifs.slice(0, 12).map((m) => <p key={m.kind}>
+          {m.kind}: {m.missed} übersehen, {m.allowed} zugelassen.
+          {m.example_missed.slice(0, 2).map((x) =>
+            <button key={x.game + "-" + x.ply} className="btn-secondary"
+              onClick={() => onLoadGameAt(x.game, x.ply)}>Beispiel #{x.game}, Halbzug {x.ply}</button>)}
+        </p>)}
+        <h4>Wiederkehrende Stellungsmerkmale</h4>
+        {groupProfile.structures.slice(0, 12).map((v) => <p key={v.flag}>
+          {v.flag}: {v.games} Partien
+          {v.examples.slice(0, 1).map((x) =>
+            <button key={x.game + "-" + x.ply} className="btn-secondary"
+              onClick={() => onLoadGameAt(x.game, x.ply)}>Beispiel #{x.game}</button>)}
+        </p>)}
+        <p className="hint">Dies ist eine berechnete gruppenbezogene Profilanalyse, noch kein freier strategischer KI-Dialog.</p>
+      </div>}
       {results && <div className="pf2-grid">
         {results.map((r) => <div key={r.game.id} className="pf2-panel" style={{ padding: 16 }}>
           <strong>{r.game.white} – {r.game.black}</strong>
