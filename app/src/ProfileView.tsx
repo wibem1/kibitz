@@ -15,6 +15,7 @@ import DataTable, { type DataTableColumn } from "./components/DataTable";
 import EvidencePane, { type EvidenceGame } from "./components/EvidencePane";
 import StatTile from "./components/StatTile";
 import ScreenHeader from "./shell/ScreenHeader";
+import CompareGames from "./CompareGames";
 import {
   aliasDeclare,
   aliasRemove,
@@ -92,6 +93,7 @@ export default function ProfileView({
   const [player, setPlayer] = useState(profile?.player ?? "");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [building, setBuilding] = useState(false);
+  const [analysisScope, setAnalysisScope] = useState<"all" | "two">("all");
   const [error, setError] = useState<string | null>(null);
 
   // The claim param is one-shot: re-parse whenever navigation changes it.
@@ -399,6 +401,19 @@ export default function ProfileView({
         }
         actions={headerActions}
       />
+      <div className="pf2-build" style={{ paddingBottom: 0 }}>
+        <label htmlFor="analysis-scope">Was soll ausgewertet werden? </label>
+        <select id="analysis-scope" aria-label="Umfang der Auswertung"
+          value={analysisScope}
+          onChange={(e) => setAnalysisScope(e.target.value as "all" | "two")}
+        >
+          <option value="all">Alle Partien eines Spielers</option>
+          <option value="two">Zwei ausgewählte Partien vergleichen</option>
+        </select>
+      </div>
+      {analysisScope === "two" ? (
+        <CompareGames onLoadGameAt={onLoadGameAt} />
+      ) : (
       <div className="pf2-body">
         <div className="pf2-content">
           {!p ? (
@@ -628,6 +643,7 @@ export default function ProfileView({
           }
         />
       </div>
+      )}
     </div>
   );
 }
