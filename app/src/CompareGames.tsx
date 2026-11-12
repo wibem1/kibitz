@@ -182,7 +182,7 @@ export default function CompareGames({ onLoadGameAt, mode = "two" }: Props) {
         }}>Filter zurücksetzen</button>
       </div>
       <p className="hint">{total.toLocaleString("de-DE")} Partien gefunden · {chosen.length} {mode === "two" ? "von 2 ausgewählt" : "ausgewählt"}</p>
-      {chosen.length > 0 && <p className="hint">Auswahl: {chosen.map((g) => `${g.white} – ${g.black} (#${g.id})`).join(" · ")}</p>}
+      {chosen.length > 0 && <p className="hint">Auswahl: {chosen.slice(0, 5).map((g) => `${g.white} – ${g.black} (#${g.id})`).join(" · ")}{chosen.length > 5 ? ` · … und ${chosen.length - 5} weitere` : ""}</p>}
       <div style={{ maxHeight: 280, overflowY: "auto" }}>
         {games.map((g) => {
           const checked = chosen.some((x) => x.id === g.id);
@@ -215,6 +215,7 @@ export default function CompareGames({ onLoadGameAt, mode = "two" }: Props) {
       {error && <div className="error">{error}</div>}
       {groupProfile && <div className="pf2-panel" style={{ padding: 16 }}>
         <h3>Auswertung: {groupProfile.player}</h3>
+        {groupProfile.games === 0 && <p className="error">Keine der ausgewählten Partien erfüllt die Voraussetzungen für eine Auswertung dieses Spielers.</p>}
         <p>{chosen.length} ausgewählt · {groupProfile.games} Partien tatsächlich berücksichtigt.
           Nur abgeschlossene Partien mit mindestens zehn Halbzügen und Standardanfangsstellung gehen in die bestehende Profilanalyse ein.</p>
         <p>Erzielte Punkte: {groupProfile.score_pct.toFixed(1)} % · Bewertungsabdeckung: {groupProfile.eval_coverage_pct.toFixed(1)} %.</p>
