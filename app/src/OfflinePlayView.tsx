@@ -226,7 +226,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                     onChange={(e) => { setOpponent(e.target.value as "human" | "stockfish" | "maia2"); setFailedFen(null); }}>
                     <option value="human">Zwei Menschen</option>
                     <option value="stockfish">Stockfish (offline)</option>
-                    <option value="maia2">Maia 2 (menschenähnlich, offline)</option>
+                    <option value="maia2">Maia 2 (menschenähnlich)</option>
                   </select>
                 </label>
                 {opponent !== "human" && (
@@ -268,13 +268,13 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                     <label>Maia-2-Engineprogramm{" "}
                       <input type="text" value={maiaPath} disabled={thinking}
                         onChange={(e) => setMaiaPath(e.target.value)}
-                        placeholder="/Pfad/zur/maia2-uci" />
+                        placeholder="Integrierte Maia 2 verwenden (leer lassen)" />
                     </label>
                     <p className="sync-blurb">
-                      Maia 2 benötigt eine separat installierte, für deinen Mac passende
-                      UCI-Engine. Der Pfad wird nur auf diesem Rechner gespeichert.
-                      Das Elo-Profil ahmt menschliche Zugentscheidungen nach; es ist
-                      keine garantierte Spielstärke. Stockfish bleibt unabhängig.
+                      Die Intel-Mac-Testversion enthält Maia 2 bereits. Das Feld darf leer
+                      bleiben. Nur für eine eigene Maia-Engine einen Pfad eintragen.
+                      Das Elo-Profil ahmt menschliche Zugentscheidungen nach;
+                      es ist keine garantierte Spielstärke. Stockfish bleibt unabhängig.
                     </p>
                   </>
                 )}
