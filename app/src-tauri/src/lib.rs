@@ -395,6 +395,7 @@ pub fn run() {
             dbops::export_game_pgn,
             dbops::build_profile,
             dbops::build_profile_selected,
+            dbops::import_pgn_database,
             dbops::get_narration_voice,
             dbops::set_narration_voice,
             dbops::set_window_title,
