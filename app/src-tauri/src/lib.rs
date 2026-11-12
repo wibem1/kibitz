@@ -180,8 +180,12 @@ async fn offline_engine_move(
             if !(1000..=2200).contains(&rating) {
                 return Err("Ungültige Maia-2-Spielstärke".to_owned());
             }
-            engine.send(&format!("setoption name SelfElo value {rating}")).await?;
-            engine.send(&format!("setoption name OppElo value {rating}")).await?;
+            engine
+                .send(&format!("setoption name SelfElo value {rating}"))
+                .await?;
+            engine
+                .send(&format!("setoption name OppElo value {rating}"))
+                .await?;
             engine.send("setoption name Model value rapid").await?;
         } else if let Some(elo) = elo {
             engine.set_stockfish_elo(elo).await?;
