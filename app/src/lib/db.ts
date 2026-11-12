@@ -430,6 +430,20 @@ export function verifySuggestions(
 /* ---- Run 4: analyses, annotate/re-analyze/jobs, export, profile ---- */
 
 /** All stored evals for one game (fresh rows first per ply). */
+/** Persist a PGN (one complete game or collection) in the open SQLite database.
+ * Does not silently open another DB or claim that a download was saved. */
+export interface PgnImportReport {
+  imported: number;
+  duplicates: number;
+  failed: number;
+  positions: number;
+  failures: string[];
+}
+
+export function importPgnIntoDatabase(pgn: string, sourceName: string): Promise<PgnImportReport> {
+  return invoke<PgnImportReport>("import_pgn_database", { pgn, sourceName });
+}
+
 export function gameAnalyses(gameId: number): Promise<AnalysisRow[]> {
   return invoke<AnalysisRow[]>("game_analyses", { gameId });
 }
