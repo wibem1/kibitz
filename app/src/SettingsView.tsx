@@ -5,15 +5,9 @@
  * fields (mono for paths/keys/numbers); actions are bordered ghost
  * buttons.
  *
- * Every previously working setting stays wired (voice, annotation
- * display, treatment, theme, engine path, node budget). New: the two
- * database-wide batch rows (same confirm flow as the Database header) and
- * the recurring-commitment row (commitment_get/set; clear → nulls).
- *
- * Honesty rules: the spawn policy row states the engine-off default in
- * words (it is a product principle, not a setting); the KI-Formulierung
- * and piece-set rows are read-only because no backend setting exists;
- * batch estimates show the measured-or-assumed basis string verbatim.
+ * Settings contain actual user-configurable options. Database batch actions
+ * already live in DatabaseScreen (including confirmation, progress and pause);
+ * this screen must not duplicate them. Existing preference handlers stay wired.
  */
 import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
@@ -24,19 +18,10 @@ import StorageSection from "./settings/StorageSection";
 import UpdatesSettings from "./UpdatesSettings";
 import { clearDiagnostics, saveDiagnosticReport } from "./lib/diagnostics";
 import {
-  batchEstimate,
-  batchStart,
   commitmentGet,
   commitmentSet,
-  jobsStatus,
-  runJobs,
-  type BatchEstimate,
-  type BatchKind,
-  type JobsStatus,
 } from "./lib/db";
-import { endgameOverview, type TbInfo } from "./lib/endgame";
-import { fmtDurationMs } from "./lib/home";
-import { railNetBadges, twicCatalog, twicSetAutoSync } from "./lib/net";
+import { twicCatalog, twicSetAutoSync } from "./lib/net";
 import type { AnnotationMode, BoardTreatmentChoice, Theme, Voice } from "./lib/gameView";
 
 interface SettingsViewProps {
@@ -48,11 +33,6 @@ interface SettingsViewProps {
   onTreatment: (t: BoardTreatmentChoice) => void;
   theme: Theme;
   onTheme: (t: Theme) => void;
-}
-
-interface ConfirmState {
-  kind: BatchKind;
-  estimate: BatchEstimate;
 }
 
 /** One settings row: 230px label+help | 1fr value | 200px action. */
@@ -95,10 +75,6 @@ export default function SettingsView({
   theme,
   onTheme,
 }: SettingsViewProps) {
-  const [jobs, setJobs] = useState<JobsStatus | null>(null);
-  const [tb, setTb] = useState<TbInfo | null>(null);
-  const [confirm, setConfirm] = useState<ConfirmState | null>(null);
-  const [estimating, setEstimating] = useState<BatchKind | null>(null);
   const [note, setNote] = useState<string | null>(null);
 
   // Recurring commitment (meta-backed; absent by default).
@@ -108,26 +84,16 @@ export default function SettingsView({
 
   // Network-ingestion mirrors (run 9): configured sync accounts and the
   // TWIC automatisch laden toggle (same meta keys the TWIC screen writes).
-  const [syncCount, setSyncCount] = useState<number | null>(null);
   const [twicAuto, setTwicAuto] = useState<boolean | null>(null);
   const [twicWeek, setTwicWeek] = useState<number | null>(null);
 
   useEffect(() => {
-    jobsStatus()
-      .then(setJobs)
-      .catch(() => setJobs(null));
-    endgameOverview()
-      .then((o) => setTb(o.tablebase))
-      .catch(() => setTb(null));
     commitmentGet()
       .then((c) => {
         setCommitLabel(c.label ?? "");
         setCommitOpponent(c.opponent ?? "");
       })
       .catch(() => {}); // no database open — the row stays empty
-    railNetBadges()
-      .then((b) => setSyncCount(b.accountsConfigured))
-      .catch(() => setSyncCount(null));
     twicCatalog()
       .then((c) => {
         setTwicAuto(c.autoSync);
@@ -145,41 +111,6 @@ export default function SettingsView({
       setNote(`TWIC-Aktualisierung: ${e}`);
     }
   }, [twicAuto]);
-
-  /* ---- batch operations (same confirm flow as the Database header) ---- */
-
-  const askBatch = useCallback(async (kind: BatchKind) => {
-    setEstimating(kind);
-    setNote(null);
-    try {
-      setConfirm({ kind, estimate: await batchEstimate(kind) });
-    } catch (e) {
-      setNote(`Umfang konnte nicht ermittelt werden: ${e}`);
-    } finally {
-      setEstimating(null);
-    }
-  }, []);
-
-  const startBatch = useCallback(async () => {
-    if (!confirm) return;
-    const { kind } = confirm;
-    setConfirm(null);
-    try {
-      const started = await batchStart(kind);
-      setNote(
-        `${kind === "annotate" ? "Partien erläutern" : "Partien neu bewerten"}: ${started.gamesEnqueued} Partien, ` +
-          `${started.jobsEnqueued} Aufträge vorgemerkt (bereits bearbeitete Partien übersprungen).`,
-      );
-      // Enqueueing is passive; the worker is the user-initiated engine
-      // entry point. Start it now — that is what the user just confirmed.
-      await runJobs();
-      jobsStatus()
-        .then(setJobs)
-        .catch(() => {});
-    } catch (e) {
-      setNote(`Auftrag konnte nicht gestartet werden: ${e}`);
-    }
-  }, [confirm]);
 
   /* ---- commitment ---- */
 
@@ -214,10 +145,6 @@ export default function SettingsView({
     </button>
   );
 
-  const jobsValue = jobs
-    ? `${jobs.pending.toLocaleString("de-DE")} offen · ${jobs.done.toLocaleString("de-DE")} abgeschlossen`
-    : "Keine Auftragsübersicht verfügbar";
-
   return (
     <>
       <ScreenHeader title="Einstellungen" subtitle="Darstellung, Schachengines und Konten" />
@@ -225,32 +152,6 @@ export default function SettingsView({
         <div className="settings-page">
           {/* ---- ENGINE MANAGER (own file: settings/EngineSection.tsx, run 10) ---- */}
           <EngineSection />
-
-          {/* ---- ENGINE & ANALYSIS ---- */}
-          <div className="set-group">
-            <div className="set-group-head">DATENBANK-AKTIONEN</div>
-            <Row
-              label="Datenbank erläutern"
-              help="Alle Partien mit Kibitz erläutern. Taktische Hinweise werden bei Bedarf kurz mit der Engine geprüft. Kann pausiert und fortgesetzt werden."
-              value={<div className="set-value mono">{jobsValue}</div>}
-              action={ghost(
-                estimating === "annotate" ? "Wird berechnet …" : "Umfang prüfen und starten …",
-                () => void askBatch("annotate"),
-                estimating !== null,
-              )}
-            />
-            <Row
-              label="Partien neu bewerten"
-              help="Jede Hauptvarianten-Stellung mit der Engine neu bewerten. Vorhandene Analysen bleiben erhalten."
-              value={<div className="set-value mono">{jobsValue}</div>}
-              action={ghost(
-                estimating === "fresh-analysis" ? "Wird berechnet …" : "Umfang prüfen und starten …",
-                () => void askBatch("fresh-analysis"),
-                estimating !== null,
-              )}
-            />
-            {note && <div className="set-note">{note}</div>}
-          </div>
 
           {/* ---- COACH ---- */}
           <div className="set-group">
@@ -378,33 +279,6 @@ export default function SettingsView({
         </div>
       </div>
 
-      {confirm && (
-        <div className="modal-overlay" onClick={() => setConfirm(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">
-              {confirm.kind === "annotate" ? "Datenbank erläutern" : "Partien neu bewerten"}
-            </div>
-            <p className="modal-prose">
-              {confirm.estimate.games.toLocaleString("de-DE")} Partien
-              {confirm.estimate.games > 0 && ` · geschätzte Dauer: ${fmtDurationMs(confirm.estimate.totalEstimateMs)}`}.
-              Bereits bearbeitete Partien werden übersprungen. Der Auftrag kann unterbrochen und später fortgesetzt werden.
-            </p>
-            <p className="modal-basis">Grundlage der Schätzung: {confirm.estimate.estimateBasis}</p>
-            <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setConfirm(null)}>
-                Abbrechen
-              </button>
-              <button
-                className="btn-primary"
-                onClick={() => void startBatch()}
-                disabled={confirm.estimate.games === 0}
-              >
-                {confirm.estimate.games === 0 ? "Keine Partien" : "Starten"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
