@@ -219,6 +219,8 @@ const VIEW_TITLES: Record<ViewId, string> = {
 export default function App() {
   // Home is the startup screen (round-2 maintainer ruling: Direction A).
   const [view, setView] = useState<ViewId>("home");
+  const [exerciseFen, setExerciseFen] = useState<string | null>(null);
+  const [exerciseSerial, setExerciseSerial] = useState(0);
   // One-shot per-screen navigation params (lib/shell.ts ViewParams):
   // e.g. navigate("profile", { claim }) pre-selects a claim's evidence.
   const [viewParams, setViewParams] = useState<ViewParams>({});
@@ -1294,7 +1296,7 @@ export default function App() {
       case "play":
         return <PlayView treatment={gv.boardTreatment} onNavigate={navigate} />;
       case "offline":
-        return <OfflinePlayView treatment={gv.boardTreatment} onEngineSettings={() => navigate("settings")} onAnalyze={doLoad} />;
+        return <OfflinePlayView key={exerciseFen ? `exercise-${exerciseSerial}` : "normal-offline"} initialFen={exerciseFen} treatment={gv.boardTreatment} onEngineSettings={() => navigate("settings")} onAnalyze={doLoad} />;
       case "import":
         return <ImportView onLoad={doLoad} status={status} />;
       case "twic":
@@ -1390,6 +1392,11 @@ export default function App() {
             onPreviewStep={previewStepBy}
             onExitPreview={exitPreview}
             onCrosstable={setCrosstableEvent}
+            onPlayFromPosition={() => {
+              setExerciseFen(shownFen);
+              setExerciseSerial((n) => n + 1);
+              setView("offline");
+            }}
           />
         ) : selfHeaded ? (
           pageView
