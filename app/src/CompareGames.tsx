@@ -14,6 +14,7 @@ interface GameComparison {
   positions: number;
   startEval: number | null;
   endEval: number | null;
+  moveCount: number;
 }
 
 export default function CompareGames({ onLoadGameAt }: Props) {
@@ -52,7 +53,7 @@ export default function CompareGames({ onLoadGameAt }: Props) {
         const evals = evalsByPly(await gameAnalyses(game.id));
         const ordered = [...evals].sort((a, b) => a[0] - b[0]);
         return {
-          game, positions: evals.size,
+          game, positions: evals.size, moveCount: Math.ceil(game.plyCount / 2),
           startEval: ordered.length ? ordered[0][1].whiteCp : null,
           endEval: ordered.length ? ordered[ordered.length - 1][1].whiteCp : null,
         };
@@ -101,13 +102,14 @@ export default function CompareGames({ onLoadGameAt }: Props) {
       {results && <div className="pf2-grid">
         {results.map((r) => <div key={r.game.id} className="pf2-panel" style={{ padding: 16 }}>
           <strong>{r.game.white} – {r.game.black}</strong>
-          <p>Ergebnis: {r.game.result} · Eröffnung: {r.game.eco ?? "Unbekannt"} · {Math.ceil(r.game.plyCount / 2)} Züge</p>
+          <p>Ergebnis: {r.game.result} · Eröffnung: {r.game.eco ?? "Unbekannt"} · {r.moveCount} Züge</p>
           <p>Gespeicherte Stellungsbewertungen: {r.positions} von höchstens {r.game.plyCount + 1} Positionen</p>
           <p>Erste gespeicherte Bewertung: {formatEval(r.startEval)}</p>
           <p>Letzte gespeicherte Bewertung: {formatEval(r.endEval)}</p>
           <button className="btn-secondary" onClick={() => onLoadGameAt(r.game.id, 0)}>Partie öffnen</button>
         </div>)}
       </div>}
+      {results && <p className="hint">Direkter Vergleich: {results[0].game.result === results[1].game.result ? "Gleiches Partieergebnis" : "Unterschiedliche Partieergebnisse"} · {results[0].game.eco && results[0].game.eco === results[1].game.eco ? "gleicher ECO-Eröffnungscode" : "unterschiedliche oder unbekannte Eröffnungscodes"} · Zugzahl: {results[0].moveCount} gegenüber {results[1].moveCount}.</p>}
       {results && <p className="hint">Die Bewertungen beziehen sich auf die jeweils erste und letzte vorhandene analysierte Stellung, nicht zwangsläufig auf den Partieanfang oder das Partieende. Unterschiedliche Analyseabdeckung kann den Vergleich einschränken.</p>}
     </section>
   );
