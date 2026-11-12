@@ -108,3 +108,25 @@ Status: **beschlossene Anforderungen, noch nicht implementiert**. Fortführung d
 6. **Priorisierung:** erst aktuelle Stockfish-/Maia-Lauffähigkeit und deutsche Oberfläche abnehmen; dann gemeinsamer Analyse- und Chatkontext; anschließend KI gegen Stockfish, Schlüsselstellungen, Markierungen, Varianten- und Speicherfunktionen in kleinen nachweisbaren Schritten. Die Reihenfolge einzelner Teilfunktionen ist bei nachgewiesenen technischen Abhängigkeiten anpassbar.
 
 **Produktformel:** *Die Kibitz-Desktop-App behält ihr eigenes Interface und gewinnt die dialogorientierten Lern-, Spiel- und Analysefunktionen von Chess Studio hinzu. Kibitz, Stockfish und KI bilden das gemeinsame Analyse-Team.*
+
+## 8. Windows als verbindliche zweite Desktop-Zielplattform (12.11.2026)
+
+**Status: beschlossene Plattformanforderung, noch keine bestätigte lauffähige Windows-Freigabe.** Kibitz DE soll **nativ auf Windows 11 (x64)** und macOS nutzbar sein. Die Kibitz-Oberfläche, die deutschen Texte und die Kernfunktionen müssen auf beiden Plattformen funktional gleichwertig bleiben; kein separates Windows-Produkt und keine abweichende Bedienphilosophie.
+
+### Technische Anforderungen
+
+- Bestehenden plattformübergreifenden Stack (Rust/Tauri 2, React/TypeScript) beibehalten; Windows-spezifische Pfade, UCI-Prozessaufrufe, Berechtigungen, Abhängigkeiten und Ressourcen explizit prüfen.
+- Eigenständige, installierbare Windows-Pakete über einen **geprüften Windows-x64-Build** bereitstellen (bevorzugt Tauri-Installer MSI oder NSIS, anhand vorhandener CI-/Packaging-Konfiguration entscheiden). Keine bloße ZIP-Datei als Nachweis einer fertigen Installation.
+- Stockfish und Maia 2 als getrennte Engine-Optionen auch unter Windows: ausführbare x64-Binaries, ggf. Maia/ONNX-Runtime-Abhängigkeiten, korrekte Pfadauflösung, UCI-Handshake, Bewertung beziehungsweise legalen Zug und sauberes Beenden nachweisen. Keinesfalls macOS-Binaries in Windows-Pakete übernehmen.
+- Funktionsgleichheit einschließlich Offline-Partien, PGN-Import/-Export, Datenbankverwaltung, späterem KI-Dialog, KI gegen Stockfish, Schlüsselstellungen, Varianten, Modell-/Anbietereinstellungen, Diagnose und Fair-Play-Sperre.
+- Windows-typische Bedienung prüfen: skalierbares Fenster, hochauflösende Anzeige/DPI, Schriftgrößen, Dateidialoge, Tastatur, Pfade und Speichern/Öffnen; stabile Platzierung von Brett, Status und Analysefeldern ohne Springen.
+- Keine neuen Windows-spezifischen Lizenz- oder Geheimnisprobleme: Drittanbieter-Lizenzen, API-Schlüssel und gebündelte Engine-Ressourcen auf beiden Plattformen kontrollieren.
+
+### Umsetzung und Abnahme
+
+1. Bestehenden Build- und Installationsweg für Windows im Repository feststellen; fehlende plattformspezifische Anpassungen und Abhängigkeiten dokumentieren, ohne die Mac-Abnahme zu überspringen.
+2. Windows-x64-CI mit deterministischem Build, statischen Prüfungen und Paket-/Ressourcenkontrolle einrichten beziehungsweise vorhandenen Weg gezielt verbessern; keine vorschnelle Release-Bezeichnung.
+3. Installierbares Paket auf einem **realen Windows-11-x64-Rechner** starten und die Kernabläufe testen: Brett, lokale Spiele, Stockfish-Analyse, Maia-Zug, PGN-Rundreise, Datenbank, Einstellungen, Diagnose sowie UI-Verhalten.
+4. Neue Chess-Studio-Funktionen bei jeder späteren Erweiterung auch unter Windows absichern. Eine grüne CI allein gilt nicht als Nutzerabnahme.
+
+**Reihenfolge:** Intel-macOS bleibt erster aktueller Diagnoserechner. **Windows 11 x64 ist jedoch gleichberechtigtes verbindliches Auslieferungsziel** und soll nicht erst als unverbindliche ferne Portierungsoption betrachtet werden.
