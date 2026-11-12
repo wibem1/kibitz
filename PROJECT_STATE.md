@@ -1,3 +1,15 @@
+# Kibitz DE – 12.11.2026: PGN-Sammlungen in geöffnete Datenbank importieren
+
+**Im Entwicklungsbranch implementiert (noch nicht abgenommen):** Die bisherige Einzelpartie-Anzeige unter »Partien importieren« bleibt erhalten. Ein getrennter Abschnitt »PGN-Sammlung dauerhaft in die Datenbank importieren« nimmt eine PGN-Datei auf und ruft den neu registrierten Tauri-Befehl `import_pgn_database` auf. Der Befehl verwendet den **bereits bestehenden** `kibitz_db::import::import_pgn`-Kern mit Duplikaterkennung und Positionsindizierung, aber schreibt in die tatsächlich geöffnete SQLite-Datenbank. Ergebnisbericht zeigt übernommene Partien, Duplikate, fehlgeschlagene Partien, indizierte Stellungen und erste Fehlerbeispiele. Eine geschlossene Datenbank liefert eine Fehlermeldung. Format `.pgn`/`.txt` und Dateigrenze 25 MiB (bewusst begrenzt, da Datei als UTF-8-Text per Webview IPC übertragen wird). Für beliebig große Sammlungen ist noch der vorhandene Streaming-CLI-Import nötig. SCID-.si4-Import bleibt Kommandozeilenfunktion. Keine neue Abhängigkeit.
+
+**Beleg-Commits:** [33296c7a](https://github.com/wibem1/kibitz/commit/33296c7a828fccf46b67834421bf3ed8e8d4095f), [e0a8855f](https://github.com/wibem1/kibitz/commit/e0a8855f558ae2193eb26c37eb56ebdff69bfcfc), [2b3770aa](https://github.com/wibem1/kibitz/commit/2b3770aa63ef31831a65225cce6a77e0aea5e20c).
+
+**Einschränkungen/Prüfstatus:** Quellcode und IPC-Registrierung statisch kontrolliert. Noch kein erfolgreich nachgewiesener TypeScript-/Rust-/CI-Lauf, kein tatsächlicher Desktop-Importtest und kein Beleg für ausreichende UI-Reaktionsfähigkeit beim Import einer 25-MiB-Datei. Insbesondere prüfen: offene/geschlossene DB, Einzel-PGN, Mehrpartien-PGN, Reimport/Duplikate, fehlerhafte Partie und Aktualisierung der Datenbankansicht. Für vollständigen großen, nicht blockierenden Import (auch >25 MiB) native Dateiauswahl + Hintergrund-Streaming mit Fortschritt nötig. **Keine neue Version oder Veröffentlichung.**
+
+**Nächster einzelner Schritt:** CI/Build prüfen und echten kleinen Mehrpartien-Import auf Intel Mac durchführen; bei Erfolg Streaming-Import für sehr große Sammlungen getrennt entwickeln.
+
+---
+
 # Kibitz DE – 12.11.2026: exakte Auswahlanalyse (gefilterte Partiegruppe)
 
 **Im Entwicklungsbranch implementiert:** Die Rubrik »Partien auswerten« hat neben »Alle Partien eines Spielers« und »Zwei Partien vergleichen« jetzt »Gefilterte oder manuell ausgewählte Partien auswerten«. Die Gruppenauswahl in `app/src/CompareGames.tsx` verwendet die vorhandenen Datenbankfilter (Spieler, Datumsgrenzen, Ergebnis, ECO), Sortierung und seitenweise Liste. Einzelne Partien können markiert, die gesamte gefilterte Treffermenge bis maximal **2000** Partien über alle Seiten ausgewählt oder die Auswahl geleert werden. Für die eigentliche Berechnung wird ein Spielername verlangt; nur dessen Partien in der expliziten ID-Liste zählen. Die echte Schachprofilaggregation (taktische Motive, strukturelle Merkmale, Bewertungen) läuft **nur** über die ausgewählten IDs; Ergebnis nennt Auswahlgröße und tatsächlich verarbeitete Partien. Beispielpartien sind anklickbar. Keine neue Engine-Suche, kein KI-Dialog.
