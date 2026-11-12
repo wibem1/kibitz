@@ -118,6 +118,19 @@ async fn engine_identify(user_path: Option<String>) -> Result<uci::EngineIdentit
     uci::identify(&path).await
 }
 
+/// An optional Maia-2 executable placed in the native app bundle.
+/// The engine is not on PATH and must never fall back to Stockfish.
+fn bundled_maia2_path() -> Option<std::path::PathBuf> {
+    let exe = std::env::current_exe().ok()?;
+    let bin_dir = exe.parent()?;
+    [
+        bin_dir.join("../Resources/maia2-uci"),
+        bin_dir.join("maia2-uci"),
+    ]
+    .into_iter()
+    .find(|p| p.is_file())
+}
+
 /// Request one bounded move for an explicitly chosen local engine opponent.
 /// A fresh process isolates game play from the shared analysis queue/stream.
 /// Every call has its own deadline; dropping Engine kills the subprocess.
@@ -143,14 +156,17 @@ async fn offline_engine_move(
     if kind != "stockfish" && kind != "maia2" {
         return Err("Unbekannte Offline-Engine".to_owned());
     }
-    // Maia uses its own explicitly configured binary; never silently
-    // fall back to Stockfish when that path is absent.
+    // Maia uses its bundled executable when present; an explicit custom
+    // path overrides it. It must NEVER silently use the Stockfish binary.
     let path = if kind == "maia2" {
         let chosen = user_path.as_deref().unwrap_or("").trim();
         if chosen.is_empty() {
-            return Err("Maia 2 benötigt einen eigenen UCI-Engine-Pfad.".to_owned());
+            bundled_maia2_path().ok_or_else(|| {
+                "Maia 2 ist in diesem Paket nicht enthalten. Bitte eigenen UCI-Engine-Pfad eintragen.".to_owned()
+            })?
+        } else {
+            uci::resolve_engine_path(Some(chosen))?
         }
-        uci::resolve_engine_path(Some(chosen))?
     } else {
         uci::resolve_engine_path(user_path.as_deref())?
     };
