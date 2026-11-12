@@ -543,6 +543,12 @@ export function buildProfile(player: string): Promise<PlayerProfile> {
   return invoke<PlayerProfile>("build_profile", { player });
 }
 
+/** Reuse the real player-profile pipeline, restricted to explicit game IDs.
+ * This does not overwrite the user's cached all-games profile. */
+export function buildProfileSelected(player: string, gameIds: number[]): Promise<PlayerProfile> {
+  return invoke<PlayerProfile>("build_profile_selected", { player, gameIds });
+}
+
 export interface CachedProfileInfo {
   player: string;
   builtAt: string;
