@@ -1,3 +1,17 @@
+# Kibitz DE – 12.11.2026: Maia-2-Einbindung weiter abgesichert, Intel-Testbuild wartet
+
+**Quellstand:** Maia 2 als wählbarer Offline-Gegner mit eigener Elo, eigenem Benutzerpfad sowie optional automatisch gebündeltem Intel-Mac-UCI-Prozess ist implementiert. Nächste Version **0.1.4**, Stockfish bleibt separat. Der Intel-Workflow lädt gepinnte externe Maia-2-Quellen und beide Modelle per Git LFS, erstellt CPU-Executable mit `embed-weights`, führt einen UCI-Smoke-Test und eine Architektur-/Ressourcenprüfung durch und soll danach ein unsigned DMG hochladen.
+
+**Zusätzliche Sicherheitsprüfung:** [Commit 0fd95ea2](https://github.com/wibem1/kibitz/commit/0fd95ea2e0a2905fae73c6f37ffbeae542bb6040) verlangt bei Maia 2 einen echten `info score` vor Annahme eines `bestmove`, weil `ChessWaveIO/maia2-uci` bei Modellfehlern sonst auf einen legalen Notzug zurückfallen kann. Maia `PVDepth=1` beschränkt unnötige Modellinferenz für einen Spielzug. Der Intel-Smoke-Test wurde in [Commit f43b40e8](https://github.com/wibem1/kibitz/commit/f43b40e8e67eefeba2a6d0804efd5bd5d05151f3) verschärft: er prüft ausdrücklich `loaded embedded:rapid on Cpu`, `score cp` und `bestmove` statt allein einen legalen Zug.
+
+**Zuletzt geprüfte CI für [Run 43166820393](https://github.com/wibem1/kibitz/actions/runs/43166820393):** beide Ubuntu-Jobs erfolgreich; beide macOS-Jobs zum letzten Check noch `queued`. **[Intel-Mac-Paket 43166820431](https://github.com/wibem1/kibitz/actions/runs/43166820431)** zum letzten Check ebenfalls `queued`; noch **kein** bestätigtes DMG-Artefakt für 0.1.4. Ältere Mac-Jobs aus Zwischencommits standen noch in der Warteschlange beziehungsweise liefen. Keine automatische Veröffentlichung und keine pauschale Behauptung einer getesteten Maia-Integration.
+
+**Abnahmegrenze:** UI/Backend sind implementiert und Linux CI bestanden, aber echter Maia-Inferenzlauf auf Intel-Mac, gebündelte Ressource und Runtime auf Nutzer-Mac nicht bestätigt. Der Nutzer darf keinen unvollständigen Build als fertige Maia-Version erhalten.
+
+**Nächster einzelner Schritt:** Aktuellen Intel-Job, UCI-Modelltest und vollständige CI kontrollieren, Fehler im Build isoliert beheben. Erst danach 0.1.4 als Intel-Testpaket mit Download-Artefakt anbieten und gegen den menschlichen Gegner praktisch prüfen.
+
+---
+
 # Kibitz DE – 12.11.2026: Maia-2-Integration für Intel-Mac als 0.1.4 in Prüfung
 
 **Auftrag:** Maia 2 oder 3 direkt in die App integrieren, ohne Stockfish zu ersetzen. Entscheidung für zunächst Maia 2: [ChessWaveIO/maia2-uci](https://github.com/ChessWaveIO/maia2-uci) mit CPU und einem eigenständigen UCI-Interface (MIT), leichter als Maia 3 mit Python/PyTorch für Intel-Mac zu integrieren. Maia 3 ist **nicht** implementiert.
