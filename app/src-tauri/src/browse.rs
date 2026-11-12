@@ -435,7 +435,11 @@ pub(crate) fn list_games_sorted_impl(
         "moves" => "g.ply_count",
         other => return Err(format!("Unbekanntes Sortierfeld: {other}")),
     };
-    let direction = if descending.unwrap_or(true) { "DESC" } else { "ASC" };
+    let direction = if descending.unwrap_or(true) {
+        "DESC"
+    } else {
+        "ASC"
+    };
     let order_sql = format!("{column} COLLATE NOCASE {direction}, g.id DESC");
 
     let clean = |s: &Option<String>| {
@@ -562,7 +566,9 @@ pub async fn list_games(
     sort_by: Option<String>,
     descending: Option<bool>,
 ) -> Result<GameList, String> {
-    with_conn(&state, |conn| list_games_sorted_impl(conn, &filter, offset, limit, sort_by.as_deref(), descending))
+    with_conn(&state, |conn| {
+        list_games_sorted_impl(conn, &filter, offset, limit, sort_by.as_deref(), descending)
+    })
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -1142,20 +1148,44 @@ mod tests {
     fn list_games_global_sort_precedes_pagination() {
         let (_dir, conn) = fixture_db();
         let all = list_games_sorted_impl(
-            &conn, &GameFilter::default(), 0, 50, Some("white"), Some(false),
-        ).unwrap();
+            &conn,
+            &GameFilter::default(),
+            0,
+            50,
+            Some("white"),
+            Some(false),
+        )
+        .unwrap();
         assert_eq!(all.total, 3);
         let first = list_games_sorted_impl(
-            &conn, &GameFilter::default(), 0, 1, Some("white"), Some(false),
-        ).unwrap();
+            &conn,
+            &GameFilter::default(),
+            0,
+            1,
+            Some("white"),
+            Some(false),
+        )
+        .unwrap();
         let second = list_games_sorted_impl(
-            &conn, &GameFilter::default(), 1, 1, Some("white"), Some(false),
-        ).unwrap();
+            &conn,
+            &GameFilter::default(),
+            1,
+            1,
+            Some("white"),
+            Some(false),
+        )
+        .unwrap();
         assert_eq!(first.rows[0].id, all.rows[0].id);
         assert_eq!(second.rows[0].id, all.rows[1].id);
         assert!(list_games_sorted_impl(
-            &conn, &GameFilter::default(), 0, 1, Some("arbitrary SQL"), None,
-        ).is_err());
+            &conn,
+            &GameFilter::default(),
+            0,
+            1,
+            Some("arbitrary SQL"),
+            None,
+        )
+        .is_err());
     }
 
     #[test]
