@@ -289,7 +289,7 @@ export default function DatabaseScreen({
     try {
       setConfirm({ kind, estimate: await batchEstimate(kind) });
     } catch (e) {
-      onStatus(`Estimate failed: ${e}`);
+      onStatus(`Umfang konnte nicht ermittelt werden: ${e}`);
     } finally {
       setEstimating(null);
     }
@@ -308,14 +308,14 @@ export default function DatabaseScreen({
         };
       }
       onStatus(
-        `${kind === "annotate" ? "Annotate" : "Fresh analysis"}: ${started.gamesEnqueued} game(s), ` +
-          `${started.jobsEnqueued} job(s) enqueued (already-covered games skipped).`,
+        `${kind === "annotate" ? "Datenbank erläutern" : "Partien neu bewerten"}: ${started.gamesEnqueued} Partien, ` +
+          `${started.jobsEnqueued} Aufträge vorgemerkt (bereits bearbeitete Partien übersprungen).`,
       );
       // Enqueueing is passive; the worker is the user-initiated engine
       // entry point. Start it now — that is what the user just confirmed.
       await runJobs();
     } catch (e) {
-      onStatus(`Batch start: ${e}`);
+      onStatus(`Auftrag konnte nicht gestartet werden: ${e}`);
     }
   }, [confirm, onStatus]);
 
@@ -325,11 +325,11 @@ export default function DatabaseScreen({
       const was = await batchPause();
       onStatus(
         was
-          ? "Pausing between jobs — everything unstarted stays pending; run again to resume."
-          : "Nothing was running.",
+          ? "Wird nach dem laufenden Auftrag pausiert. Nicht gestartete Aufträge bleiben vorgemerkt."
+          : "Es läuft derzeit kein Auftrag.",
       );
     } catch (e) {
-      onStatus(`Pause failed: ${e}`);
+      onStatus(`Pausieren fehlgeschlagen: ${e}`);
     } finally {
       setPausing(false);
     }
@@ -410,7 +410,7 @@ export default function DatabaseScreen({
   return (
     <>
       <ScreenHeader
-        title="Database"
+        title="Datenbank"
         subtitle={
           summary
             ? `${filename} · ${summary.games.toLocaleString("en-US")} games · personal > TWIC > online`
@@ -424,14 +424,14 @@ export default function DatabaseScreen({
                 disabled={estimating !== null}
                 onClick={() => void askBatch("annotate")}
               >
-                {estimating === "annotate" ? "Estimating…" : "Annotate database"}
+                {estimating === "annotate" ? "Wird berechnet …" : "Datenbank erläutern"}
               </button>
               <button
                 className="btn-secondary"
                 disabled={estimating !== null}
                 onClick={() => void askBatch("fresh-analysis")}
               >
-                {estimating === "fresh-analysis" ? "Estimating…" : "Fresh analysis pass"}
+                {estimating === "fresh-analysis" ? "Wird berechnet …" : "Partien neu bewerten"}
               </button>
             </>
           )
@@ -606,7 +606,7 @@ export default function DatabaseScreen({
                   </span>
                   <span className="inline-job-detail">{jobDetail}</span>
                   <button className="btn-ghost" onClick={() => void doPause()} disabled={pausing}>
-                    {pausing ? "Pausing…" : "Pause"}
+                    {pausing ? "Wird angehalten …" : "Pausieren"}
                   </button>
                 </div>
               )}
@@ -672,27 +672,25 @@ export default function DatabaseScreen({
         <div className="modal-overlay" onClick={() => setConfirm(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-title">
-              {confirm.kind === "annotate" ? "Annotate database" : "Fresh analysis pass"}
+              {confirm.kind === "annotate" ? "Datenbank erläutern" : "Partien neu bewerten"}
             </div>
             <p className="modal-prose">
-              {confirm.estimate.games.toLocaleString("en-US")} game
-              {confirm.estimate.games === 1 ? "" : "s"} to cover
+              {confirm.estimate.games.toLocaleString("de-DE")} Partien
               {confirm.estimate.games > 0 &&
-                ` · estimated ${fmtDurationMs(confirm.estimate.totalEstimateMs)}`}
-              . Jobs are resumable — pause anytime and the run picks up exactly where it left
-              off; games already covered are skipped.
+                ` · geschätzte Dauer: ${fmtDurationMs(confirm.estimate.totalEstimateMs)}`}.
+              Der Auftrag kann pausiert und fortgesetzt werden. Bereits bearbeitete Partien werden übersprungen.
             </p>
-            <p className="modal-basis">Estimate basis: {confirm.estimate.estimateBasis}</p>
+            <p className="modal-basis">Grundlage der Schätzung: {confirm.estimate.estimateBasis}</p>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setConfirm(null)}>
-                Cancel
+                Abbrechen
               </button>
               <button
                 className="btn-primary"
                 onClick={() => void startBatch()}
                 disabled={confirm.estimate.games === 0}
               >
-                {confirm.estimate.games === 0 ? "Nothing to do" : "Start"}
+                {confirm.estimate.games === 0 ? "Keine Partien" : "Starten"}
               </button>
             </div>
           </div>
