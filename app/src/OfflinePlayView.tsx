@@ -16,9 +16,9 @@ import {
   playLocalMove, playLocalUci, undoLocalTurn,
 } from "./lib/localPlay";
 
-interface Props { treatment: BoardTreatmentChoice; onEngineSettings: () => void; onAnalyze: (pgn: string) => void; sourceGame?: LoadedGame | null; sourcePly?: number; onReturnToAnalysis?: () => void }
+interface Props { treatment: BoardTreatmentChoice; onEngineSettings: () => void; onAnalyze: (pgn: string) => void; sourceGame?: LoadedGame | null; sourcePly?: number; onReturnToAnalysis?: () => void; onPlayerStateChange?: (game: LocalGame) => void }
 
-export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze, sourceGame, sourcePly = 0, onReturnToAnalysis }: Props) {
+export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze, sourceGame, sourcePly = 0, onReturnToAnalysis, onPlayerStateChange }: Props) {
   const [restored] = useState(() => {
     if (sourceGame) {
       const seeded = localGameFromFen(sourceGame.fens[Math.max(0, Math.min(sourcePly, sourceGame.sans.length))]);
@@ -32,6 +32,11 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
   const [game, setGame] = useState(restored.game);
   const [browsePly, setBrowsePly] = useState(() => Math.max(0, Math.min(sourcePly, sourceGame?.sans.length ?? 0)));
   const [browsing, setBrowsing] = useState(Boolean(sourceGame));
+  useEffect(() => {
+    // A loaded source game is read-only until the user chooses a variation.
+    // Only an actually playing continuation becomes the next player snapshot.
+    if (!browsing) onPlayerStateChange?.(game);
+  }, [browsing, game, onPlayerStateChange]);
   const [flipped, setFlipped] = useState(restored.flipped);
   const [notice, setNotice] = useState(restored.warning ?? "");
   const [confirmNew, setConfirmNew] = useState(false);
