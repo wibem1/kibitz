@@ -574,6 +574,21 @@ mod tests {
     }
 
     #[test]
+    fn selected_profile_only_counts_requested_games() {
+        let (_dir, conn) = fixture_db();
+        let full = kibitz_db::profile::build_profile(&conn, "Morphy, Paul", 100).unwrap();
+        let selected = kibitz_db::profile::build_profile_selected(&conn, "Morphy, Paul", &[1]).unwrap();
+        assert_eq!(selected.games, 1);
+        assert_eq!(selected.games, full.games);
+        assert_eq!(selected.score_pct, full.score_pct);
+        // An unknown ID must never pull another player's games in.
+        let absent = kibitz_db::profile::build_profile_selected(&conn, "Morphy, Paul", &[999]).unwrap();
+        assert_eq!(absent.games, 0);
+        assert!(kibitz_db::profile::build_profile_selected(&conn, "Morphy, Paul", &[]).is_err());
+        assert!(kibitz_db::profile::build_profile_selected(&conn, "Morphy, Paul", &[-1]).is_err());
+    }
+
+    #[test]
     fn game_analyses_orders_by_ply_with_fresh_first() {
         let (_dir, conn) = fixture_db();
         // Planted deliberately out of display order.
