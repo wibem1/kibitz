@@ -11,7 +11,17 @@ export type DiagnosticCode =
   | "offline_engine_timeout"
   | "offline_engine_invalid_move"
   | "offline_engine_failure"
-  | "offline_autosave_failure";
+  | "offline_autosave_failure"
+  | "database_save_request"
+  | "database_save_success"
+  | "database_save_duplicate"
+  | "database_save_failure"
+  | "pgn_import_request"
+  | "pgn_import_success"
+  | "pgn_import_partial"
+  | "pgn_import_failure"
+  | "game_handoff_cancelled"
+  | "game_handoff_confirmed";
 
 export interface DiagnosticEvent {
   time: string;
@@ -28,6 +38,10 @@ const allowedCodes = new Set<DiagnosticCode>([
   "offline_engine_move", "offline_engine_missing", "offline_engine_start_failure",
   "offline_engine_timeout", "offline_engine_invalid_move", "offline_engine_failure",
   "offline_autosave_failure",
+  "database_save_request", "database_save_success", "database_save_duplicate",
+  "database_save_failure", "pgn_import_request", "pgn_import_success",
+  "pgn_import_partial", "pgn_import_failure",
+  "game_handoff_cancelled", "game_handoff_confirmed",
 ]);
 
 /** Load only validated event codes and timestamps, never arbitrary stored payloads. */
