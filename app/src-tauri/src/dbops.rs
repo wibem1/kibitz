@@ -508,6 +508,20 @@ pub async fn build_profile(
     })
 }
 
+/// Aggregate the same profile statistics over the specified games only.
+/// Unknown or unrelated IDs are excluded by the database profile query.
+#[tauri::command]
+pub async fn build_profile_selected(
+    state: State<'_, DbState>,
+    player: String,
+    game_ids: Vec<i64>,
+) -> Result<kibitz_profile::PlayerProfile, String> {
+    with_conn(&state, |conn| {
+        kibitz_db::profile::build_profile_selected(conn, &player, &game_ids)
+            .map_err(|e| e.to_string())
+    })
+}
+
 /// Set the native window title (used as "kibitz — <db filename>" once a
 /// database is open).
 #[tauri::command]
