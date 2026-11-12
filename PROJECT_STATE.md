@@ -1,3 +1,17 @@
+# Kibitz DE – 12.11.2026: Version 0.1.3 als Intel-Mac-Testpaket erfolgreich bereitgestellt
+
+**GitHub-CI vollständig grün:** [Run 43160194595](https://github.com/wibem1/kibitz/actions/runs/43160194595), alle vier App-/Rust-Jobs auf macOS/Ubuntu erfolgreich. Der erste Lauf nach Codeänderung scheiterte ausschließlich an der Rustfmt-Importreihenfolge; dies wurde in [Commit c8d39ed8](https://github.com/wibem1/kibitz/commit/c8d39ed8cf3e57ad957c32e53dc938e3768f516d) korrigiert und durch den grünen zweiten CI-Lauf bestätigt.
+
+**Intel-Testbuild erfolgreich:** [Run 43160194622](https://github.com/wibem1/kibitz/actions/runs/43160194622), alle Schritte erfolgreich. [ZIP-Artefakt 13918180394](https://github.com/wibem1/kibitz/actions/runs/43160194622/artifacts/13918180394) (11.702.875 Byte, nicht abgelaufen bei Prüfung) enthält `Kibitz_0.1.3_x64.dmg`. Das Protokoll bestätigt `Mach-O 64-bit executable x86_64`, einen DMG und erfolgreiches Upload. SHA256 der ZIP-Datei laut GitHub-Upload-Log: `9c9ec7ac16d465bddeee92e89d903fea90f55f3435492abe73127b80b3bcc383`. Unsignierter Test-Installer, **kein formales GitHub-Release**.
+
+**Änderung:** Automatische WSUI-Kandidatenprüfung nutzt in `verify.rs` einen eigenen kurzlebigen Stockfish-Prozess und blockiert nicht länger den gemeinsamen Live-Analyse-Prozess. Bereits vorhandene begrenzte Einzelbewertung und Fehlerhinweise bleiben. Version `0.1.3` in fünf Manifest-/Lock-Dateien konsistent gesetzt.
+
+**Qualifikationsgrenze:** CI und Intel-Build beweisen **nicht**, dass die gewünschte Live-Bewertung auf dem Nutzer-Mac bereits korrekt funktioniert. Der zuvor per Screenshot dokumentierte Ausfall erfordert die reale Prüfung mit diesem neuen DMG. Keine Aussage „Problem behoben“ bis zu bestätigter Score-/PV-Anzeige. Maia 2 weiterhin nicht integriert.
+
+**Nächster einzelner Schritt:** `0.1.3` auf Intel-Mac installieren und zuerst `Live-Analyse` bei taktischer Stellung, danach bei ausgeschalteter Live-Analyse `Stellung bewerten` prüfen; Anzeige bzw. Fehlermeldung dokumentieren. Sollte die Ausgabe fehlen, `engine-info`-Empfang und FEN-Zuordnung isoliert untersuchen. Jede spätere Test-App erhält eine neue Versionsnummer.
+
+---
+
 # Kibitz DE – 12.11.2026: Engine-Konkurrenz zwischen taktischer Prüfung und Live-Analyse beseitigt (noch nicht abgenommen)
 
 **Ursache im Code verifiziert:** `verify_suggestions` lief nach einem WSUI-Taktiktreffer im Hintergrund automatisch und hielt die gemeinsame `EngineState.engine`-Mutex für bis zu vier UCI-Suchen (je 150.000 Knoten). Die manuelle `analyze_position`-Live-Analyse benötigt dieselbe Mutex und konnte deshalb in der Warteschlange ohne Score-Ereignis hängen. Das ist eine nachgewiesene **Blockademöglichkeit**, noch keine vollständige Erklärung sämtlicher Nutzerbeobachtungen.
