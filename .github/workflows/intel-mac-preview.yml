@@ -49,12 +49,37 @@ jobs:
           git -C "$RUNNER_TEMP/maia2-uci" lfs pull --include "models/maia2-rapid.onnx,models/maia2-blitz.onnx" --exclude ""
           test "$(stat -f%z "$RUNNER_TEMP/maia2-uci/models/maia2-rapid.onnx")" -gt 90000000
           test "$(stat -f%z "$RUNNER_TEMP/maia2-uci/models/maia2-blitz.onnx")" -gt 90000000
-          cargo build --manifest-path "$RUNNER_TEMP/maia2-uci/Cargo.toml" --release --features embed-weights
+          # ort-sys rc.12 has no prebuilt x86_64-apple-darwin ONNX Runtime.
+          # Build against an explicit Intel Homebrew dylib and ship it alongside Maia.
+          brew install onnxruntime
+          ort_prefix="$(brew --prefix onnxruntime)"
+          ort_lib="$ort_prefix/lib/libonnxruntime.dylib"
+          test -f "$ort_lib"
+          lipo -archs "$ort_lib" | grep -qw x86_64
+          ORT_LIB_LOCATION="$ort_prefix/lib" ORT_PREFER_DYNAMIC_LINK=1 \
+            cargo build --manifest-path "$RUNNER_TEMP/maia2-uci/Cargo.toml" --release --features embed-weights
           mkdir -p app/src-tauri/resources
           cp "$RUNNER_TEMP/maia2-uci/target/release/maia2-uci" app/src-tauri/resources/maia2-uci
+          cp "$ort_lib" app/src-tauri/resources/libonnxruntime.dylib
           chmod +x app/src-tauri/resources/maia2-uci
           cp "$RUNNER_TEMP/maia2-uci/LICENSE" app/src-tauri/resources/maia2-LICENSE
           lipo -archs app/src-tauri/resources/maia2-uci | grep -qw x86_64
+          # Rewrite the actual linker-recorded path, not a guessed Homebrew path.
+          python3 - <<'PY'
+          import subprocess
+          exe = "app/src-tauri/resources/maia2-uci"
+          deps = subprocess.check_output(["otool", "-L", exe], text=True).splitlines()[1:]
+          matches = [line.strip().split(" (", 1)[0] for line in deps if "libonnxruntime" in line]
+          assert len(matches) == 1, f"expected one linked ONNX Runtime dependency: {deps}"
+          subprocess.run(["install_name_tool", "-change", matches[0],
+                          "@loader_path/libonnxruntime.dylib", exe], check=True)
+          # Fail on any leftover Homebrew runtime linkage.
+          linked = subprocess.check_output(["otool", "-L", exe], text=True)
+          assert "@loader_path/libonnxruntime.dylib" in linked, linked
+          assert not any("onnxruntime" in x and "/opt/homebrew/" in x for x in linked.splitlines()), linked
+          print("Maia binary linked to bundled ONNX Runtime")
+          PY
+          lipo -archs app/src-tauri/resources/libonnxruntime.dylib | grep -qw x86_64
           python3 - <<'PY'
           import subprocess
           result = subprocess.run(
@@ -70,7 +95,7 @@ jobs:
           print("Maia 2 Intel CPU UCI smoke test passed")
           PY
           cat > app/src-tauri/tauri.maia2-preview.json <<'JSON'
-          {"bundle":{"resources":{"resources/maia2-uci":"maia2-uci","resources/maia2-LICENSE":"maia2-LICENSE"}}}
+          {"bundle":{"resources":{"resources/maia2-uci":"maia2-uci","resources/maia2-LICENSE":"maia2-LICENSE","resources/libonnxruntime.dylib":"libonnxruntime.dylib"}}}
           JSON
 
       - name: Build unsigned Intel Mac DMG
@@ -95,6 +120,9 @@ jobs:
           maia="$app/Contents/Resources/maia2-uci"
           test -x "$maia"
           test -f "$app/Contents/Resources/maia2-LICENSE"
+          test -f "$app/Contents/Resources/libonnxruntime.dylib"
+          lipo -archs "$app/Contents/Resources/libonnxruntime.dylib" | grep -qw x86_64
+          otool -L "$maia" | grep -q '@loader_path/libonnxruntime.dylib'
           lipo -archs "$maia" | grep -qw x86_64
           echo "Intel x86_64 app, bundled Maia 2 and one DMG found."
 
