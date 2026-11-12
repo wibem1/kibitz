@@ -60,7 +60,7 @@ export default function LichessSection() {
     status === null
       ? "nicht verfügbar"
       : status.configured
-        ? `configured · ends in …${status.tokenTail ?? "????"}` +
+        ? `Eingerichtet · endet auf …${status.tokenTail ?? "????"}` +
           (status.username ? ` · angemeldet als ${status.username}` : "")
         : "nicht eingerichtet";
 
