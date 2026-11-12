@@ -1,3 +1,13 @@
+# Kibitz DE – 12.11.2026: doppelte Datenbank-Stapelaktionen aus Einstellungen entfernt
+
+**Implementiert im bestehenden Entwicklungsbranch:** [Commit ac50cfde](https://github.com/wibem1/kibitz/commit/ac50cfde92658826881c4c6aed22bbae0d7a54f8) entfernt die doppelt vorhandenen Bedienelemente und zugehörige ungenutzte Hooks/Importe aus `app/src/SettingsView.tsx`. Die Aufträge **Datenbank erläutern** und **Partien neu bewerten** verbleiben in `app/src/DatabaseScreen.tsx` mit Kostenschätzung/Zeitprognose, Bestätigung, Arbeitsfortschritt und Pause. [Commit a63c3ce](https://github.com/wibem1/kibitz/commit/a63c3ce296998bbd5f655398aab73c19bf18ea4c) übersetzt dort diese Aktionen, Dialoge und Statusmeldungen. Batch-/Engine-Backend unverändert.
+
+**Prüfstatus:** Quellcode- und Aufrufpfad statisch kontrolliert; **kein bestätigter TypeScript-Build, keine vollständige CI-Abnahme, kein realer Mac-/Windows-GUI-Test**. Keine Versionsnummer, Tag oder Freigabe. Weiter vorhandene Einstellungen wie TWIC-Umschalter und Termin bleiben bewusst erhalten, bis ihre endgültige Einordnung separat geprüft ist.
+
+**Nächster einzelner Schritt:** TypeScript/CI für beide Commits prüfen, dann Benutzeroberfläche auf echter macOS-Installation testen; erst danach die nächste kleine Verschiebung (TWIC-Automatik beziehungsweise Termin) durchführen. Der separate Engine-/Maia-Intel-Test bleibt offen.
+
+---
+
 # Kibitz DE – 12.11.2026: Einstellungsbereinigung – erster kleiner Code-Schritt
 
 **Implementiert auf Branch `feat/de-simple-readable-ui`:** [Commit 332f5d5](https://github.com/wibem1/kibitz/commit/332f5d550810a8a619cafdc4d8c3fd84a5379d73) vereinfacht ausschließlich `app/src/SettingsView.tsx`: die nicht bedienbaren Zeilen **»Engine-Start«**, **»LLM verbaliser«** und **»Figurensatz«** sowie die doppelte Syzygy-Statuszeile und die redundante Anzeige der Kontensynchronisation wurden entfernt. Die eigenständige Engine-/Syzygy-Konfiguration, die Kontosynchronisation in ihrer eigenen Ansicht sowie alle ausführenden Einstellungen bleiben vorhanden. Mehrere sichtbare Buttons, Dialoge, Statuswerte und Brett-/Kommentaroptionen wurden auf Deutsch beschriftet. Batch-Aufrufe, TWIC-Umschalter, Termine, Diagnose, Theme, Erklärstil und Speicherfunktion sind weiterhin mit ihren bisherigen Handlern verbunden.
