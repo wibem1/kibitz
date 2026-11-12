@@ -1435,7 +1435,7 @@ export default function App() {
             onCrosstable={setCrosstableEvent}
             onPlayFromPosition={() => {
               if (!game) return;
-              selectedTransfer.current = { game, ply: preview ? 0 : gv.ply };
+              selectedTransfer.current = { game, ply: gv.ply };
               setTransferExported(false);
               setTransferPending(true);
             }}
