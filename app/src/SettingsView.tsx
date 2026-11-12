@@ -80,51 +80,6 @@ export default function SettingsView({
       <ScreenHeader title="Einstellungen" subtitle="Darstellung, Schachengines und Konten" />
       <div className="page-scroll">
         <div className="settings-page">
-          {/* ---- ENGINE MANAGER (own file: settings/EngineSection.tsx, run 10) ---- */}
-          <EngineSection />
-
-          {/* ---- COACH ---- */}
-          <div className="set-group">
-            <div className="set-group-head">TRAINER</div>
-            <Row
-              label="Erklärstil"
-              help="Gilt für Stellungserklärungen und Übungshinweise. Die Wahl wird in der geöffneten Datenbank gespeichert."
-              value={<div className="set-value">{voice === "coach" ? "Trainer" : "Neutral"}</div>}
-              action={ghost(voice === "coach" ? "Neutral verwenden" : "Trainer verwenden", () =>
-                onVoice(voice === "coach" ? "neutral" : "coach"),
-              )}
-            />
-          </div>
-
-          {/* ---- DATABASE STORAGE ---- */}
-          <div className="set-group">
-            <div className="set-group-head">DATEN</div>
-            {/* ---- DATABASE STORAGE (own file: settings/StorageSection.tsx) ---- */}
-            <StorageSection />
-          </div>
-
-          {/* ---- LICHESS PLAY (own file: settings/LichessSection.tsx, run 10) ---- */}
-          <LichessSection />
-
-          {/* ---- UPDATES (own file: UpdatesSettings.tsx, run-8 packaging) ---- */}
-          <UpdatesSettings />
-
-          {/* ---- DIAGNOSTICS ---- */}
-          <div className="set-group">
-            <div className="set-group-head">DIAGNOSE</div>
-            <Row
-              label="Fehlerbericht"
-              help="Speichert einen JSON-Bericht mit bis zu 120 Ereignissen – auch nach Neustart verfügbar. Enthält keine API-Schlüssel, Dateipfade, Partien oder Fehlermeldungstexte. Keine automatische Übertragung."
-              value={<div className="set-value">Lokaler Diagnosebericht · ohne automatische Übertragung</div>}
-              action={
-                <div className="set-stack">
-                  {ghost("Diagnose speichern", () => saveDiagnosticReport())}
-                  {ghost("Diagnose löschen", () => clearDiagnostics())}
-                </div>
-              }
-            />
-          </div>
-
           {/* ---- APPEARANCE ---- */}
           <div className="set-group">
             <div className="set-group-head">DARSTELLUNG</div>
@@ -158,9 +113,53 @@ export default function SettingsView({
               )}
             />
           </div>
+          {/* ---- COACH ---- */}
+          <div className="set-group">
+            <div className="set-group-head">TRAINER</div>
+            <Row
+              label="Erklärstil"
+              help="Gilt für Stellungserklärungen und Übungshinweise. Die Wahl wird in der geöffneten Datenbank gespeichert."
+              value={<div className="set-value">{voice === "coach" ? "Trainer" : "Neutral"}</div>}
+              action={ghost(voice === "coach" ? "Neutral verwenden" : "Trainer verwenden", () =>
+                onVoice(voice === "coach" ? "neutral" : "coach"),
+              )}
+            />
+          </div>
+
+          {/* ---- ENGINE MANAGER (own file: settings/EngineSection.tsx, run 10) ---- */}
+          <EngineSection />
+
+          {/* ---- LICHESS PLAY (own file: settings/LichessSection.tsx, run 10) ---- */}
+          <LichessSection />
+
+          {/* ---- DATABASE STORAGE ---- */}
+          <div className="set-group">
+            <div className="set-group-head">DATEN</div>
+            {/* ---- DATABASE STORAGE (own file: settings/StorageSection.tsx) ---- */}
+            <StorageSection />
+          </div>
+
+          {/* ---- UPDATES (own file: UpdatesSettings.tsx, run-8 packaging) ---- */}
+          <UpdatesSettings />
+
+          {/* ---- DIAGNOSTICS ---- */}
+          <div className="set-group">
+            <div className="set-group-head">DIAGNOSE</div>
+            <Row
+              label="Fehlerbericht"
+              help="Speichert einen JSON-Bericht mit bis zu 120 Ereignissen – auch nach Neustart verfügbar. Enthält keine API-Schlüssel, Dateipfade, Partien oder Fehlermeldungstexte. Keine automatische Übertragung."
+              value={<div className="set-value">Lokaler Diagnosebericht · ohne automatische Übertragung</div>}
+              action={
+                <div className="set-stack">
+                  {ghost("Diagnose speichern", () => saveDiagnosticReport())}
+                  {ghost("Diagnose löschen", () => clearDiagnostics())}
+                </div>
+              }
+            />
+          </div>
+
         </div>
       </div>
-
     </>
   );
 }
