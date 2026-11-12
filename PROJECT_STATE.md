@@ -1,3 +1,21 @@
+# Kibitz DE – 12.11.2026: Maia-2-Integration für Intel-Mac als 0.1.4 in Prüfung
+
+**Auftrag:** Maia 2 oder 3 direkt in die App integrieren, ohne Stockfish zu ersetzen. Entscheidung für zunächst Maia 2: [ChessWaveIO/maia2-uci](https://github.com/ChessWaveIO/maia2-uci) mit CPU und einem eigenständigen UCI-Interface (MIT), leichter als Maia 3 mit Python/PyTorch für Intel-Mac zu integrieren. Maia 3 ist **nicht** implementiert.
+
+**Bereits im GitHub-Code umgesetzt:**
+- `OfflinePlayView.tsx`: auswählbarer Gegner `Maia 2` neben Mensch und Stockfish, eigene Maia-Elo-Stufen (1000–2200), eigener optionaler Engine-Pfad, lokale Persistenz von Auswahl/Elo/Pfad, separates Spielergebnis/Fehlertext, normales PGN/Zurücknehmen.
+- `offlineSession.ts`: vorhandene lokale Partiestände bleiben lesbar, neues Gegnerkennzeichen `maia2` bleibt nach Neustart erhalten. Zusätzlicher Sicherungstest in `offlineSession.test.ts`.
+- `offlineEngine.ts` und `src-tauri/src/lib.rs`: eigene UCI-Konfiguration `Model=rapid`, `SelfElo`/`OppElo` (derzeit gleich), begrenzter Zug-Aufruf in dediziertem Prozess, 60-Sekunden-Deadline, separate Engine-Auflösung ohne Stockfish-Fallback. Bei leerem Maia-Pfad sucht Intel-Mac `Kibitz.app/Contents/Resources/maia2-uci`.
+- `.github/workflows/intel-mac-preview.yml`: Intel-Mac-Build klont gepinnten externen `ChessWaveIO/maia2-uci` Commit `05d51ac73ca3ad006882f8956c848fe2411ce718`, lädt beide ~93 MB ONNX-Dateien per Git LFS, kompiliert `--features embed-weights` für native Intel-CPU, prüft UCI mit einer Startstellungs-Zuganfrage und fügt Executable + MIT-License als Tauri-Bundle-Ressourcen hinzu. Packaging-/Architekturprüfung stellt vorhandene x86_64-Maia-Binary sicher.
+- `docs/LICENSES.md`: Maia-MIT-Lizenz und Herkunft dokumentiert. Kein Maia-Code in BSD-Crates.
+- Eindeutiger Versionskandidat `0.1.4` in npm-/Tauri-/Cargo-Manifests und Lock-Dateien (vorher bereitgestellte Testversion `0.1.3`).
+
+**Verifikation:** Die aktuelle CI [43166422415](https://github.com/wibem1/kibitz/actions/runs/43166422415) und der native Intel-Mac-Build [43166422235](https://github.com/wibem1/kibitz/actions/runs/43166422235) waren bei letzter Prüfung **noch nicht abgeschlossen**. Weder der Maia-Prozess noch sein Build sind bisher auf echtem Nutzer-Mac bestätigt. Kein Release und kein Download vor erfolgreich verifiziertem DMG.
+
+**Nächster einzelner Schritt:** Alle CI-Jobs und insbesondere Maia-Quellbuild/Smoke-Test/DMG-Artefakt prüfen, Fehler isoliert beheben. Bei grünem Build 0.1.4 als unsigned Intel-Testpaket bereitstellen; dann Nutzer-Praxistest mit menschlich wirkenden Maia-Zügen auf Intel-Mac. Maia 3 und Erweiterungen für Maia-Stellungsanalyse bleiben offen.
+
+---
+
 # Kibitz DE – 12.11.2026: Version 0.1.3 als Intel-Mac-Testpaket erfolgreich bereitgestellt
 
 **GitHub-CI vollständig grün:** [Run 43160194595](https://github.com/wibem1/kibitz/actions/runs/43160194595), alle vier App-/Rust-Jobs auf macOS/Ubuntu erfolgreich. Der erste Lauf nach Codeänderung scheiterte ausschließlich an der Rustfmt-Importreihenfolge; dies wurde in [Commit c8d39ed8](https://github.com/wibem1/kibitz/commit/c8d39ed8cf3e57ad957c32e53dc938e3768f516d) korrigiert und durch den grünen zweiten CI-Lauf bestätigt.
