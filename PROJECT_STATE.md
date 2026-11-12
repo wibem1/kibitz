@@ -1,3 +1,15 @@
+# Kibitz DE – 12.11.2026: Aufräumen der Einstellungen im Entwicklungsbranch fertig implementiert
+
+**Codeänderungen (noch nicht abgenommen):** `app/src/SettingsView.tsx` zeigt keine doppelten Datenbankaktionen, TWIC-Automatik oder Schachterminverwaltung mehr; die echte Bedienung bleibt in `app/src/DatabaseScreen.tsx` beziehungsweise `app/src/TwicView.tsx`. Ein optionaler Editor »Schachtermin bearbeiten« ist in `app/src/HomeView.tsx` ergänzt, ohne das bisherige Datenmodell zu ändern. Die Einstellungsgruppen sind neu geordnet (Darstellung, Trainer, Engine, Lichess, Daten, Updates, Diagnose). Lichess-Status und TWIC-Automatik sind dort verständlicher deutsch beschriftet. Keine Engine- oder Datenbank-Backend-Änderungen.
+
+**Belege:** Commits [ac1eeb54](https://github.com/wibem1/kibitz/commit/ac1eeb54557424e18ed3cff536bf136279e7db65), [29a60fb4](https://github.com/wibem1/kibitz/commit/29a60fb4e01a45aa07c9317e0aa3a6d1dac4ac0f), [9a70c4a1](https://github.com/wibem1/kibitz/commit/9a70c4a1443a4f1a20989280e4222f6a7f7751d6), [0953ca28](https://github.com/wibem1/kibitz/commit/0953ca28ef527d18bb6e8514755dc0096b02c684), [86cfc47d](https://github.com/wibem1/kibitz/commit/86cfc47d8246ba7c47804ebabc40f1fa3cdb5d2c). Anforderungen und Prüfschritte stehen in [docs/KIBITZ_DE_SCHACHSTUDIO.md](docs/KIBITZ_DE_SCHACHSTUDIO.md).
+
+**Prüfstatus:** Quelltext und Aufruforte auf GitHub kontrolliert. Zum Zeitpunkt der Prüfung waren die automatisch ausgelösten GitHub-Actions-Läufe noch in der Warteschlange beziehungsweise im Gange (CI-Run 43185618846, Intel-Mac-Preview-Run 43185618886). **Kein erfolgreicher Gesamttest und kein echter Mac-/Windows-Bedientest nachgewiesen**, insbesondere nicht für den neuen Home-Termineditor. Keine neue Versionsnummer, kein Release.
+
+**Nächster einzelner Schritt:** GitHub CI (TypeScript/Build) für den aktuellen Branch erfolgreich abnehmen; bei Fehlern gezielt korrigieren. Danach Einstellungsnavigation, Termin- und TWIC-Speicherung sowie unveränderte Engine-/Lichess-/Datenbankfunktionen auf echtem Desktop prüfen und erst dann eine Testversion freigeben. Separater Stockfish-/Maia-Intel-Laufzeitfehler bleibt offen.
+
+---
+
 # Kibitz DE – 12.11.2026: doppelte Datenbank-Stapelaktionen aus Einstellungen entfernt
 
 **Implementiert im bestehenden Entwicklungsbranch:** [Commit ac50cfde](https://github.com/wibem1/kibitz/commit/ac50cfde92658826881c4c6aed22bbae0d7a54f8) entfernt die doppelt vorhandenen Bedienelemente und zugehörige ungenutzte Hooks/Importe aus `app/src/SettingsView.tsx`. Die Aufträge **Datenbank erläutern** und **Partien neu bewerten** verbleiben in `app/src/DatabaseScreen.tsx` mit Kostenschätzung/Zeitprognose, Bestätigung, Arbeitsfortschritt und Pause. [Commit a63c3ce](https://github.com/wibem1/kibitz/commit/a63c3ce296998bbd5f655398aab73c19bf18ea4c) übersetzt dort diese Aktionen, Dialoge und Statusmeldungen. Batch-/Engine-Backend unverändert.
