@@ -59,7 +59,7 @@ export const RAIL_GROUPS: RailGroup[] = [
     items: [
       { id: "home", label: "Start", icon: "Hm" },
       { id: "explain", label: "Erklärung an/aus", icon: "Ex" },
-      { id: "profile", label: "Mein Spielprofil", icon: "Pf" },
+      { id: "profile", label: "Partien auswerten", icon: "Pf" },
       { id: "prep", label: "Gegner vorbereiten", icon: "Op" },
     ],
   },
