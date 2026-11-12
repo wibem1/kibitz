@@ -76,7 +76,7 @@ export function undoLocalMove(game: LocalGame): LocalGame {
  * Returns the unchanged game if there is no earlier human decision point. */
 export function undoLocalTurn(
   game: LocalGame,
-  opponent: "human" | "stockfish",
+  opponent: "human" | "stockfish" | "maia2",
   humanColor: "white" | "black",
 ): LocalGame {
   if (opponent === "human") return undoLocalMove(game);
