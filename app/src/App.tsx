@@ -1497,11 +1497,12 @@ export default function App() {
           {getPreviousPlayerGame()?.sans.length
             ? <p><strong>Achtung:</strong> Auf der Spielseite liegt bereits eine Partie mit
                 {getPreviousPlayerGame()?.sans.length} Halbzügen.
-                Die bisherige Partie wird beim Wechsel ersetzt. Eine automatische Sicherung
-                in der Schachdatenbank erfolgt nicht.</p>
+                Die bisherige Spielansicht wird beim Wechsel ersetzt. Die normale lokale
+                Zwischensicherung bleibt erhalten, ist aber keine Datenbanksicherung.</p>
             : <p>Es ist derzeit keine gespielte Partie auf der Spielseite vorhanden.</p>}
-          <p>Du kannst die bisherige Partie vor dem Ersetzen als PGN herunterladen.
-            Prüfe anschließend, ob sie wirklich gespeichert wurde.</p>
+          <p>Du kannst die bisherige Partie vor der Übergabe als PGN herunterladen oder
+            ausdrücklich in der geöffneten Datenbank speichern. Prüfe beim PGN-Download,
+            ob die Datei tatsächlich gespeichert wurde.</p>
           {transferDbState === "saved" && <p role="status">Vorherige Partie in der geöffneten Datenbank dauerhaft gespeichert oder als Duplikat erkannt.</p>}
           {transferDbState === "saving" && <p role="status">Speichert die vorherige Partie in der Datenbank …</p>}
           {transferDbError && <p role="alert">{transferDbError}</p>}
