@@ -266,9 +266,7 @@ export default function TwicView({ progress }: TwicViewProps) {
           {catalog && (
             <label className="twic-auto">
               <input type="checkbox" checked={catalog.autoSync} onChange={() => void toggleAuto()} />
-              Automatically download new issues when the database opens — newest issues first,
-              max 5 per app launch (enforced even if the window reloads); older issues stay
-              manual via Download all missing. Strictly serial; also in Settings → Data.
+              Neue TWIC-Ausgaben beim Öffnen der Datenbank automatisch laden (höchstens fünf pro Start). Ältere Ausgaben können hier manuell geladen werden.
             </label>
           )}
           {/* Idle trace: a silent auto-sync is indistinguishable from a
