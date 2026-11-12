@@ -1,3 +1,11 @@
+# Kibitz DE – 12.11.2026: Produktvision »Erweitertes Chess Studio für den Desktop« festgehalten
+
+**Verbindliche Konzeptentscheidung, keine neue Implementierung:** [docs/KIBITZ_DE_SCHACHSTUDIO.md, Abschnitt 7](docs/KIBITZ_DE_SCHACHSTUDIO.md) definiert Kibitz DE als Erweiterung der dialogorientierten Chess-Studio-Desktop-App. Der Benutzer erlebt primär die Arbeitsbereiche **Spielen**, **Lernen/Analysieren** und **Partien/Datenbanken**. Vorgesehen: ausdrücklich gestarteter lokaler Modus **KI gegen Stockfish** (auch ab FEN), freier KI-Dialog unter/neben dem Brett, anspringbare Schlüsselstellungen, Pfeile, Varianten, gespeicherte Analysen und eine aufgeräumte Modell-/Diagnoseverwaltung. Vorhandene Kibitz-Funktionen bleiben erhalten; kein blindes Kopieren ohne Quellcodeprüfung. Die ältere GitHub-Projektakte von AI-Chess-Studio (04.11.2026) belegt aktuelle Funktionen nicht; deshalb ist Wiederverwendung nicht zugesagt.
+
+**Prüfstatus:** Ausschließlich Markdown-Dokumentation geändert; keine Builds, Tests, Versionsnummern oder Release. Die bisherige technische nächste Aufgabe bleibt die reale Abnahme von Stockfish und Maia 2 auf Intel-macOS, bevor neue KI-Funktionen integriert werden.
+
+---
+
 # Kibitz DE – 12.11.2026: Kooperatives Analyse-Team als verbindliches Entwicklungsziel dokumentiert
 
 **Konzeptentscheidung, kein implementiertes Feature:** [docs/KIBITZ_DE_SCHACHSTUDIO.md, Abschnitt 6](docs/KIBITZ_DE_SCHACHSTUDIO.md) beschreibt das zukünftige Analyse-Team: Kibitz-Core (strategische Merkmale/Hypothesen), Stockfish (Varianten und gezielte Prüfung), KI (vergleichende, priorisierende Synthese mit Rückfragen) sowie Nutzer (aktiver Dialog). Vorgesehen sind eine begrenzte, kontrollierte Koordinationsschicht im App-Layer, FEN-gebundene Belege, überprüfbare Aussagen mit Unsicherheitskennzeichnung, Budgetlimits und strikter Lichess-Fair-Play-Schutz. Bestehende Offline-Kommentierung ohne API-Schlüssel bleibt erhalten. Dies erweitert die alte LLM-Verbalizer-Idee; die Implementierung steht aus.
