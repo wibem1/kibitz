@@ -404,6 +404,7 @@ const LIST_WHERE: &str = "WHERE (?1 IS NULL
              AND replace(g.date, '?', '0') <= ?6))
         AND (?7 IS NULL OR s.kind = ?7)";
 
+#[cfg(test)]
 pub(crate) fn list_games_impl(
     conn: &Connection,
     filter: &GameFilter,
