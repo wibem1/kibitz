@@ -4,10 +4,10 @@
  */
 import { useEffect, useState } from "react";
 import { evalsByPly } from "./lib/analyses";
-import { gameAnalyses, listGames, type GameRow, type GameSortBy } from "./lib/db";
+import { buildProfileSelected, gameAnalyses, listGames, type GameRow, type GameSortBy, type PlayerProfile } from "./lib/db";
 import { dateBoundParam, isValidDateBound } from "./lib/filters";
 
-interface Props { onLoadGameAt: (gameId: number, ply: number) => void }
+interface Props { onLoadGameAt: (gameId: number, ply: number) => void; mode?: "two" | "group" }
 const PAGE_SIZE = 50;
 
 interface GameComparison {
@@ -18,8 +18,10 @@ interface GameComparison {
   moveCount: number;
 }
 
-export default function CompareGames({ onLoadGameAt }: Props) {
+export default function CompareGames({ onLoadGameAt, mode = "two" }: Props) {
   const [query, setQuery] = useState("");
+  const [subjectPlayer, setSubjectPlayer] = useState("");
+  const [groupProfile, setGroupProfile] = useState<PlayerProfile | null>(null);
   const [dateMin, setDateMin] = useState("");
   const [dateMax, setDateMax] = useState("");
   const [resultFilter, setResultFilter] = useState("");
@@ -57,9 +59,49 @@ export default function CompareGames({ onLoadGameAt }: Props) {
 
   const toggle = (g: GameRow) => {
     setResults(null);
+    setGroupProfile(null);
     setChosen((previous) => previous.some((x) => x.id === g.id)
       ? previous.filter((x) => x.id !== g.id)
-      : previous.length < 2 ? [...previous, g] : previous);
+      : previous.length < (mode === "two" ? 2 : 2000) ? [...previous, g] : previous);
+  };
+
+  const selectAllFiltered = async () => {
+    if (total > 2000) {
+      setError("Mehr als 2.000 Treffer. Bitte die Filter weiter eingrenzen.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setResults(null);
+    setGroupProfile(null);
+    try {
+      const selected: GameRow[] = [];
+      const filter = {
+        playerSubstring: query.trim() || undefined,
+        dateMin: dateBoundParam(dateMin),
+        dateMax: dateBoundParam(dateMax),
+        result: resultFilter || undefined,
+        eco: eco.trim() || undefined,
+      };
+      for (let offset = 0; offset < total; offset += 500) {
+        const batch = await listGames(filter, offset, 500, { by: sortBy, descending });
+        selected.push(...batch.rows);
+        if (batch.total !== total) throw new Error("Datenbank während der Auswahl geändert. Bitte erneut auswählen.");
+      }
+      setChosen(selected);
+    } catch (e) { setError(String(e)); }
+    finally { setLoading(false); }
+  };
+
+  const analyzeSelection = async () => {
+    if (chosen.length === 0 || !subjectPlayer.trim()) return;
+    setLoading(true);
+    setError(null);
+    setGroupProfile(null);
+    try {
+      setGroupProfile(await buildProfileSelected(subjectPlayer.trim(), chosen.map((g) => g.id)));
+    } catch (e) { setError(String(e)); }
+    finally { setLoading(false); }
   };
 
   const compare = async () => {
@@ -86,7 +128,7 @@ export default function CompareGames({ onLoadGameAt }: Props) {
     ? "Nicht vorhanden" : `${cp >= 0 ? "+" : ""}${(cp / 100).toFixed(2)} (aus Sicht von Weiß)`;
 
   return (
-    <section className="pf2-build" aria-label="Zwei Partien vergleichen">
+    <section className="pf2-build" aria-label={mode === "two" ? "Zwei Partien vergleichen" : "Ausgewählte Partien auswerten"}>
       <p className="pf2-build-prose">
         Wähle genau zwei Partien aus der Datenbank. Verglichen werden Partiedaten und vorhandene
         Enginebewertungen. Das ist noch kein strategischer KI-Vergleich; die Engine wird nicht gestartet.
@@ -133,14 +175,14 @@ export default function CompareGames({ onLoadGameAt }: Props) {
           setSortBy("date"); setDescending(true); setPage(0);
         }}>Filter zurücksetzen</button>
       </div>
-      <p className="hint">{total.toLocaleString("de-DE")} Partien gefunden · {chosen.length} von 2 ausgewählt</p>
+      <p className="hint">{total.toLocaleString("de-DE")} Partien gefunden · {chosen.length} {mode === "two" ? "von 2 ausgewählt" : "ausgewählt"}</p>
       {chosen.length > 0 && <p className="hint">Auswahl: {chosen.map((g) => `${g.white} – ${g.black} (#${g.id})`).join(" · ")}</p>}
       <div style={{ maxHeight: 280, overflowY: "auto" }}>
         {games.map((g) => {
           const checked = chosen.some((x) => x.id === g.id);
           return <label key={g.id} style={{ display: "block", padding: "5px 0" }}>
             <input type="checkbox" checked={checked}
-              disabled={!checked && chosen.length === 2}
+              disabled={!checked && chosen.length >= (mode === "two" ? 2 : 2000)}
               onChange={() => toggle(g)} />
             {" "}{g.white} – {g.black} · {g.date ?? "ohne Datum"} · {g.result} · {g.eco ?? "ECO unbekannt"}
           </label>;
