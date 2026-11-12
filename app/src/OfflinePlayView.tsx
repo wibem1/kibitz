@@ -193,7 +193,8 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
   }
 
   function startNew() {
-    setGame(sourceGame ? localGameFromFen(sourceGame.fens[browsePly]) : newLocalGame());
+    if (sourceGame) { startFromSelectedPly(); setConfirmNew(false); return; }
+    setGame(newLocalGame());
     setNotice("");
     setConfirmNew(false);
     setFailedFen(null);
@@ -221,7 +222,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                 <span>Originalpartie: {browsePly} / {sourceGame.sans.length} Halbzüge</span>
                 <button className="btn-secondary" disabled={browsePly === sourceGame.sans.length} onClick={() => setBrowsePly((p) => Math.min(sourceGame.sans.length, p + 1))}>Weiter ▶</button>
                 <button className="btn-secondary" disabled={browsePly === sourceGame.sans.length} onClick={() => setBrowsePly(sourceGame.sans.length)}>▶|</button>
-                <button className="btn-primary" onClick={startFromSelectedPly}>Ab dieser Stellung gegen Stockfish spielen</button>
+                {browsing && <button className="btn-primary" onClick={startFromSelectedPly}>Ab dieser Stellung gegen Stockfish spielen</button>}
                 {onReturnToAnalysis && <button className="btn-secondary" onClick={onReturnToAnalysis}>Zur Partieanalyse zurück</button>}
                 {!browsing && <button className="btn-secondary" onClick={() => {
                   setBrowsing(true); setFailedFen(null); setNotice("Wähle eine andere Ausgangsstellung.");
@@ -239,7 +240,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                   }}>
                   Zug zurücknehmen
                 </button>
-                <button className="btn-primary" disabled={browsing} onClick={savePgn}>Fortsetzung als PGN speichern</button>
+                <button className="btn-primary" disabled={browsing} onClick={savePgn}>{sourceGame ? "Fortsetzung als PGN speichern" : "PGN speichern"}</button>
                 <button className="btn-secondary" disabled={browsing || game.sans.length === 0}
                   onClick={() => onAnalyze(localPgn(game))}>Partie zur Analyse öffnen</button>
               </div>
@@ -325,7 +326,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                 <div className="sync-card-head">PARTIEVERLAUF</div>
                 <p className="sync-blurb">
                   {opponent === "human" ? "Die Figuren werden abwechselnd von beiden Spielern gezogen." : `Du spielst gegen ${opponent === "maia2" ? "Maia 2" : "Stockfish"}. Die Engine wird nur für ihre eigenen Züge gestartet.`}
-                  Alle Züge werden auf ihre Rechtmäßigkeit geprüft. Die Partie wird auf diesem Rechner automatisch gespeichert.
+                  Alle Züge werden auf ihre Rechtmäßigkeit geprüft. {sourceGame ? "Die Originalpartie bleibt erhalten; eigene Fortsetzungen bitte als PGN speichern." : "Die Partie wird auf diesem Rechner automatisch gespeichert."}
                 </p>
                 {sourceGame && <>
                   <div className="sync-card-head">ÜBERNOMMENE ORIGINALPARTIE</div>
