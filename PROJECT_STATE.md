@@ -1,3 +1,11 @@
+# Kibitz DE – 12.11.2026: Profilanalyse verständlich als »Partien auswerten« bezeichnet
+
+**Implementiert im Entwicklungsbranch:** Die linke Navigation führt den bisherigen Eintrag »Mein Spielprofil« nun als **»Partien auswerten«** ([Commit b5b3c3c4](https://github.com/wibem1/kibitz/commit/b5b3c3c43898b7367c04b4b750d8bf2bb7c99814)). Die Profilansicht selbst trägt denselben Titel und erklärt verständlich, dass gespeicherte Partien eines Spielers vergleichend ausgewertet werden; Einstieg, Schaltfläche, Fortschrittsbezeichnungen und Kurzbeschreibung sind entsprechend deutsch ([Commit 7fa57b37](https://github.com/wibem1/kibitz/commit/7fa57b37d7cc53b0adf62bff6e3e21bd2de977de)). Interne Route `profile`, Profildaten, Berechnungsalgorithmus und Belegverknüpfungen bleiben unverändert. **Keine Behauptung einer freien KI-Vergleichsanalyse**.
+
+**Prüfstatus:** Quellcodeänderungen gesichert, ohne nachgewiesenen TypeScript-Build oder praktische macOS-/Windows-Abnahme; keine Versionsfreigabe. Nächster Prüfschritt: UI-Build/CI für den Branch und die reale Navigation einschließlich bestehender Profilbefunde kontrollieren; außerdem weiterhin offene CI-/Release-Prüfungen der Settingsbereinigung.
+
+---
+
 # Kibitz DE – 12.11.2026: Aufräumen der Einstellungen im Entwicklungsbranch fertig implementiert
 
 **Codeänderungen (noch nicht abgenommen):** `app/src/SettingsView.tsx` zeigt keine doppelten Datenbankaktionen, TWIC-Automatik oder Schachterminverwaltung mehr; die echte Bedienung bleibt in `app/src/DatabaseScreen.tsx` beziehungsweise `app/src/TwicView.tsx`. Ein optionaler Editor »Schachtermin bearbeiten« ist in `app/src/HomeView.tsx` ergänzt, ohne das bisherige Datenmodell zu ändern. Die Einstellungsgruppen sind neu geordnet (Darstellung, Trainer, Engine, Lichess, Daten, Updates, Diagnose). Lichess-Status und TWIC-Automatik sind dort verständlicher deutsch beschriftet. Keine Engine- oder Datenbank-Backend-Änderungen.
