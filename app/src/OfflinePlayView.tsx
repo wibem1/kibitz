@@ -26,7 +26,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
   const [flipped, setFlipped] = useState(restored.flipped);
   const [notice, setNotice] = useState(restored.warning ?? "");
   const [confirmNew, setConfirmNew] = useState(false);
-  const [opponent, setOpponent] = useState<"human" | "stockfish">(restored.opponent);
+  const [opponent, setOpponent] = useState<"human" | "stockfish" | "maia2">(restored.opponent);
   const [humanColor, setHumanColor] = useState<"white" | "black">(restored.humanColor);
   const [elo, setElo] = useState<number | null>(() => {
     try {
@@ -35,6 +35,22 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
       return parsed !== null && Number.isInteger(parsed) && parsed >= 1320 && parsed <= 3190 ? parsed : null;
     } catch { return null; }
   });
+  const [maiaPath, setMaiaPath] = useState(() => {
+    try { return window.localStorage.getItem("kibitz.offlineMaia2Path.v1") ?? ""; }
+    catch { return ""; }
+  });
+  const [maiaElo, setMaiaElo] = useState(() => {
+    try {
+      const parsed = Number(window.localStorage.getItem("kibitz.offlineMaia2Elo.v1"));
+      return Number.isInteger(parsed) && parsed >= 1000 && parsed <= 2200 ? parsed : 1500;
+    } catch { return 1500; }
+  });
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("kibitz.offlineMaia2Path.v1", maiaPath.trim());
+      window.localStorage.setItem("kibitz.offlineMaia2Elo.v1", String(maiaElo));
+    } catch { /* no storage */ }
+  }, [maiaPath, maiaElo]);
   useEffect(() => {
     try { window.localStorage.setItem("kibitz.offlineStockfishElo.v1", elo === null ? "full" : String(elo)); }
     catch { /* private browsing may disable storage */ }
@@ -74,7 +90,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
   const pos = useMemo(() => localPosition(game), [game]);
   const completed = pos.isEnd();
   const fen = game.fens[game.fens.length - 1];
-  const engineTurn = opponent === "stockfish" && !completed && pos.turn !== humanColor;
+  const engineTurn = opponent !== "human" && !completed && pos.turn !== humanColor;
 
   useEffect(() => {
     if (!engineTurn || failedFen === fen) return;
@@ -83,7 +99,9 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
     let path = "";
     try { path = getSavedEnginePath(); } catch { /* use default binary search */ }
     recordDiagnostic("offline_engine_request");
-    requestOfflineEngineMove(fen, 20_000, path, elo)
+    const selectedPath = opponent === "maia2" ? maiaPath.trim() : path;
+    requestOfflineEngineMove(fen, 20_000, selectedPath, opponent === "stockfish" ? elo : null,
+      opponent === "maia2" ? "maia2" : "stockfish", opponent === "maia2" ? maiaElo : null)
       .then((uci) => {
         if (cancelled) return;
         setThinking(false);
@@ -91,7 +109,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
         if (!next) {
           setFailedFen(fen);
           recordDiagnostic("offline_engine_invalid_move");
-          setNotice("Stockfish hat einen ungültigen Zug gemeldet.");
+          setNotice(`${opponent === "maia2" ? "Maia 2" : "Stockfish"} hat einen ungültigen Zug gemeldet.`);
         } else {
           recordDiagnostic("offline_engine_move");
           setGame(next);
@@ -103,10 +121,10 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
         setThinking(false);
         setFailedFen(fen);
         recordDiagnostic(diagnoseEngineFailure(error));
-        setNotice(offlineEngineError(error));
+        setNotice(opponent === "maia2" ? `Maia 2 konnte nicht ziehen: ${String(error)}` : offlineEngineError(error));
       });
     return () => { cancelled = true; };
-  }, [engineTurn, failedFen, fen, game, elo]);
+  }, [engineTurn, failedFen, fen, game, elo, maiaPath, maiaElo, opponent]);
   const lastUci = game.ucis[game.ucis.length - 1];
   const lastMove: [string, string] | undefined = lastUci
     ? [lastUci.slice(0, 2), lastUci.slice(2, 4)] : undefined;
@@ -153,13 +171,13 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
 
   return (
     <>
-      <ScreenHeader title="Offline spielen" subtitle="Gegen einen Menschen oder Stockfish · ohne Internetverbindung" />
+      <ScreenHeader title="Offline spielen" subtitle="Gegen einen Menschen, Stockfish oder Maia 2 · ohne Internetverbindung" />
       <div className="page-scroll" ref={scrollRef}>
         <div className="play-page offline-play-page">
           <div className="play-columns">
             <div className="play-board-col" style={{ width: boardSize + 32, maxWidth: "100%" }}>
               <div className="play-player">
-                {thinking ? "Stockfish überlegt…" : localResultText(game)}
+                {thinking ? `${opponent === "maia2" ? "Maia 2" : "Stockfish"} überlegt…` : localResultText(game)}
               </div>
               <div style={{ position: "relative" }}>
                 <Board fen={fen} movable={movable} lastMove={lastMove}
@@ -169,7 +187,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
               <div className="play-actions">
                 <button className="btn-secondary" onClick={() => setFlipped((v) => !v)}>Brett drehen</button>
                 <button className="btn-secondary"
-                  disabled={game.sans.length === 0 || (opponent === "stockfish" && undoLocalTurn(game, opponent, humanColor) === game)}
+                  disabled={game.sans.length === 0 || (opponent !== "human" && undoLocalTurn(game, opponent, humanColor) === game)}
                   onClick={() => {
                     setGame(undoLocalTurn(game, opponent, humanColor));
                     setFailedFen(null);
@@ -205,12 +223,13 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                 <div className="sync-card-head">SPIELMODUS</div>
                 <label>Gegner{" "}
                   <select value={opponent} disabled={game.sans.length > 0 || thinking}
-                    onChange={(e) => { setOpponent(e.target.value as "human" | "stockfish"); setFailedFen(null); }}>
+                    onChange={(e) => { setOpponent(e.target.value as "human" | "stockfish" | "maia2"); setFailedFen(null); }}>
                     <option value="human">Zwei Menschen</option>
                     <option value="stockfish">Stockfish (offline)</option>
+                    <option value="maia2">Maia 2 (menschenähnlich, offline)</option>
                   </select>
                 </label>
-                {opponent === "stockfish" && (
+                {opponent !== "human" && (
                   <label>Meine Farbe{" "}
                     <select value={humanColor} disabled={game.sans.length > 0 || thinking}
                       onChange={(e) => { setHumanColor(e.target.value as "white" | "black"); setFailedFen(null); }}>
@@ -236,9 +255,32 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                     <span className="sync-blurb">Stockfish-Elo ist ein Näherungswert, keine garantierte Spielstärke.</span>
                   </label>
                 )}
+                {opponent === "maia2" && (
+                  <>
+                    <label>Maia-2-Spielstärke{" "}
+                      <select value={maiaElo} disabled={thinking}
+                        onChange={(e) => setMaiaElo(Number(e.target.value))}>
+                        {[1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2200].map((rating) => (
+                          <option key={rating} value={rating}>{rating} Elo</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>Maia-2-Engineprogramm{" "}
+                      <input type="text" value={maiaPath} disabled={thinking}
+                        onChange={(e) => setMaiaPath(e.target.value)}
+                        placeholder="/Pfad/zur/maia2-uci" />
+                    </label>
+                    <p className="sync-blurb">
+                      Maia 2 benötigt eine separat installierte, für deinen Mac passende
+                      UCI-Engine. Der Pfad wird nur auf diesem Rechner gespeichert.
+                      Das Elo-Profil ahmt menschliche Zugentscheidungen nach; es ist
+                      keine garantierte Spielstärke. Stockfish bleibt unabhängig.
+                    </p>
+                  </>
+                )}
                 <div className="sync-card-head">PARTIEVERLAUF</div>
                 <p className="sync-blurb">
-                  {opponent === "human" ? "Die Figuren werden abwechselnd von beiden Spielern gezogen." : "Du spielst gegen Stockfish. Die Engine wird nur für ihre eigenen Züge gestartet."}
+                  {opponent === "human" ? "Die Figuren werden abwechselnd von beiden Spielern gezogen." : `Du spielst gegen ${opponent === "maia2" ? "Maia 2" : "Stockfish"}. Die Engine wird nur für ihre eigenen Züge gestartet.`}
                   Alle Züge werden auf ihre Rechtmäßigkeit geprüft. Die Partie wird auf diesem Rechner automatisch gespeichert.
                 </p>
                 <div className="play-moves mono" aria-label="Zugliste">
