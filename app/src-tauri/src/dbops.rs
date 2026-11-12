@@ -28,6 +28,55 @@ pub struct JobsWorker {
     pub stop: Arc<AtomicBool>,
 }
 
+/// Database PGN import result, including skipped duplicates and malformed games.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PgnImportReport {
+    pub imported: u64,
+    pub duplicates: u64,
+    pub failed: u64,
+    pub positions: u64,
+    pub failures: Vec<String>,
+}
+
+/// Import every game in a PGN text into the currently open SQLite database.
+/// Input is size-bounded because the browser-to-Tauri IPC duplicates the text.
+/// For significantly larger collections, use the existing streaming CLI importer.
+#[tauri::command]
+pub async fn import_pgn_database(
+    state: State<'_, DbState>,
+    pgn: String,
+    source_name: String,
+) -> Result<PgnImportReport, String> {
+    if pgn.is_empty() || pgn.len() > 25 * 1024 * 1024 {
+        return Err("PGN muss zwischen 1 Byte und 25 MiB groß sein; größere Sammlungen bitte über den CLI-Importer laden.".to_string());
+    }
+    let name = source_name.trim();
+    if name.is_empty() || name.len() > 200 {
+        return Err("Ungültiger Quellenname".to_string());
+    }
+    with_conn(&state, |conn| {
+        let source = kibitz_db::import::SourceInfo {
+            name: name.to_string(),
+            origin: "Kibitz DE PGN-Dateiimport".to_string(),
+            license: "Benutzerdatei – keine Weitergabe".to_string(),
+            kind: kibitz_db::import::SourceKind::Personal,
+        };
+        let stats = kibitz_db::import::import_pgn(
+            conn,
+            &source,
+            std::io::BufReader::new(std::io::Cursor::new(pgn.as_bytes())),
+        ).map_err(|e| e.to_string())?;
+        Ok(PgnImportReport {
+            imported: stats.games_imported,
+            duplicates: stats.duplicates_skipped,
+            failed: stats.games_failed,
+            positions: stats.positions_indexed,
+            failures: stats.failures.into_iter().take(5).collect(),
+        })
+    })
+}
+
 // ---------------------------------------------------------------------------
 // game_analyses (verdict 3c)
 // ---------------------------------------------------------------------------
