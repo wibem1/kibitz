@@ -18,6 +18,15 @@ describe("Offline-Partie automatisch sichern", () => {
     expect(restored.game).toEqual(game);
   });
 
+  it("speichert und rekonstruiert Maia 2 ohne die Stockfish-Partie zu verändern", () => {
+    let game = newLocalGame();
+    game = playLocalMove(game, "e2", "e4")!;
+    const restored = decodeOfflineSave(encodeOfflineSave(game, false, "maia2", "white"));
+    expect(restored.warning).toBeNull();
+    expect(restored.opponent).toBe("maia2");
+    expect(restored.game).toEqual(game);
+  });
+
   it("leerer Speicher beginnt eine neue Partie", () => {
     expect(decodeOfflineSave(null)).toEqual({
       game: newLocalGame(), flipped: false, opponent: "human", humanColor: "white", warning: null,
