@@ -1,3 +1,11 @@
+# Kibitz DE – 12.11.2026: Windows 11 x64 als zweite verbindliche Desktop-Zielplattform
+
+**Beschlossene Anforderung, noch keine Windows-Auslieferung:** [docs/KIBITZ_DE_SCHACHSTUDIO.md, Abschnitt 8](docs/KIBITZ_DE_SCHACHSTUDIO.md) fordert installierbare Windows-11-x64-Pakete mit derselben Kibitz-Oberfläche und gleichem Funktionsumfang wie auf macOS. Stockfish, Maia 2 und ihre Windows-spezifischen Binärdateien/Runtime-Abhängigkeiten, Tauri-Installer, PGN/Datenbank, UI/DPI, KI-Funktionen und Diagnose sind separat zu prüfen. Windows-CI und echte Windows-11-Laufzeitabnahme vor Freigabe. Intel-Mac bleibt erster aktueller Diagnoserechner; Windows wird nicht als nachrangige unverbindliche Option geführt.
+
+**Prüfstatus:** Nur Markdown-Dokumentation; keine Windows-Binaries gebaut, keine Tests oder Releases ausgelöst. Die bisherige technische nächste Aufgabe (reale Abnahme von Stockfish und Maia 2 auf Intel-macOS) bleibt bestehen; anschließend den Windows-Buildpfad gesondert feststellen und prüfen.
+
+---
+
 # Kibitz DE – 12.11.2026: Oberfläche bleibt Kibitz – Chess Studio liefert zusätzliche Funktionen
 
 **Verbindliche Präzisierung der Produktvision:** Die bestehende **Kibitz-Benutzeroberfläche bleibt erhalten** (Navigation, Grundlayout, Brett und visuelle Identität). Chess Studio ist **Funktionsvorbild**, keine Designvorlage. KI-Chat, KI gegen Stockfish, Schlüsselstellungen, Pfeile, Varianten und Diagnose werden künftig passend in das Kibitz-Interface integriert. Keine Umgestaltung zur Chess-Studio-Oberfläche und keine zwingende neue dreiteilige Hauptnavigation. Aktualisiert in [docs/KIBITZ_DE_SCHACHSTUDIO.md, Abschnitt 7](docs/KIBITZ_DE_SCHACHSTUDIO.md).
