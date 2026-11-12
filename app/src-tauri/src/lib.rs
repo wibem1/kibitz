@@ -127,6 +127,8 @@ async fn offline_engine_move(
     nodes: Option<u64>,
     user_path: Option<String>,
     elo: Option<u32>,
+    opponent_engine: Option<String>,
+    opponent_elo: Option<u32>,
 ) -> Result<String, String> {
     use std::time::Duration;
     // Avoid sending arbitrary control sequences to the UCI subprocess.
@@ -137,13 +139,38 @@ async fn offline_engine_move(
     {
         return Err("Ungültige FEN-Stellung".to_string());
     }
-    let path = uci::resolve_engine_path(user_path.as_deref())?;
+    let kind = opponent_engine.as_deref().unwrap_or("stockfish");
+    if kind != "stockfish" && kind != "maia2" {
+        return Err("Unbekannte Offline-Engine".to_owned());
+    }
+    // Maia uses its own explicitly configured binary; never silently
+    // fall back to Stockfish when that path is absent.
+    let path = if kind == "maia2" {
+        let chosen = user_path.as_deref().unwrap_or("").trim();
+        if chosen.is_empty() {
+            return Err("Maia 2 benötigt einen eigenen UCI-Engine-Pfad.".to_owned());
+        }
+        uci::resolve_engine_path(Some(chosen))?
+    } else {
+        uci::resolve_engine_path(user_path.as_deref())?
+    };
     let count = nodes.unwrap_or(20_000).clamp(1_000, 250_000);
-    tokio::time::timeout(Duration::from_secs(30), async move {
+    tokio::time::timeout(Duration::from_secs(60), async move {
         let mut engine = Engine::spawn(&path).await?;
-        if let Some(elo) = elo {
+        if kind == "maia2" {
+            // Maia-2 is a one-decision model, not a node-searching
+            // Stockfish engine. Use its own rating options.
+            let rating = opponent_elo.unwrap_or(1500);
+            if !(1000..=2200).contains(&rating) {
+                return Err("Ungültige Maia-2-Spielstärke".to_owned());
+            }
+            engine.send(&format!("setoption name SelfElo value {rating}")).await?;
+            engine.send(&format!("setoption name OppElo value {rating}")).await?;
+            engine.send("setoption name Model value rapid").await?;
+        } else if let Some(elo) = elo {
             engine.set_stockfish_elo(elo).await?;
         }
+        // Maia 2 ignores node limits and emits a bestmove after inference.
         let response = engine
             .analyze(&UciPosition::Fen(fen), Some(count), |_| {})
             .await?;
