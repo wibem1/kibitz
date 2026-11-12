@@ -47,3 +47,42 @@ Status: **beschlossene Anforderungen, noch nicht implementiert**. Fortführung d
 - Maia: UCI-Handshake, legaler Zug, Elo-Steuerung und akzeptable Laufzeit auf Ziel-Mac.
 - KI: freie Fragen inklusive Kontextwechsel, Antwort-/API-Fehler, Pfeile und Schlüsselstellungen, Fair-Play-Sperre.
 - Deutsch: alle Screens und Vorlagen einschließlich Grenzfällen, kein fälschlich lokalisierter SAN/PGN-Standard.
+
+## 6. Verbindliches Zielbild: gemeinsames Analyse-Team Kibitz + Stockfish + KI (12.11.2026)
+
+**Status: beschlossene Entwicklungszielsetzung, nicht implementiert oder abgenommen.** Diese Erweiterung konkretisiert Abschnitt 5; sie ersetzt weder die bestehende Offline-Kommentierung noch die grundsätzlichen Architektur- und Lizenzvorgaben in `CLAUDE.md`. Die ursprüngliche LLM-Idee (FeatureRecord sprachlich wiedergeben) reicht für dieses Ziel nicht aus.
+
+### Rollen und Zusammenarbeit
+
+- **Kibitz-Core – strategischer Spezialist:** Liefert nachvollziehbare Stellungsmerkmale, taktische Warnungen, Plankandidaten und ihre Voraussetzungen. Eine erkannte Schwäche ist noch kein nachgewiesener strategischer Vorteil.
+- **Stockfish – rechnerischer Prüfer:** Liefert konkrete Varianten, Bewertungen und taktische Einwände. Auf Anfrage prüft es außerdem die Folgen gezielter strategischer Hypothesen; eine Enginezahl ist nicht automatisch eine vollständige strategische Erklärung.
+- **Sprachmodell – Analysepartner und Erklärer:** Vergleicht beide Erkenntnisquellen, benennt Widersprüche und Unsicherheiten, priorisiert die wenigen entscheidenden Stellungsfaktoren und formuliert verständliche, dialogfähige Erklärungen. Es darf Rückfragen zur strategischen Erkennung oder weitere begrenzte Engine-Prüfungen vorschlagen, aber keine unbelegten Berechnungsergebnisse behaupten.
+- **Nutzer – aktiver vierter Teilnehmer:** Kann eigene Pläne vorschlagen, widersprechen, nachfragen und eine gezielte Überprüfung verlangen. Der Dialog bezieht Stellung, Partieverlauf, Spielerfarbe und aktuell betrachtete Variante ein.
+
+### Geplanter Ablauf
+
+1. Kontext für die aktuelle Stellung konsistent erfassen: FEN, Zugfolge, Partie/Variante, Analysemodus und vorhandene gespeicherte Befunde.
+2. Kibitz erstellt einen strukturierten strategischen Befund mit möglichen Plänen; Stockfish liefert auf Anforderung konkrete Bewertungs- und Varianteninformationen. Die Herkunft aller Aussagen wird getrennt festgehalten.
+3. Eine **kontrollierte Koordinationsschicht im GPL-App-Layer** vergleicht die Befunde. Bei Widersprüchen oder strategisch wichtigen offenen Fragen kann das Sprachmodell eng umrissene Analyseaufträge **vorschlagen**; die Koordinationsschicht prüft deren Zulässigkeit und startet sie über die vorhandene Engine-Verwaltung und Job-Warteschlange.
+4. Eine begrenzte Zahl von Prüfschritten liefert neue Belege; FEN und Variantenkontext müssen zu jedem Ergebnis passen. Kein unbegrenztes rekursives Nachrechnen, keine überflüssigen oder kostenpflichtigen Hintergrundaufrufe.
+5. Die Kommentierung erläutert **Gesamturteil, entscheidenden Faktor, wichtigsten Plan, kritische Gegenmöglichkeit und Beleg/Unsicherheit**, statt lediglich möglichst viele Merkmale aufzuzählen. Folgefragen können neue gezielte Prüfungen auslösen.
+
+### Verlässlichkeit, Bedienung und Grenzen
+
+- Aussagen werden kenntlich gemacht als **konkret belegt**, **strategisch gut begründet** oder **ungeprüfte Hypothese**. Bei fehlender Datenlage, Engine-Fehlern oder widersprüchlichen Ergebnissen keine scheinbare Gewissheit vortäuschen.
+- Zug- und Variantenangaben auf Legalität, Stellungskontext und tatsächliche Engine-Ausgaben prüfen. Die KI darf keine Stockfish-Züge, Bewertungswerte oder Stellungsbefunde erfinden. Unsichere KI-Ausgabe abweisen oder auf nachvollziehbare bestehende Textbausteine zurückfallen.
+- Die bisherige Architektur bleibt maßgeblich: `crates/*` BSD-3-Clause ohne GPL-Abhängigkeiten; externe Modellzugriffe und Koordination im dafür geeigneten App-Layer; Stockfish standardmäßig **aus**, nur bei ausdrücklich angeforderter Analyse beziehungsweise den bereits vorgesehenen begrenzten taktischen Prüfauslösern.
+- Online-Fair-Play ist zwingend: **Keine positionsbezogene KI-Beratung, Engineanalyse, Zugempfehlungen oder Umgehung der Sperre während laufender Mensch-gegen-Mensch-Partien auf Lichess.** Erst nach Partieende freischalten.
+- Offline-Schach und bisherige regelbasierte Erklärungen bleiben ohne API-Schlüssel nutzbar. Externe Modellanbieter nur nach ausdrücklicher Nutzeraktion; Modell-/Anbieterauswahl, Kosten- und Zeitlimits, nachvollziehbare Statusmeldungen sowie Diagnoseexport vorsehen.
+- Maia 2 bleibt zunächst separater menschlich orientierter **Gegenspieler**; seine Zugwahrscheinlichkeiten dürfen nicht mit Stockfish-Bewertungen verwechselt werden. Eine spätere Einbindung in die Analyse bedarf eines eigenen geprüften Schritts.
+
+### Entwicklungsreihenfolge und Abnahme
+
+1. Zuerst vorhandene Stockfish-Anzeige, Live-Analyse, Einmalbewertung und Maia-2-Installation auf echtem Intel-Mac abnehmen; Übersetzung und offene Basisfehler absichern. **Kein KI-Ausbau auf unbestätigter Engine-Anbindung.**
+2. Kleine Teststellungssammlung mit strategisch anspruchsvollen Fällen aufbauen: bekannte Meisterkommentare als unabhängige Referenz, taktische Gegenbeispiele, unklare Stellungen und bewusst widersprüchliche Kibitz-/Engine-Befunde. Urheberrecht der Quellen beachten.
+3. Strukturierte Belege und begrenzte Koordinationsaufträge zunächst **ohne Sprachmodell** testen: FEN-/Variantenbindung, unabhängige Engine-Prozesse, Zeit-/Knotenbudgets, Rückmeldung bei fehlenden Ergebnissen.
+4. KI zunächst zur priorisierten **Kommentierung geprüfter Befunde** einsetzen; danach kontrollierte Rückfragen, strategische Hypothesen und gezielte Nachprüfung ergänzen.
+5. Freien deutschen Dialog mit Brettkontext, Fehlerszenarien, Budgetkontrolle, Diagnose und zwingendem Fair-Play-Schutz testen.
+6. Abnahmekriterien: entscheidenden Stellungsfaktor im Testkorpus nachvollziehbar priorisieren; konkrete Varianten legal und nachweisbar; Widerspruch von Strategie und Taktik offenlegen und wenn möglich überprüfen; keine erfundenen Enginebelege; verständliche Unsicherheitsangaben; kein Analysezugriff in aktiven Online-Partien; keine Regression im Offline-Betrieb.
+
+**Leitidee:** *Kibitz erkennt strategische Fragen, Stockfish prüft konkrete Möglichkeiten, die KI organisiert eine überprüfbare Synthese und diskutiert mit dem Nutzer.* Die Rollen sind ein anschauliches Konzept, keine Garantie schachlicher Richtigkeit.
