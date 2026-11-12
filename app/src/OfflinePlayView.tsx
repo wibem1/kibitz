@@ -11,14 +11,20 @@ import { getSavedEnginePath } from "./lib/engine";
 import { offlineBoardSize } from "./lib/offlineLayout";
 import { diagnoseEngineFailure, recordDiagnostic } from "./lib/diagnostics";
 import {
-  localLegalMoves, localPgn, localPosition, localResultText, newLocalGame,
+  localGameFromFen, localLegalMoves, localPgn, localPosition, localResultText, newLocalGame,
   playLocalMove, playLocalUci, undoLocalTurn,
 } from "./lib/localPlay";
 
-interface Props { treatment: BoardTreatmentChoice; onEngineSettings: () => void; onAnalyze: (pgn: string) => void }
+interface Props { treatment: BoardTreatmentChoice; onEngineSettings: () => void; onAnalyze: (pgn: string) => void; initialFen?: string | null }
 
-export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze }: Props) {
+export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze, initialFen }: Props) {
   const [restored] = useState(() => {
+    if (initialFen) {
+      const seeded = localGameFromFen(initialFen);
+      const turn = localPosition(seeded).turn;
+      return { game: seeded, flipped: turn === "black", opponent: "stockfish" as const,
+        humanColor: turn, warning: "Übungspartie ab ausgewählter Stellung – die Originalpartie bleibt unverändert." };
+    }
     try { return restoreOfflineSession(window.localStorage); }
     catch { return restoreOfflineSession({ getItem: () => { throw Error("blocked"); }, setItem: () => {} }); }
   });
@@ -79,6 +85,8 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
   }, []);
   const boardSize = offlineBoardSize(windowSize.width, windowSize.height);
   useEffect(() => {
+    // A forked exercise must never overwrite the saved normal offline game.
+    if (initialFen) return;
     let saved = false;
     try { saved = storeOfflineSession(window.localStorage, game, flipped, opponent, humanColor); }
     catch { saved = false; }
@@ -86,7 +94,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
       recordDiagnostic("offline_autosave_failure");
       setNotice("Automatisches Speichern ist auf diesem Rechner nicht verfügbar. Bitte die Partie als PGN sichern.");
     }
-  }, [game, flipped, opponent, humanColor]);
+  }, [game, flipped, opponent, humanColor, initialFen]);
   const pos = useMemo(() => localPosition(game), [game]);
   const completed = pos.isEnd();
   const fen = game.fens[game.fens.length - 1];
@@ -162,7 +170,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
   }
 
   function startNew() {
-    setGame(newLocalGame());
+    setGame(initialFen ? localGameFromFen(initialFen) : newLocalGame());
     setNotice("");
     setConfirmNew(false);
     setFailedFen(null);
@@ -171,7 +179,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
 
   return (
     <>
-      <ScreenHeader title="Offline spielen" subtitle="Gegen einen Menschen, Stockfish oder Maia 2 · ohne Internetverbindung" />
+      <ScreenHeader title={initialFen ? "Ab Stellung gegen Stockfish spielen" : "Offline spielen"} subtitle={initialFen ? "Übungspartie – Originalpartie bleibt unverändert" : "Gegen einen Menschen, Stockfish oder Maia 2 · ohne Internetverbindung"} />
       <div className="page-scroll" ref={scrollRef}>
         <div className="play-page offline-play-page">
           <div className="play-columns">
@@ -221,6 +229,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
             <div className="play-side-col">
               <div className="sync-card">
                 <div className="sync-card-head">SPIELMODUS</div>
+                {initialFen && <p className="sync-blurb">Ausgangsstellung übernommen. Du spielst die am Zug befindliche Farbe; Stockfish übernimmt die Gegenseite. Der Übungsverlauf kann separat als PGN gespeichert werden.</p>}
                 <label>Gegner{" "}
                   <select value={opponent} disabled={game.sans.length > 0 || thinking}
                     onChange={(e) => { setOpponent(e.target.value as "human" | "stockfish" | "maia2"); setFailedFen(null); }}>
