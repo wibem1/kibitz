@@ -5,6 +5,7 @@
  */
 import { invoke } from "@tauri-apps/api/core";
 import type { AnalysisRow } from "./analyses";
+import { recordDiagnostic } from "./diagnostics";
 import type { FeatureRecordJson } from "./explainView";
 import type { ExplanationJson } from "./gameView";
 import type { RepertoireMark } from "./repMarks";
@@ -440,8 +441,21 @@ export interface PgnImportReport {
   failures: string[];
 }
 
-export function importPgnIntoDatabase(pgn: string, sourceName: string): Promise<PgnImportReport> {
-  return invoke<PgnImportReport>("import_pgn_database", { pgn, sourceName });
+export async function importPgnIntoDatabase(pgn: string, sourceName: string): Promise<PgnImportReport> {
+  // No file names, PGN text, paths or backend error strings are written to diagnostics.
+  recordDiagnostic("database_save_request");
+  try {
+    const report = await invoke<PgnImportReport>("import_pgn_database", { pgn, sourceName });
+    if (report.imported > 0) recordDiagnostic("database_save_success");
+    if (report.duplicates > 0) recordDiagnostic("database_save_duplicate");
+    if (report.failed > 0 || (!report.imported && !report.duplicates)) {
+      recordDiagnostic("database_save_failure");
+    }
+    return report;
+  } catch (error) {
+    recordDiagnostic("database_save_failure");
+    throw error;
+  }
 }
 
 export function gameAnalyses(gameId: number): Promise<AnalysisRow[]> {
