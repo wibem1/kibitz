@@ -4,7 +4,8 @@
  */
 import { useEffect, useState } from "react";
 import { evalsByPly } from "./lib/analyses";
-import { gameAnalyses, listGames, type GameRow } from "./lib/db";
+import { gameAnalyses, listGames, type GameRow, type GameSortBy } from "./lib/db";
+import { dateBoundParam, isValidDateBound } from "./lib/filters";
 
 interface Props { onLoadGameAt: (gameId: number, ply: number) => void }
 const PAGE_SIZE = 50;
@@ -19,6 +20,12 @@ interface GameComparison {
 
 export default function CompareGames({ onLoadGameAt }: Props) {
   const [query, setQuery] = useState("");
+  const [dateMin, setDateMin] = useState("");
+  const [dateMax, setDateMax] = useState("");
+  const [resultFilter, setResultFilter] = useState("");
+  const [eco, setEco] = useState("");
+  const [sortBy, setSortBy] = useState<GameSortBy>("date");
+  const [descending, setDescending] = useState(true);
   const [page, setPage] = useState(0);
   const [games, setGames] = useState<GameRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -30,11 +37,23 @@ export default function CompareGames({ onLoadGameAt }: Props) {
   useEffect(() => {
     let cancelled = false;
     setError(null);
-    listGames({ playerSubstring: query.trim() || undefined }, page * PAGE_SIZE, PAGE_SIZE)
+    if (!isValidDateBound(dateMin) || !isValidDateBound(dateMax)) {
+      setGames([]);
+      setTotal(0);
+      setError("Datum bitte als JJJJ, JJJJ.MM oder JJJJ.MM.TT eingeben.");
+      return () => { cancelled = true; };
+    }
+    listGames({
+      playerSubstring: query.trim() || undefined,
+      dateMin: dateBoundParam(dateMin),
+      dateMax: dateBoundParam(dateMax),
+      result: resultFilter || undefined,
+      eco: eco.trim() || undefined,
+    }, page * PAGE_SIZE, PAGE_SIZE, { by: sortBy, descending })
       .then((v) => { if (!cancelled) { setGames(v.rows); setTotal(v.total); } })
       .catch((e) => { if (!cancelled) { setGames([]); setTotal(0); setError(String(e)); } });
     return () => { cancelled = true; };
-  }, [query, page]);
+  }, [query, dateMin, dateMax, resultFilter, eco, sortBy, descending, page]);
 
   const toggle = (g: GameRow) => {
     setResults(null);
@@ -77,6 +96,43 @@ export default function CompareGames({ onLoadGameAt }: Props) {
         aria-label="Partien nach Spieler suchen"
         onChange={(e) => { setQuery(e.target.value); setPage(0); }}
       />
+      <div className="pf2-build-row">
+        <input aria-label="Datum von" placeholder="Von JJJJ.MM.TT" value={dateMin}
+          onChange={(e) => { setDateMin(e.target.value); setPage(0); }} />
+        <input aria-label="Datum bis" placeholder="Bis JJJJ.MM.TT" value={dateMax}
+          onChange={(e) => { setDateMax(e.target.value); setPage(0); }} />
+        <input aria-label="Eröffnung (ECO)" placeholder="ECO z. B. B12" value={eco}
+          onChange={(e) => { setEco(e.target.value); setPage(0); }} />
+        <select aria-label="Ergebnis" value={resultFilter}
+          onChange={(e) => { setResultFilter(e.target.value); setPage(0); }}>
+          <option value="">Alle Ergebnisse</option>
+          <option value="1-0">1–0</option>
+          <option value="0-1">0–1</option>
+          <option value="1/2-1/2">½–½</option>
+          <option value="*">Offen</option>
+        </select>
+      </div>
+      <div className="pf2-build-row">
+        <label htmlFor="compare-sort">Sortieren nach</label>
+        <select id="compare-sort" value={sortBy}
+          onChange={(e) => { setSortBy(e.target.value as GameSortBy); setPage(0); }}>
+          <option value="date">Datum</option>
+          <option value="white">Weiß</option>
+          <option value="black">Schwarz</option>
+          <option value="result">Ergebnis</option>
+          <option value="eco">Eröffnung</option>
+          <option value="event">Turnier</option>
+          <option value="moves">Zugzahl</option>
+          <option value="import">Importreihenfolge</option>
+        </select>
+        <button className="btn-secondary" onClick={() => { setDescending((d) => !d); setPage(0); }}>
+          {descending ? "Absteigend ↓" : "Aufsteigend ↑"}
+        </button>
+        <button className="btn-secondary" onClick={() => {
+          setQuery(""); setDateMin(""); setDateMax(""); setEco(""); setResultFilter("");
+          setSortBy("date"); setDescending(true); setPage(0);
+        }}>Filter zurücksetzen</button>
+      </div>
       <p className="hint">{total.toLocaleString("de-DE")} Partien gefunden · {chosen.length} von 2 ausgewählt</p>
       {chosen.length > 0 && <p className="hint">Auswahl: {chosen.map((g) => `${g.white} – ${g.black} (#${g.id})`).join(" · ")}</p>}
       <div style={{ maxHeight: 280, overflowY: "auto" }}>
