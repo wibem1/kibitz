@@ -310,6 +310,9 @@ export default function App() {
 
   /** Route to a screen, optionally with one-shot params (ViewParams). */
   const navigate = useCallback((id: ViewId, params?: ViewParams) => {
+    // Selecting Offline spielen via navigation returns to the ordinary saved game.
+    // A new exercise is started exclusively with the game-view action.
+    if (id === "offline") setExerciseFen(null);
     setView(id);
     setViewParams(params ?? {});
   }, []);
