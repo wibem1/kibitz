@@ -59,11 +59,13 @@ jobs:
           import subprocess
           result = subprocess.run(
               ["app/src-tauri/resources/maia2-uci"],
-              input="uci\nisready\nposition startpos\ngo\nquit\n",
+              input="uci\nisready\nsetoption name PVDepth value 1\nposition startpos\ngo\nquit\n",
               capture_output=True, text=True, timeout=120, check=True
           )
           assert "id name Maia2-UCI" in result.stdout, result.stdout[-2000:]
           assert "readyok" in result.stdout, result.stdout[-2000:]
+          assert "info string loaded embedded:rapid on Cpu" in result.stdout, result.stdout[-3000:]
+          assert "score cp" in result.stdout, result.stdout[-3000:]
           assert "bestmove " in result.stdout, result.stdout[-2000:]
           print("Maia 2 Intel CPU UCI smoke test passed")
           PY
