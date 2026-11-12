@@ -4,6 +4,15 @@
  * this screen documents that path.
  */
 import { useRef, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+
+interface PgnImportReport {
+  imported: number;
+  duplicates: number;
+  failed: number;
+  positions: number;
+  failures: string[];
+}
 
 const SAMPLE_PGN = `[Event "London"]
 [Site "London ENG"]
@@ -27,6 +36,31 @@ interface ImportViewProps {
 export default function ImportView({ onLoad, status }: ImportViewProps) {
   const [pgnText, setPgnText] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const databaseFileRef = useRef<HTMLInputElement | null>(null);
+  const [databaseFile, setDatabaseFile] = useState<File | null>(null);
+  const [importBusy, setImportBusy] = useState(false);
+  const [importReport, setImportReport] = useState<PgnImportReport | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+
+  const importIntoDatabase = async () => {
+    if (!databaseFile || importBusy) return;
+    setImportBusy(true);
+    setImportError(null);
+    setImportReport(null);
+    try {
+      if (databaseFile.size === 0 || databaseFile.size > 25 * 1024 * 1024) {
+        throw new Error("Bitte eine PGN-Datei mit maximal 25 MiB auswählen.");
+      }
+      const result = await invoke<PgnImportReport>("import_pgn_database", {
+        pgn: await databaseFile.text(), sourceName: databaseFile.name,
+      });
+      setImportReport(result);
+    } catch (e) {
+      setImportError(String(e));
+    } finally {
+      setImportBusy(false);
+    }
+  };
 
   return (
     <div className="page import-view">
@@ -74,6 +108,39 @@ export default function ImportView({ onLoad, status }: ImportViewProps) {
           />
         </div>
         <div className="settings-note">{status}</div>
+      </div>
+      <div className="panel-box">
+        <div className="panel-box-title">PGN-Sammlung dauerhaft in die Datenbank importieren</div>
+        <p className="page-prose">Übernimmt alle Partien einer PGN-Datei in die bereits geöffnete Kibitz-Datenbank.
+          Duplikate werden erkannt und fehlerhafte Partien gemeldet. Dieser Import speichert Partien
+          dauerhaft und lädt sie nicht nur zur Ansicht.</p>
+        <p className="page-prose">Dateigrenze im aktuellen Dialog: 25 MiB.
+          Sehr große Sammlungen werden weiterhin über den Streaming-Import der Kommandozeile verarbeitet.</p>
+        <div className="row-gap">
+          <button className="btn" disabled={importBusy} onClick={() => databaseFileRef.current?.click()}>
+            PGN-Sammlung auswählen …
+          </button>
+          <input ref={databaseFileRef} type="file" accept=".pgn,.txt" style={{ display: "none" }}
+            onChange={(e) => {
+              setDatabaseFile(e.target.files?.[0] ?? null);
+              setImportReport(null); setImportError(null);
+              e.target.value = "";
+            }} />
+          <span>{databaseFile?.name ?? "Keine Datei ausgewählt"}</span>
+          <button className="btn" disabled={!databaseFile || importBusy}
+            onClick={() => void importIntoDatabase()}>
+            {importBusy ? "Import läuft …" : "In Datenbank importieren"}
+          </button>
+        </div>
+        {importError && <p className="error">{importError}</p>}
+        {importReport && <div className="settings-note" role="status">
+          Übernommen: {importReport.imported.toLocaleString("de-DE")} ·
+          Duplikate: {importReport.duplicates.toLocaleString("de-DE")} ·
+          Fehler: {importReport.failed.toLocaleString("de-DE")} ·
+          indizierte Stellungen: {importReport.positions.toLocaleString("de-DE")}
+          {importReport.failures.length > 0 && <p>Fehlerbeispiele: {importReport.failures.join(" · ")}</p>}
+          <p>Wechsle zur Partiedatenbank, um die aktualisierte Sammlung zu sehen.</p>
+        </div>}
       </div>
       <div className="panel-box">
         <div className="panel-box-title">SCID (.si4)</div>
