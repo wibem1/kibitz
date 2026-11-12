@@ -34,6 +34,8 @@ import ImportView from "./ImportView";
 import JobsView from "./JobsView";
 import PlayView from "./PlayView";
 import OfflinePlayView from "./OfflinePlayView";
+import { localPgn, type LocalGame } from "./lib/localPlay";
+import { restoreOfflineSession } from "./lib/offlineSession";
 import PrepView from "./PrepView";
 import SyncsView from "./SyncsView";
 import TwicView from "./TwicView";
@@ -222,6 +224,41 @@ export default function App() {
   const [exerciseGame, setExerciseGame] = useState<LoadedGame | null>(null);
   const [exercisePly, setExercisePly] = useState(0);
   const [exerciseSerial, setExerciseSerial] = useState(0);
+  const [transferPending, setTransferPending] = useState(false);
+  const [transferExported, setTransferExported] = useState(false);
+  const playerSnapshot = useRef<LocalGame | null>(null);
+  const selectedTransfer = useRef<{ game: LoadedGame; ply: number } | null>(null);
+  const rememberPlayerGame = useCallback((played: LocalGame) => { playerSnapshot.current = played; }, []);
+  const getPreviousPlayerGame = () => {
+    if (playerSnapshot.current) return playerSnapshot.current;
+    try { return restoreOfflineSession(window.localStorage).game; }
+    catch { return null; }
+  };
+  const applyTransfer = () => {
+    const pending = selectedTransfer.current;
+    if (!pending) return;
+    setExerciseGame(pending.game);
+    setExercisePly(pending.ply);
+    setExerciseSerial((n) => n + 1);
+    setView("offline");
+    setTransferPending(false);
+    setTransferExported(false);
+    selectedTransfer.current = null;
+  };
+  const downloadPreviousPgn = () => {
+    const previous = getPreviousPlayerGame();
+    if (!previous || previous.sans.length === 0) return;
+    const url = URL.createObjectURL(new Blob([localPgn(previous)], { type: "application/x-chess-pgn;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Kibitz-DE-Partie-vor-Uebergabe.pgn";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    // A download request cannot prove that the user actually saved the file.
+    setTransferExported(true);
+  };
   // One-shot per-screen navigation params (lib/shell.ts ViewParams):
   // e.g. navigate("profile", { claim }) pre-selects a claim's evidence.
   const [viewParams, setViewParams] = useState<ViewParams>({});
@@ -1300,7 +1337,7 @@ export default function App() {
       case "play":
         return <PlayView treatment={gv.boardTreatment} onNavigate={navigate} />;
       case "offline":
-        return <OfflinePlayView key={exerciseGame ? `exercise-${exerciseSerial}` : "normal-offline"} sourceGame={exerciseGame} sourcePly={exercisePly} onReturnToAnalysis={() => setView("game")} treatment={gv.boardTreatment} onEngineSettings={() => navigate("settings")} onAnalyze={doLoad} />;
+        return <OfflinePlayView key={exerciseGame ? `exercise-${exerciseSerial}` : "normal-offline"} sourceGame={exerciseGame} sourcePly={exercisePly} onReturnToAnalysis={() => setView("game")} treatment={gv.boardTreatment} onEngineSettings={() => navigate("settings")} onAnalyze={doLoad} onPlayerStateChange={rememberPlayerGame} />;
       case "import":
         return <ImportView onLoad={doLoad} status={status} />;
       case "twic":
@@ -1398,10 +1435,9 @@ export default function App() {
             onCrosstable={setCrosstableEvent}
             onPlayFromPosition={() => {
               if (!game) return;
-              setExerciseGame(game);
-              setExercisePly(preview ? 0 : gv.ply);
-              setExerciseSerial((n) => n + 1);
-              setView("offline");
+              selectedTransfer.current = { game, ply: preview ? 0 : gv.ply };
+              setTransferExported(false);
+              setTransferPending(true);
             }}
           />
         ) : selfHeaded ? (
@@ -1426,6 +1462,38 @@ export default function App() {
         />
       </div>
 
+      {transferPending && <div className="dialog-backdrop" role="presentation">
+        <section role="dialog" aria-modal="true" aria-labelledby="transfer-title"
+          style={{ background: "var(--viz-panel, #fff)", color: "var(--viz-text, #222)",
+            padding: 24, margin: "10vh auto", maxWidth: 560, borderRadius: 12 }}>
+          <h2 id="transfer-title">Partie auf der Spielseite ersetzen?</h2>
+          <p>Die gesamte angezeigte Partie wird auf die Spielseite übertragen.
+            Dort kannst du jede Stellung auswählen und von dort gegen Stockfish weiterspielen.</p>
+          {getPreviousPlayerGame()?.sans.length
+            ? <p><strong>Achtung:</strong> Auf der Spielseite liegt bereits eine Partie mit
+                {getPreviousPlayerGame()?.sans.length} Halbzügen.
+                Die bisherige Partie wird beim Wechsel ersetzt. Eine automatische Sicherung
+                in der Schachdatenbank erfolgt nicht.</p>
+            : <p>Es ist derzeit keine gespielte Partie auf der Spielseite vorhanden.</p>}
+          <p>Du kannst die bisherige Partie vor dem Ersetzen als PGN herunterladen.
+            Prüfe anschließend, ob sie wirklich gespeichert wurde.</p>
+          {transferExported && <p role="status">PGN-Download angefordert. Bitte kontrolliere,
+            ob die Datei gespeichert wurde, bevor du die Partie ersetzt.</p>}
+          <div className="play-actions" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <button className="btn-secondary" onClick={() => {
+              setTransferPending(false);
+              setTransferExported(false);
+              selectedTransfer.current = null;
+            }}>Abbrechen</button>
+            <button className="btn-secondary"
+              disabled={!getPreviousPlayerGame()?.sans.length}
+              onClick={downloadPreviousPgn}>Vorherige Partie als PGN speichern</button>
+            <button className="btn-primary" onClick={applyTransfer}>
+              {transferExported ? "Nach Prüfung ersetzen" : "Ohne zusätzliche Sicherung ersetzen"}
+            </button>
+          </div>
+        </section>
+      </div>}
       {crosstableEvent !== null && (
         <CrosstableView
           event={crosstableEvent}
