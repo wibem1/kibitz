@@ -289,7 +289,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
               {!browsing && game.sans.length > 0 && <p role="status">
                 Datenbank: {savedInDatabase ? "Diese Fassung gespeichert" : "Aktuelle Fassung nicht in der Datenbank bestätigt"}
               </p>}
-              {notice && <p role="status">{notice}</p>
+              {notice && <p role="status">{notice}</p>}
               {opponent === "stockfish" && failedFen === fen && (
                 <div className="offline-engine-help">
                   <button className="btn-secondary" onClick={onEngineSettings}>
