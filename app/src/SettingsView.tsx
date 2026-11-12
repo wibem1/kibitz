@@ -142,7 +142,7 @@ export default function SettingsView({
       await twicSetAutoSync(!twicAuto);
       setTwicAuto(!twicAuto);
     } catch (e) {
-      setNote(`TWIC auto-download: ${e}`);
+      setNote(`TWIC-Aktualisierung: ${e}`);
     }
   }, [twicAuto]);
 
@@ -154,7 +154,7 @@ export default function SettingsView({
     try {
       setConfirm({ kind, estimate: await batchEstimate(kind) });
     } catch (e) {
-      setNote(`Estimate failed: ${e}`);
+      setNote(`Umfang konnte nicht ermittelt werden: ${e}`);
     } finally {
       setEstimating(null);
     }
@@ -167,8 +167,8 @@ export default function SettingsView({
     try {
       const started = await batchStart(kind);
       setNote(
-        `${kind === "annotate" ? "Annotate" : "Fresh analysis"}: ${started.gamesEnqueued} game(s), ` +
-          `${started.jobsEnqueued} job(s) enqueued (already-covered games skipped).`,
+        `${kind === "annotate" ? "Partien erläutern" : "Partien neu bewerten"}: ${started.gamesEnqueued} Partien, ` +
+          `${started.jobsEnqueued} Aufträge vorgemerkt (bereits bearbeitete Partien übersprungen).`,
       );
       // Enqueueing is passive; the worker is the user-initiated engine
       // entry point. Start it now — that is what the user just confirmed.
@@ -177,7 +177,7 @@ export default function SettingsView({
         .then(setJobs)
         .catch(() => {});
     } catch (e) {
-      setNote(`Batch start: ${e}`);
+      setNote(`Auftrag konnte nicht gestartet werden: ${e}`);
     }
   }, [confirm]);
 
@@ -191,9 +191,9 @@ export default function SettingsView({
       );
       setCommitLabel(c.label ?? "");
       setCommitOpponent(c.opponent ?? "");
-      setCommitNote(c.label ? "Saved — Home names this commitment." : "Saved.");
+      setCommitNote(c.label ? "Gespeichert – Termin auf der Startseite." : "Gespeichert.");
     } catch (e) {
-      setCommitNote(`Save failed: ${e}`);
+      setCommitNote(`Speichern fehlgeschlagen: ${e}`);
     }
   }, [commitLabel, commitOpponent]);
 
@@ -202,9 +202,9 @@ export default function SettingsView({
       await commitmentSet(null, null);
       setCommitLabel("");
       setCommitOpponent("");
-      setCommitNote("Cleared.");
+      setCommitNote("Entfernt.");
     } catch (e) {
-      setCommitNote(`Clear failed: ${e}`);
+      setCommitNote(`Entfernen fehlgeschlagen: ${e}`);
     }
   }, []);
 
@@ -215,12 +215,12 @@ export default function SettingsView({
   );
 
   const jobsValue = jobs
-    ? `${jobs.pending.toLocaleString("en-US")} pending · ${jobs.done.toLocaleString("en-US")} done`
-    : "job queue unavailable";
+    ? `${jobs.pending.toLocaleString("de-DE")} offen · ${jobs.done.toLocaleString("de-DE")} abgeschlossen`
+    : "Keine Auftragsübersicht verfügbar";
 
   return (
     <>
-      <ScreenHeader title="Einstellungen" subtitle="Darstellung, Engine und Daten" />
+      <ScreenHeader title="Einstellungen" subtitle="Darstellung, Schachengines und Konten" />
       <div className="page-scroll">
         <div className="settings-page">
           {/* ---- ENGINE MANAGER (own file: settings/EngineSection.tsx, run 10) ---- */}
@@ -228,18 +228,13 @@ export default function SettingsView({
 
           {/* ---- ENGINE & ANALYSIS ---- */}
           <div className="set-group">
-            <div className="set-group-head">ENGINE UND ANALYSE</div>
-            <Row
-              label="Engine-Start"
-              help="Die Engine ist standardmäßig aus. Sie startet nur bei einer taktischen Prüfung, einer ausdrücklich angeforderten Analyse oder einem von dir gestarteten Stapelauftrag."
-              value={<div className="set-value">Nur bei Bedarf</div>}
-            />
+            <div className="set-group-head">DATENBANK-AKTIONEN</div>
             <Row
               label="Datenbank erläutern"
               help="Alle Partien mit Kibitz erläutern. Taktische Hinweise werden bei Bedarf kurz mit der Engine geprüft. Kann pausiert und fortgesetzt werden."
               value={<div className="set-value mono">{jobsValue}</div>}
               action={ghost(
-                estimating === "annotate" ? "Estimating…" : "Estimate & run…",
+                estimating === "annotate" ? "Wird berechnet …" : "Umfang prüfen und starten …",
                 () => void askBatch("annotate"),
                 estimating !== null,
               )}
@@ -249,7 +244,7 @@ export default function SettingsView({
               help="Jede Hauptvarianten-Stellung mit der Engine neu bewerten. Vorhandene Analysen bleiben erhalten."
               value={<div className="set-value mono">{jobsValue}</div>}
               action={ghost(
-                estimating === "fresh-analysis" ? "Estimating…" : "Estimate & run…",
+                estimating === "fresh-analysis" ? "Wird berechnet …" : "Umfang prüfen und starten …",
                 () => void askBatch("fresh-analysis"),
                 estimating !== null,
               )}
@@ -263,15 +258,10 @@ export default function SettingsView({
             <Row
               label="Erklärstil"
               help="Gilt für Stellungserklärungen und Übungshinweise. Die Wahl wird in der geöffneten Datenbank gespeichert."
-              value={<div className="set-value">{voice === "coach" ? "Coach" : "Neutral"}</div>}
-              action={ghost(voice === "coach" ? "Switch to Neutral" : "Switch to Coach", () =>
+              value={<div className="set-value">{voice === "coach" ? "Trainer" : "Neutral"}</div>}
+              action={ghost(voice === "coach" ? "Neutral verwenden" : "Trainer verwenden", () =>
                 onVoice(voice === "coach" ? "neutral" : "coach"),
               )}
-            />
-            <Row
-              label="LLM verbaliser"
-              help="Optional für die Kommandozeile: Die KI darf nur vorhandene Analyseergebnisse verständlicher formulieren. Dafür ist ANTHROPIC_API_KEY außerhalb der App erforderlich."
-              value={<div className="set-value mono">not set · template prose</div>}
             />
           </div>
 
@@ -281,44 +271,18 @@ export default function SettingsView({
             {/* ---- DATABASE STORAGE (own file: settings/StorageSection.tsx) ---- */}
             <StorageSection />
             <Row
-              label="Konten abgleichen"
-              help="Lichess, chess.com and FICS sync live on the Account syncs screen (rail: DATA IN / OUT). CLI equivalents: lichess-sync · chesscom-sync · fics-sync."
-              value={
-                <div className="set-value mono">
-                  {syncCount === null
-                    ? "unknown (no database open)"
-                    : syncCount === 0
-                      ? "no accounts configured"
-                      : `${syncCount} account${syncCount === 1 ? "" : "s"} configured`}
-                </div>
-              }
-            />
-            <Row
-              label="TWIC auto-download"
-              help="When on, the newest issues download quietly when the database opens (newest first, max 5 per app launch, strictly serial; older issues stay manual on the TWIC screen). Personal-use only — TWIC data is never redistributed. Mirrored on the TWIC ingest screen."
+              label="TWIC automatisch laden"
+              help="Lädt beim Öffnen der Datenbank höchstens fünf neue TWIC-Ausgaben. Ältere Ausgaben können im TWIC-Bereich manuell geladen werden. Nur zur persönlichen Nutzung."
               value={
                 <div className="set-value mono">
                   {twicAuto === null
-                    ? "unknown (no database open)"
-                    : `${twicAuto ? "on" : "off"}${twicWeek !== null ? ` · newest imported wk ${twicWeek}` : ""}`}
+                    ? "Unbekannt (keine Datenbank geöffnet)"
+                    : `${twicAuto ? "Ein" : "Aus"}${twicWeek !== null ? ` · neueste Ausgabe: Woche ${twicWeek}` : ""}`}
                 </div>
               }
               action={
                 twicAuto !== null &&
-                ghost(twicAuto ? "Turn off" : "Turn on", () => void toggleTwicAuto())
-              }
-            />
-            <Row
-              label="Endspieldatenbank"
-              help="Resolves from KIBITZ_SYZYGY, else a repo-local testdata/syzygy directory."
-              value={
-                <div className="set-value mono" title={tb?.note ?? undefined}>
-                  {tb
-                    ? tb.available
-                      ? `Syzygy loaded${tb.largest != null ? ` · up to ${tb.largest} pieces` : ""}`
-                      : "not found"
-                    : "unknown (no database open)"}
-                </div>
+                ghost(twicAuto ? "Ausschalten" : "Einschalten", () => void toggleTwicAuto())
               }
             />
             <Row
@@ -330,26 +294,26 @@ export default function SettingsView({
                     className="set-value editing"
                     type="text"
                     value={commitLabel}
-                    placeholder="commitment label"
+                    placeholder="Bezeichnung des Termins"
                     spellCheck={false}
                     onChange={(e) => setCommitLabel(e.target.value)}
-                    aria-label="Commitment label"
+                    aria-label="Terminbezeichnung"
                   />
                   <input
                     className="set-value editing"
                     type="text"
                     value={commitOpponent}
-                    placeholder="opponent (optional)"
+                    placeholder="Gegner (optional)"
                     spellCheck={false}
                     onChange={(e) => setCommitOpponent(e.target.value)}
-                    aria-label="Commitment opponent"
+                    aria-label="Gegner des Termins"
                   />
                 </div>
               }
               action={
                 <>
-                  {ghost("Save", () => void saveCommitment())}
-                  {ghost("Clear", () => void clearCommitment())}
+                  {ghost("Speichern", () => void saveCommitment())}
+                  {ghost("Entfernen", () => void clearCommitment())}
                 </>
               }
             />
@@ -394,26 +358,21 @@ export default function SettingsView({
               help="Holzbrett ist die Voreinstellung; alternativ gibt es eine neutrale Darstellung."
               value={
                 <div className="set-value">
-                  {treatment === "walnut" ? "Studio Walnut" : "Instrument"}
+                  {treatment === "walnut" ? "Holzbrett" : "Neutrales Brett"}
                 </div>
               }
               action={ghost(
-                treatment === "walnut" ? "Switch to Instrument" : "Switch to Walnut",
+                treatment === "walnut" ? "Neutrales Brett verwenden" : "Holzbrett verwenden",
                 () => onTreatment(treatment === "walnut" ? "instrument" : "walnut"),
               )}
             />
             <Row
               label="Kommentare anzeigen"
               help="Kommentare und Varianten vollständig, abgeschwächt oder gar nicht anzeigen."
-              value={<div className="set-value">{annotationMode}</div>}
-              action={ghost(`Switch to ${ANNOTATION_CYCLE[annotationMode]}`, () =>
+              value={<div className="set-value">{annotationMode === "full" ? "Vollständig" : annotationMode === "hover" ? "Bei Berührung" : "Ausgeblendet"}</div>}
+              action={ghost(annotationMode === "full" ? "Bei Berührung anzeigen" : annotationMode === "hover" ? "Ausblenden" : "Vollständig anzeigen", () =>
                 onAnnotationMode(ANNOTATION_CYCLE[annotationMode]),
               )}
-            />
-            <Row
-              label="Figurensatz"
-              help="Der Figurensatz ist derzeit fest vorgegeben."
-              value={<div className="set-value mono">cburnett</div>}
             />
           </div>
         </div>
@@ -423,27 +382,24 @@ export default function SettingsView({
         <div className="modal-overlay" onClick={() => setConfirm(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-title">
-              {confirm.kind === "annotate" ? "Annotate database" : "Fresh analysis pass"}
+              {confirm.kind === "annotate" ? "Datenbank erläutern" : "Partien neu bewerten"}
             </div>
             <p className="modal-prose">
-              {confirm.estimate.games.toLocaleString("en-US")} game
-              {confirm.estimate.games === 1 ? "" : "s"} to cover
-              {confirm.estimate.games > 0 &&
-                ` · estimated ${fmtDurationMs(confirm.estimate.totalEstimateMs)}`}
-              . Jobs are resumable — pause anytime and the run picks up exactly where it left off;
-              games already covered are skipped.
+              {confirm.estimate.games.toLocaleString("de-DE")} Partien
+              {confirm.estimate.games > 0 && ` · geschätzte Dauer: ${fmtDurationMs(confirm.estimate.totalEstimateMs)}`}.
+              Bereits bearbeitete Partien werden übersprungen. Der Auftrag kann unterbrochen und später fortgesetzt werden.
             </p>
-            <p className="modal-basis">Estimate basis: {confirm.estimate.estimateBasis}</p>
+            <p className="modal-basis">Grundlage der Schätzung: {confirm.estimate.estimateBasis}</p>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setConfirm(null)}>
-                Cancel
+                Abbrechen
               </button>
               <button
                 className="btn-primary"
                 onClick={() => void startBatch()}
                 disabled={confirm.estimate.games === 0}
               >
-                {confirm.estimate.games === 0 ? "Nothing to do" : "Start"}
+                {confirm.estimate.games === 0 ? "Keine Partien" : "Starten"}
               </button>
             </div>
           </div>
