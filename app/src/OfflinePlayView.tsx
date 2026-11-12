@@ -159,6 +159,26 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
     color: legal.color, dests: legal.dests, onMove: handleMove,
   };
 
+  const startFromSelectedPly = () => {
+    if (!sourceGame) return;
+    try {
+      const start = localGameFromFen(sourceGame.fens[browsePly]);
+      if (localPosition(start).isEnd()) {
+        setNotice("Diese Stellung ist bereits eine beendete Partie. Wähle einen früheren Zug.");
+        return;
+      }
+      setGame(start);
+      const turn = localPosition(start).turn;
+      setHumanColor(turn);
+      setFlipped(turn === "black");
+      setOpponent("stockfish");
+      setBrowsing(false);
+      setFailedFen(null);
+      setThinking(false);
+      setNotice(`Neue Fortsetzung ab Halbzug ${browsePly}. Die Originalpartie bleibt vollständig erhalten.`);
+    } catch (e) { setNotice(String(e)); }
+  };
+
   function savePgn() {
     const file = new Blob([localPgn(game)], { type: "application/x-chess-pgn;charset=utf-8" });
     const url = URL.createObjectURL(file);
@@ -195,10 +215,22 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                   orientation={flipped ? "black" : "white"} treatment={treatment} size={boardSize} />
                 {promo.element}
               </div>
+              {sourceGame && <div className="play-actions" aria-label="Originalpartie durchgehen">
+                <button className="btn-secondary" disabled={browsePly === 0} onClick={() => setBrowsePly(0)}>|◀</button>
+                <button className="btn-secondary" disabled={browsePly === 0} onClick={() => setBrowsePly((p) => Math.max(0, p - 1))}>◀ Zurück</button>
+                <span>Originalpartie: {browsePly} / {sourceGame.sans.length} Halbzüge</span>
+                <button className="btn-secondary" disabled={browsePly === sourceGame.sans.length} onClick={() => setBrowsePly((p) => Math.min(sourceGame.sans.length, p + 1))}>Weiter ▶</button>
+                <button className="btn-secondary" disabled={browsePly === sourceGame.sans.length} onClick={() => setBrowsePly(sourceGame.sans.length)}>▶|</button>
+                <button className="btn-primary" onClick={startFromSelectedPly}>Ab dieser Stellung gegen Stockfish spielen</button>
+                {onReturnToAnalysis && <button className="btn-secondary" onClick={onReturnToAnalysis}>Zur Partieanalyse zurück</button>}
+                {!browsing && <button className="btn-secondary" onClick={() => {
+                  setBrowsing(true); setFailedFen(null); setNotice("Wähle eine andere Ausgangsstellung.");
+                }}>Andere Ausgangsstellung wählen</button>}
+              </div>}
               <div className="play-actions">
                 <button className="btn-secondary" onClick={() => setFlipped((v) => !v)}>Brett drehen</button>
                 <button className="btn-secondary"
-                  disabled={game.sans.length === 0 || (opponent !== "human" && undoLocalTurn(game, opponent, humanColor) === game)}
+                  disabled={browsing || game.sans.length === 0 || (opponent !== "human" && undoLocalTurn(game, opponent, humanColor) === game)}
                   onClick={() => {
                     setGame(undoLocalTurn(game, opponent, humanColor));
                     setFailedFen(null);
@@ -207,8 +239,8 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                   }}>
                   Zug zurücknehmen
                 </button>
-                <button className="btn-primary" onClick={savePgn}>PGN speichern</button>
-                <button className="btn-secondary" disabled={game.sans.length === 0}
+                <button className="btn-primary" disabled={browsing} onClick={savePgn}>Fortsetzung als PGN speichern</button>
+                <button className="btn-secondary" disabled={browsing || game.sans.length === 0}
                   onClick={() => onAnalyze(localPgn(game))}>Partie zur Analyse öffnen</button>
               </div>
               {notice && <p role="status">{notice}</p>}
@@ -295,13 +327,31 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                   {opponent === "human" ? "Die Figuren werden abwechselnd von beiden Spielern gezogen." : `Du spielst gegen ${opponent === "maia2" ? "Maia 2" : "Stockfish"}. Die Engine wird nur für ihre eigenen Züge gestartet.`}
                   Alle Züge werden auf ihre Rechtmäßigkeit geprüft. Die Partie wird auf diesem Rechner automatisch gespeichert.
                 </p>
+                {sourceGame && <>
+                  <div className="sync-card-head">ÜBERNOMMENE ORIGINALPARTIE</div>
+                  <p className="sync-blurb">
+                    {sourceGame.headers.White ?? "Weiß"} – {sourceGame.headers.Black ?? "Schwarz"}
+                    {" · "}{sourceGame.headers.Result ?? "Ergebnis unbekannt"}
+                    {" · "}{sourceGame.sans.length} Halbzüge
+                  </p>
+                  <div className="play-moves mono" aria-label="Vollständige originale Zugliste">
+                    <button className={browsePly === 0 ? "btn-primary" : "btn-secondary"}
+                      onClick={() => setBrowsePly(0)}>Start</button>
+                    {numberedSans(sourceGame).map((san, i) => <button key={i}
+                      className={browsePly === i + 1 ? "btn-primary" : "btn-secondary"}
+                      aria-current={browsePly === i + 1 ? "step" : undefined}
+                      onClick={() => setBrowsePly(i + 1)}>{san}</button>)}
+                  </div>
+                  <p className="sync-blurb">Zum Prüfen auf einen Zug klicken. Die ausgewählte Stellung bleibt zum Starten einer neuen Fortsetzung verfügbar.</p>
+                  <div className="sync-card-head">EIGENE FORTSETZUNG</div>
+                </>}
                 <div className="play-moves mono" aria-label="Zugliste">
                   {game.sans.length === 0 ? "Noch keine Züge" :
                     game.sans.map((san, i) => (
                       <span key={i}>{i % 2 === 0 ? `${Math.floor(i / 2) + 1}. ${san}` : san}{" "}</span>
                     ))}
                 </div>
-                {confirmNew ? (
+                {!browsing && (confirmNew ? (
                   <div className="play-actions">
                     <button className="btn-primary" onClick={startNew}>Neue Partie bestätigen</button>
                     <button className="btn-ghost" onClick={() => setConfirmNew(false)}>Abbrechen</button>
@@ -309,8 +359,8 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                 ) : (
                   <button className="btn-secondary" onClick={() =>
                     game.sans.length ? setConfirmNew(true) : startNew()
-                  }>Neue Partie</button>
-                )}
+                  }>{sourceGame ? "Fortsetzung neu beginnen" : "Neue Partie"}</button>
+                ))}
               </div>
             </div>
           </div>
