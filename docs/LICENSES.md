@@ -77,6 +77,7 @@ versions.
 | Name | License | Use |
 |---|---|---|
 | Stockfish | GPL-3.0 | Arm's-length UCI subprocess. Never linked, never bundled in the repo (user-local `tools/`, git-ignored). |
+| Maia 2 (ChessWaveIO/maia2-uci) | MIT; Maia-2 model weights MIT per upstream | Optional user-installed UCI subprocess used as a human-like offline opponent. Not bundled, linked or downloaded by Kibitz; on-device model setup and runtime are the user's engine installation. Original Maia-2 model by CSSLab, University of Toronto. |
 
 ## Bundled fonts (app UI assets)
 
