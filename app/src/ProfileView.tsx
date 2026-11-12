@@ -93,7 +93,7 @@ export default function ProfileView({
   const [player, setPlayer] = useState(profile?.player ?? "");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [building, setBuilding] = useState(false);
-  const [analysisScope, setAnalysisScope] = useState<"all" | "two">("all");
+  const [analysisScope, setAnalysisScope] = useState<"all" | "two" | "selected">("all");
   const [error, setError] = useState<string | null>(null);
 
   // The claim param is one-shot: re-parse whenever navigation changes it.
@@ -405,14 +405,17 @@ export default function ProfileView({
         <label htmlFor="analysis-scope">Was soll ausgewertet werden? </label>
         <select id="analysis-scope" aria-label="Umfang der Auswertung"
           value={analysisScope}
-          onChange={(e) => setAnalysisScope(e.target.value as "all" | "two")}
+          onChange={(e) => setAnalysisScope(e.target.value as "all" | "two" | "selected")}
         >
           <option value="all">Alle Partien eines Spielers</option>
           <option value="two">Zwei ausgewählte Partien vergleichen</option>
+          <option value="selected">Gefilterte oder manuell ausgewählte Partien auswerten</option>
         </select>
       </div>
       {analysisScope === "two" ? (
         <CompareGames onLoadGameAt={onLoadGameAt} />
+      ) : analysisScope === "selected" ? (
+        <CompareGames mode="group" onLoadGameAt={onLoadGameAt} />
       ) : (
       <div className="pf2-body">
         <div className="pf2-content">
