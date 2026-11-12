@@ -187,14 +187,27 @@ async fn offline_engine_move(
                 .send(&format!("setoption name OppElo value {rating}"))
                 .await?;
             engine.send("setoption name Model value rapid").await?;
+            // Model policy is unchanged; avoid eight extra inference
+            // passes just to display an unused principal variation.
+            engine.send("setoption name PVDepth value 1").await?;
         } else if let Some(elo) = elo {
             engine.set_stockfish_elo(elo).await?;
         }
         // Maia 2 ignores node limits and emits a bestmove after inference.
+        // Its wrapper may silently fall back to a random legal move if the
+        // neural network fails to load. Require a real scored info line.
+        let mut scored = false;
         let response = engine
-            .analyze(&UciPosition::Fen(fen), Some(count), |_| {})
+            .analyze(&UciPosition::Fen(fen), Some(count), |info| {
+                if info.has_score() {
+                    scored = true;
+                }
+            })
             .await?;
         engine.quit().await;
+        if kind == "maia2" && !scored {
+            return Err("Maia 2 hat keine Modellbewertung geliefert. Modellgewichte oder Engineprogramm prüfen.".to_owned());
+        }
         if response.bestmove == "(none)" || response.bestmove == "0000" {
             return Err("Die Engine hat keinen Zug geliefert.".to_owned());
         }
