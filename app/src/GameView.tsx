@@ -708,8 +708,8 @@ export default function GameView({
             {gameId === null ? (currentSingleEval?.status === "running" ? "Stockfish bewertet …" : "Stellung bewerten") : "Neu bewerten"}
           </button>
           <button className="btn" disabled={!game}
-            title="Neue Übungspartie ab der angezeigten Stellung gegen Stockfish starten"
-            onClick={onPlayFromPosition}>Ab hier gegen Stockfish spielen</button>
+            title="Die vollständige Partie einschließlich aller Züge auf die Spielseite übertragen. Dort ab beliebiger Stellung gegen Stockfish spielen."
+            onClick={onPlayFromPosition}>Ganze Partie zur Spielseite</button>
           <button className="btn" disabled={!game}
             onClick={() => setReviewOpen((open) => !open)}>
             {reviewOpen ? "Partieübersicht schließen" : "Fehler und Schlüsselstellen"}
