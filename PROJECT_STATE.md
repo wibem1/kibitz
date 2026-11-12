@@ -1,3 +1,11 @@
+# Kibitz DE – 12.11.2026: Oberfläche bleibt Kibitz – Chess Studio liefert zusätzliche Funktionen
+
+**Verbindliche Präzisierung der Produktvision:** Die bestehende **Kibitz-Benutzeroberfläche bleibt erhalten** (Navigation, Grundlayout, Brett und visuelle Identität). Chess Studio ist **Funktionsvorbild**, keine Designvorlage. KI-Chat, KI gegen Stockfish, Schlüsselstellungen, Pfeile, Varianten und Diagnose werden künftig passend in das Kibitz-Interface integriert. Keine Umgestaltung zur Chess-Studio-Oberfläche und keine zwingende neue dreiteilige Hauptnavigation. Aktualisiert in [docs/KIBITZ_DE_SCHACHSTUDIO.md, Abschnitt 7](docs/KIBITZ_DE_SCHACHSTUDIO.md).
+
+**Prüfstatus:** Nur Dokumentation; kein App-Code geändert, keine Tests/Builds oder neue Version ausgelöst. Technisch nächste Aufgabe bleibt die Abnahme von Stockfish-Ausgaben und Maia 2 auf dem echten Intel-Mac.
+
+---
+
 # Kibitz DE – 12.11.2026: Produktvision »Erweitertes Chess Studio für den Desktop« festgehalten
 
 **Verbindliche Konzeptentscheidung, keine neue Implementierung:** [docs/KIBITZ_DE_SCHACHSTUDIO.md, Abschnitt 7](docs/KIBITZ_DE_SCHACHSTUDIO.md) definiert Kibitz DE als Erweiterung der dialogorientierten Chess-Studio-Desktop-App. Der Benutzer erlebt primär die Arbeitsbereiche **Spielen**, **Lernen/Analysieren** und **Partien/Datenbanken**. Vorgesehen: ausdrücklich gestarteter lokaler Modus **KI gegen Stockfish** (auch ab FEN), freier KI-Dialog unter/neben dem Brett, anspringbare Schlüsselstellungen, Pfeile, Varianten, gespeicherte Analysen und eine aufgeräumte Modell-/Diagnoseverwaltung. Vorhandene Kibitz-Funktionen bleiben erhalten; kein blindes Kopieren ohne Quellcodeprüfung. Die ältere GitHub-Projektakte von AI-Chess-Studio (04.11.2026) belegt aktuelle Funktionen nicht; deshalb ist Wiederverwendung nicht zugesagt.
