@@ -130,3 +130,32 @@ Status: **beschlossene Anforderungen, noch nicht implementiert**. Fortführung d
 4. Neue Chess-Studio-Funktionen bei jeder späteren Erweiterung auch unter Windows absichern. Eine grüne CI allein gilt nicht als Nutzerabnahme.
 
 **Reihenfolge:** Intel-macOS bleibt erster aktueller Diagnoserechner. **Windows 11 x64 ist jedoch gleichberechtigtes verbindliches Auslieferungsziel** und soll nicht erst als unverbindliche ferne Portierungsoption betrachtet werden.
+
+## 9. Einstellungen aufräumen und verständlich strukturieren (12.11.2026)
+
+**Status: aus aktuellem Branch-Quellcode abgeleiteter UI-Verbesserungsbedarf; Umsetzung und Bedienabnahme stehen aus.** Das Kibitz-Interface bleibt erhalten. Das Ziel ist keine neue Oberfläche, sondern eine reduzierte, selbsterklärende Einstellungsseite mit konsequent deutscher Sprache.
+
+### Festgestellte Probleme im aktuellen Code
+
+- `app/src/SettingsView.tsx` vermischt echte Einstellungen mit **ausführenden Datenbankaktionen** (»Datenbank erläutern«, »Partien neu bewerten«), Konten-Synchronisation, Endspielstatus und wiederkehrendem Schachtermin.
+- Nicht veränderbare beziehungsweise nicht in der Oberfläche nutzbare Einträge wie »Engine-Start« (Produktregel), »Figurensatz« (fest vorgegeben) und »LLM verbaliser« (CLI-/Umgebungsvariable, kein Dialog zur KI-Konfiguration) wirken wie einstellbare Funktionen.
+- Teilweise englische Schaltflächen und Meldungen (u. a. »Switch to Coach«, »Estimate & run«, »TWIC auto-download«, »Save/Clear«, Dialogtexte). Weitere Teilmodule `settings/EngineSection.tsx`, `settings/LichessSection.tsx`, `settings/StorageSection.tsx` und `UpdatesSettings.tsx` benötigen gemeinsame Begriffe.
+- Die Endspieldatenbank erscheint im Bereich Engineverwaltung und erneut als Daten-Status; technische Pfade/Umgebungsvariablen werden ohne Einordnung gezeigt.
+
+### Zielstruktur innerhalb der vorhandenen Kibitz-Oberfläche
+
+1. **Darstellung:** Hell/Dunkel, Brettansicht, Kommentar-Anzeige, später sinnvoll veränderbare Schriftgröße. Fest vorgegebene Figurensätze nicht als Einstellung anbieten.
+2. **Schachengines und Analyse:** Stockfish-Pfad und Verbindungstest, Rechenlimit sowie bei Bedarf Syzygy-Pfad. Maia-2-Auswahl/-Pfad konsistent mit den Offline-Spieloptionen. Engine-Startregel als kurze Erklärung, nicht als Pseudoeinstellung.
+3. **KI und Modelle (erst bei realer Implementierung):** Anbieter/Modell und Status separat von Zugangsdaten; nutzereigene Schlüssel, allgemeine KI-Anweisungen, begrenzte Kosten/Diagnose. Den bisherigen CLI-only-»LLM verbaliser« nicht als funktionsfähige Modellwahl darstellen.
+4. **Konten und Online-Spiel:** Lichess-Zugang in verständlicher Sprache; Synchronisation anderer Konten möglichst über den bereits vorhandenen separaten Synchronisationsbildschirm.
+5. **Daten und Speicher:** Speicherort, Sicherung/Migration, ggf. Updates. Umfangreiche Stapelanalysen in die Datenbankansicht beziehungsweise einen dort vorhandenen Aktionsbereich verlegen – mit Kostenschätzung, Bestätigung und Fortschrittsanzeige.
+6. **Erweiterte Optionen / Diagnose:** Syzygy-/Netz-/Update-Details und Diagnose dort, wo sie gebraucht werden; seltene technische Informationen nachgeordnet. Einen Schachtermin in eine passende Startseiten-/Planungsfunktion verschieben, wenn diese existiert.
+
+### Verbindliche Umsetzungsregeln
+
+- **Kein Funktionsverlust:** zuerst bestehende Funktion, Speicherort und Aufrufweg prüfen; lediglich versetzen/vereinfachen und vorhandene Speicherwerte bewahren. Keine Datenbankaktionen ersatzlos löschen.
+- **Kleine Schritte:** zuerst tatsächliche Einstellungen, reine Statusanzeigen und Aktionen inventarisieren; danach missverständliche Zeilen und englische Texte bereinigen; erst anschließend einzelne Aktionen an passende Orte versetzen.
+- **Tests:** bestehende Einstellungen müssen Neustarts überstehen; insbesondere Stockfish-Pfad, Maia-Konfiguration, Syzygy, Lichess-Zugang, Datenbankort, Themes und Updates. Keine unbeabsichtigten Engine-Starts oder Batchaktionen; echte Bedienabnahme auf Intel-macOS und später Windows 11.
+- **Keine Vorab-Funktionen vortäuschen:** nicht implementierte KI-Einstellungen bis zur echten Anbindung nicht als bedienbar anzeigen.
+
+**Leitlinie:** *Nur echte Einstellungen gehören in die Einstellungen. Aktionen gehören dorthin, wo man sie benötigt. Technische Statusangaben erscheinen bei Bedarf.*
