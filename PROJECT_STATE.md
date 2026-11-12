@@ -1,3 +1,15 @@
+# Kibitz DE – 12.11.2026: Intel-Maia-2-Buildfehler eindeutig diagnostiziert
+
+**Aktuelle Prüfung:** CI [43166820393](https://github.com/wibem1/kibitz/actions/runs/43166820393) ist vollständig grün (Rust und App jeweils auf Ubuntu und macOS). Der Intel-Build [43166820431](https://github.com/wibem1/kibitz/actions/runs/43166820431) ist fehlgeschlagen; es gibt kein DMG-Artefakt für 0.1.4.
+
+**Nachgewiesene Ursache (Job 131010515140):** Beim Kompilieren der eingebetteten Maia-2-UCI-Engine meldet `ort-sys@2.0.0-rc.12`: `ort does not provide prebuilt binaries for the target x86_64-apple-darwin`. Der Fehler tritt vor Maia-UCI-Smoke-Test, Tauri-Build und Installer-Upload auf. Die Modellgewichte wurden zuvor per LFS geladen. Das ist keine bestätigte Maia-Laufzeitstörung, sondern ein ONNX-Runtime-Link-/Verteilungsproblem auf Intel-macOS.
+
+**Sichere Korrekturrichtung:** Eigenes x86_64-kompatibles ONNX Runtime bereitstellen oder Intel-Backend wechseln. Ein möglicher isolierter Diagnosetest ist das dynamische Linken einer Homebrew-ONNX-Runtime mittels `ORT_LIB_LOCATION` und `ORT_PREFER_DYNAMIC_LINK=1`. **Das allein erzeugt noch kein selbstständig lauffähiges DMG:** Die passende dylib muss rechtmäßig eingebunden, im App-Bundle enthalten, über den Laufzeit-Suchpfad auffindbar und am tatsächlich ausgelieferten App-Paket geprüft werden. Nicht den bisherigen `embed-weights`-Anspruch mit „selbstständig lauffähig“ verwechseln.
+
+**Freigabestatus:** 0.1.4 bleibt Versionskandidat; kein neues Testpaket, Tag oder Release erzeugt. Offen: Intel-Runtime-Abhängigkeit lösen, echten `info score cp` plus `bestmove`-Test auf Intel, Architektur-/Bundle-Prüfung, vollständig grünen Installer-Workflow und praktischen Test auf Nutzer-Mac. Kein blindes erneutes Ausführen des unveränderten Jobs.
+
+---
+
 # Kibitz DE – 12.11.2026: Maia-2-Einbindung weiter abgesichert, Intel-Testbuild wartet
 
 **Quellstand:** Maia 2 als wählbarer Offline-Gegner mit eigener Elo, eigenem Benutzerpfad sowie optional automatisch gebündeltem Intel-Mac-UCI-Prozess ist implementiert. Nächste Version **0.1.4**, Stockfish bleibt separat. Der Intel-Workflow lädt gepinnte externe Maia-2-Quellen und beide Modelle per Git LFS, erstellt CPU-Executable mit `embed-weights`, führt einen UCI-Smoke-Test und eine Architektur-/Ressourcenprüfung durch und soll danach ein unsigned DMG hochladen.
