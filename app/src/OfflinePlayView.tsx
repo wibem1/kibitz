@@ -5,6 +5,7 @@ import ScreenHeader from "./shell/ScreenHeader";
 import { usePromotionPicker } from "./PromotionPicker";
 import type { PromoRole } from "./lib/promotion";
 import type { BoardTreatmentChoice } from "./lib/gameView";
+import { numberedSans, type LoadedGame } from "./lib/game";
 import { restoreOfflineSession, storeOfflineSession } from "./lib/offlineSession";
 import { requestOfflineEngineMove, offlineEngineError } from "./lib/offlineEngine";
 import { getSavedEnginePath } from "./lib/engine";
@@ -15,20 +16,22 @@ import {
   playLocalMove, playLocalUci, undoLocalTurn,
 } from "./lib/localPlay";
 
-interface Props { treatment: BoardTreatmentChoice; onEngineSettings: () => void; onAnalyze: (pgn: string) => void; initialFen?: string | null }
+interface Props { treatment: BoardTreatmentChoice; onEngineSettings: () => void; onAnalyze: (pgn: string) => void; sourceGame?: LoadedGame | null; sourcePly?: number; onReturnToAnalysis?: () => void }
 
-export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze, initialFen }: Props) {
+export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze, sourceGame, sourcePly = 0, onReturnToAnalysis }: Props) {
   const [restored] = useState(() => {
-    if (initialFen) {
-      const seeded = localGameFromFen(initialFen);
+    if (sourceGame) {
+      const seeded = localGameFromFen(sourceGame.fens[Math.max(0, Math.min(sourcePly, sourceGame.sans.length))]);
       const turn = localPosition(seeded).turn;
       return { game: seeded, flipped: turn === "black", opponent: "stockfish" as const,
-        humanColor: turn, warning: "Übungspartie ab ausgewählter Stellung – die Originalpartie bleibt unverändert." };
+        humanColor: turn, warning: "Gesamte Partie übernommen. Wähle eine Stellung und starte erst dann das Weiterspielen." };
     }
     try { return restoreOfflineSession(window.localStorage); }
     catch { return restoreOfflineSession({ getItem: () => { throw Error("blocked"); }, setItem: () => {} }); }
   });
   const [game, setGame] = useState(restored.game);
+  const [browsePly, setBrowsePly] = useState(() => Math.max(0, Math.min(sourcePly, sourceGame?.sans.length ?? 0)));
+  const [browsing, setBrowsing] = useState(Boolean(sourceGame));
   const [flipped, setFlipped] = useState(restored.flipped);
   const [notice, setNotice] = useState(restored.warning ?? "");
   const [confirmNew, setConfirmNew] = useState(false);
@@ -86,7 +89,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
   const boardSize = offlineBoardSize(windowSize.width, windowSize.height);
   useEffect(() => {
     // A forked exercise must never overwrite the saved normal offline game.
-    if (initialFen) return;
+    if (sourceGame) return;
     let saved = false;
     try { saved = storeOfflineSession(window.localStorage, game, flipped, opponent, humanColor); }
     catch { saved = false; }
@@ -94,11 +97,11 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
       recordDiagnostic("offline_autosave_failure");
       setNotice("Automatisches Speichern ist auf diesem Rechner nicht verfügbar. Bitte die Partie als PGN sichern.");
     }
-  }, [game, flipped, opponent, humanColor, initialFen]);
+  }, [game, flipped, opponent, humanColor, sourceGame]);
   const pos = useMemo(() => localPosition(game), [game]);
   const completed = pos.isEnd();
   const fen = game.fens[game.fens.length - 1];
-  const engineTurn = opponent !== "human" && !completed && pos.turn !== humanColor;
+  const engineTurn = !browsing && opponent !== "human" && !completed && pos.turn !== humanColor;
 
   useEffect(() => {
     if (!engineTurn || failedFen === fen) return;
@@ -140,7 +143,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
   const moveRef = useRef<(from: string, to: string, role?: PromoRole) => void>(() => {});
   const promo = usePromotionPicker((from, to, role) => moveRef.current(from, to, role));
   const handleMove = useCallback((from: string, to: string, role?: PromoRole) => {
-    if (completed || thinking || engineTurn) return;
+    if (browsing || completed || thinking || engineTurn) return;
     if (!role && promo.guard(fen, from, to)) return;
     const next = playLocalMove(game, from, to, role);
     if (next) {
@@ -149,10 +152,10 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
     } else {
       setNotice("Dieser Zug ist nicht erlaubt.");
     }
-  }, [completed, thinking, engineTurn, promo, fen, game]);
+  }, [browsing, completed, thinking, engineTurn, promo, fen, game]);
   moveRef.current = handleMove;
   const legal = useMemo(() => localLegalMoves(game), [game]);
-  const movable: BoardMovable | undefined = completed || thinking || engineTurn ? undefined : {
+  const movable: BoardMovable | undefined = browsing || completed || thinking || engineTurn ? undefined : {
     color: legal.color, dests: legal.dests, onMove: handleMove,
   };
 
@@ -170,7 +173,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
   }
 
   function startNew() {
-    setGame(initialFen ? localGameFromFen(initialFen) : newLocalGame());
+    setGame(sourceGame ? localGameFromFen(sourceGame.fens[browsePly]) : newLocalGame());
     setNotice("");
     setConfirmNew(false);
     setFailedFen(null);
@@ -179,16 +182,16 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
 
   return (
     <>
-      <ScreenHeader title={initialFen ? "Ab Stellung gegen Stockfish spielen" : "Offline spielen"} subtitle={initialFen ? "Übungspartie – Originalpartie bleibt unverändert" : "Gegen einen Menschen, Stockfish oder Maia 2 · ohne Internetverbindung"} />
+      <ScreenHeader title={sourceGame ? "Partie auf der Spielseite" : "Offline spielen"} subtitle={sourceGame ? "Gesamten Partieablauf durchgehen und ab jeder spielbaren Stellung gegen Stockfish fortsetzen" : "Gegen einen Menschen, Stockfish oder Maia 2 · ohne Internetverbindung"} />
       <div className="page-scroll" ref={scrollRef}>
         <div className="play-page offline-play-page">
           <div className="play-columns">
             <div className="play-board-col" style={{ width: boardSize + 32, maxWidth: "100%" }}>
               <div className="play-player">
-                {thinking ? `${opponent === "maia2" ? "Maia 2" : "Stockfish"} überlegt…` : localResultText(game)}
+                {browsing ? `Originalpartie · Halbzug ${browsePly} von ${sourceGame?.sans.length ?? 0}` : thinking ? `${opponent === "maia2" ? "Maia 2" : "Stockfish"} überlegt…` : localResultText(game)}
               </div>
               <div style={{ position: "relative" }}>
-                <Board fen={fen} movable={movable} lastMove={lastMove}
+                <Board fen={browsing && sourceGame ? sourceGame.fens[browsePly] : fen} movable={movable} lastMove={browsing && sourceGame && browsePly > 0 ? [sourceGame.ucis[browsePly - 1].slice(0, 2), sourceGame.ucis[browsePly - 1].slice(2, 4)] : lastMove}
                   orientation={flipped ? "black" : "white"} treatment={treatment} size={boardSize} />
                 {promo.element}
               </div>
@@ -229,9 +232,9 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
             <div className="play-side-col">
               <div className="sync-card">
                 <div className="sync-card-head">SPIELMODUS</div>
-                {initialFen && <p className="sync-blurb">Ausgangsstellung übernommen. Du spielst die am Zug befindliche Farbe; Stockfish übernimmt die Gegenseite. Der Übungsverlauf kann separat als PGN gespeichert werden.</p>}
+                {sourceGame && <p className="sync-blurb">Die vollständige Originalpartie steht hier zur Verfügung. Du kannst zu jeder Stellung springen und von dort eine unabhängige Übungspartie gegen Stockfish beginnen.</p>}
                 <label>Gegner{" "}
-                  <select value={opponent} disabled={game.sans.length > 0 || thinking}
+                  <select value={opponent} disabled={Boolean(sourceGame) || game.sans.length > 0 || thinking}
                     onChange={(e) => { setOpponent(e.target.value as "human" | "stockfish" | "maia2"); setFailedFen(null); }}>
                     <option value="human">Zwei Menschen</option>
                     <option value="stockfish">Stockfish (offline)</option>
@@ -240,7 +243,7 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
                 </label>
                 {opponent !== "human" && (
                   <label>Meine Farbe{" "}
-                    <select value={humanColor} disabled={game.sans.length > 0 || thinking}
+                    <select value={humanColor} disabled={Boolean(sourceGame) || game.sans.length > 0 || thinking}
                       onChange={(e) => { setHumanColor(e.target.value as "white" | "black"); setFailedFen(null); }}>
                       <option value="white">Weiß</option>
                       <option value="black">Schwarz</option>
