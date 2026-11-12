@@ -17,10 +17,7 @@
 //! the position it is showing.
 
 use serde::Serialize;
-use tauri::State;
-
 use crate::uci::{self, UciPosition};
-use crate::EngineState;
 
 /// One reviewed candidate: `verdict` is `"cleared"` or `"refuted"`.
 #[derive(Debug, Clone, Serialize)]
@@ -83,7 +80,6 @@ async fn bounded_score(engine: &mut uci::Engine, fen: &str, nodes: u64) -> Resul
 /// this; refuted chips disappear, cleared marked chips appear.
 #[tauri::command]
 pub async fn verify_suggestions(
-    state: State<'_, EngineState>,
     fen: String,
     user_path: Option<String>,
 ) -> Result<VerifyOut, String> {
@@ -98,12 +94,13 @@ pub async fn verify_suggestions(
     let nodes = kibitz_db::verify::VERIFY_NODES;
     let path = uci::resolve_engine_path(user_path.as_deref())?;
 
-    // Same lazy-spawn slot as analyze_position: holding the lock for the
-    // whole (bounded) review serializes it with live analysis.
-    let mut slot = state.engine.lock().await;
+    // Background chip checks must not lock the shared interactive engine.
+    // An unbounded live search and four verification searches otherwise
+    // queue each other, preventing an explicitly requested score.
+    // This private child is dropped and killed when verification ends.
+    let mut engine = uci::Engine::spawn(&path).await?;
     let result = async {
-        crate::ensure_engine(&mut slot, &state.stop, &path).await?;
-        let engine = slot.as_mut().expect("engine just ensured");
+        let engine = &mut engine;
         let baseline = bounded_score(engine, &fen, nodes).await?;
         let mut cands = Vec::with_capacity(suggestions.len());
         for s in &suggestions {
@@ -128,15 +125,7 @@ pub async fn verify_suggestions(
         Ok::<_, String>(kibitz_db::verify::decide(baseline, &cands))
     }
     .await;
-    let decisions = match result {
-        Ok(decisions) => decisions,
-        Err(e) => {
-            // Engine likely died; drop it so the next run respawns.
-            *slot = None;
-            *state.stop.lock().expect("stop mutex poisoned") = None;
-            return Err(e);
-        }
-    };
+    let decisions = result?;
 
     let verdicts = suggestions
         .iter()
