@@ -229,8 +229,20 @@ export function fetchDbSummary(): Promise<DbSummary> {
   return invoke<DbSummary>("db_summary");
 }
 
-export function listGames(filter: GameFilter, offset: number, limit: number): Promise<GameList> {
-  return invoke<GameList>("list_games", { filter, offset, limit });
+export type GameSortBy = "import" | "date" | "white" | "black" | "result" | "eco" | "event" | "moves";
+export interface GameSort { by: GameSortBy; descending: boolean }
+
+export function listGames(
+  filter: GameFilter,
+  offset: number,
+  limit: number,
+  sort?: GameSort,
+): Promise<GameList> {
+  return invoke<GameList>("list_games", {
+    filter, offset, limit,
+    sortBy: sort?.by ?? "import",
+    descending: sort?.descending ?? true,
+  });
 }
 
 export function getGame(id: number): Promise<GameDetail> {
