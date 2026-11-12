@@ -147,7 +147,12 @@ fn build_profile_with_selection(
 
     // Only decimal IDs generated from i64 are interpolated. No raw user SQL.
     let selection_clause = selected_ids
-        .map(|ids| format!(" AND id IN ({})", ids.iter().map(i64::to_string).collect::<Vec<_>>().join(",")))
+        .map(|ids| {
+            format!(
+                " AND id IN ({})",
+                ids.iter().map(i64::to_string).collect::<Vec<_>>().join(",")
+            )
+        })
         .unwrap_or_default();
     let mut stmt = conn.prepare(&format!(
         "SELECT id, white_id IN ({id_list}), result, eco, movetext
