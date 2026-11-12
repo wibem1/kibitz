@@ -1139,6 +1139,26 @@ mod tests {
     }
 
     #[test]
+    fn list_games_global_sort_precedes_pagination() {
+        let (_dir, conn) = fixture_db();
+        let all = list_games_sorted_impl(
+            &conn, &GameFilter::default(), 0, 50, Some("white"), Some(false),
+        ).unwrap();
+        assert_eq!(all.total, 3);
+        let first = list_games_sorted_impl(
+            &conn, &GameFilter::default(), 0, 1, Some("white"), Some(false),
+        ).unwrap();
+        let second = list_games_sorted_impl(
+            &conn, &GameFilter::default(), 1, 1, Some("white"), Some(false),
+        ).unwrap();
+        assert_eq!(first.rows[0].id, all.rows[0].id);
+        assert_eq!(second.rows[0].id, all.rows[1].id);
+        assert!(list_games_sorted_impl(
+            &conn, &GameFilter::default(), 0, 1, Some("arbitrary SQL"), None,
+        ).is_err());
+    }
+
+    #[test]
     fn list_games_pages_and_orders_newest_first() {
         let (_dir, conn) = fixture_db();
         let all = list_games_impl(&conn, &GameFilter::default(), 0, 50).unwrap();
