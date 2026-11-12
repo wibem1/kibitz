@@ -5,6 +5,7 @@
  */
 import { useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { recordDiagnostic } from "./lib/diagnostics";
 
 interface PgnImportReport {
   imported: number;
@@ -47,6 +48,7 @@ export default function ImportView({ onLoad, status }: ImportViewProps) {
     setImportBusy(true);
     setImportError(null);
     setImportReport(null);
+    recordDiagnostic("pgn_import_request");
     try {
       if (databaseFile.size === 0 || databaseFile.size > 25 * 1024 * 1024) {
         throw new Error("Bitte eine PGN-Datei mit maximal 25 MiB auswählen.");
@@ -55,7 +57,9 @@ export default function ImportView({ onLoad, status }: ImportViewProps) {
         pgn: await databaseFile.text(), sourceName: databaseFile.name,
       });
       setImportReport(result);
+      recordDiagnostic(result.failed > 0 ? "pgn_import_partial" : "pgn_import_success");
     } catch (e) {
+      recordDiagnostic("pgn_import_failure");
       setImportError(String(e));
     } finally {
       setImportBusy(false);
