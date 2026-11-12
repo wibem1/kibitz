@@ -1,3 +1,11 @@
+# Kibitz DE – 12.11.2026: Kooperatives Analyse-Team als verbindliches Entwicklungsziel dokumentiert
+
+**Konzeptentscheidung, kein implementiertes Feature:** [docs/KIBITZ_DE_SCHACHSTUDIO.md, Abschnitt 6](docs/KIBITZ_DE_SCHACHSTUDIO.md) beschreibt das zukünftige Analyse-Team: Kibitz-Core (strategische Merkmale/Hypothesen), Stockfish (Varianten und gezielte Prüfung), KI (vergleichende, priorisierende Synthese mit Rückfragen) sowie Nutzer (aktiver Dialog). Vorgesehen sind eine begrenzte, kontrollierte Koordinationsschicht im App-Layer, FEN-gebundene Belege, überprüfbare Aussagen mit Unsicherheitskennzeichnung, Budgetlimits und strikter Lichess-Fair-Play-Schutz. Bestehende Offline-Kommentierung ohne API-Schlüssel bleibt erhalten. Dies erweitert die alte LLM-Verbalizer-Idee; die Implementierung steht aus.
+
+**Nächster Schritt unverändert:** Die vorhandene Engine-Ausgabe und das Intel-Mac-Paket 0.1.4 im realen Einsatz abnehmen, bevor die neue Analysekoordination implementiert wird. Diese Dokumentationsänderung erfordert keinen Build oder neuen Versionsstand.
+
+---
+
 # Kibitz DE – 12.11.2026: Intel-ONNX-Runtime in Maia-Build eingebunden (Prüfung ausstehend)
 
 **Änderung:** [Commit a76f6376](https://github.com/wibem1/kibitz/commit/a76f63769f98e1cd75d85ef79ffe9a706e75dbac) passt ausschließlich den Intel-Mac-Preview-Workflow an. Auf dem Intel-Runner wird die Homebrew-ONNX-Runtime installiert. Maia 2 wird mit `ORT_LIB_LOCATION` und `ORT_PREFER_DYNAMIC_LINK=1` dagegen gebaut. Die x86_64-Dylib wird als zusätzliche Tauri-Ressource mit verpackt; der Maia-Executable-Verweis wird auf `@loader_path/libonnxruntime.dylib` gesetzt, und die Verknüpfung wird geprüft. Quelle und Gewichte der Maia-Engine bleiben am bestehenden Commit gepinnt; Schachlogik und übrige Plattformen unverändert.
