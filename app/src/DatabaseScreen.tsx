@@ -366,8 +366,8 @@ export default function DatabaseScreen({
       header: "",
       render: (g) => (g.dup ? <span className="dup-flag" title="duplicate copies linked">⑂</span> : null),
     },
-    { key: "white", header: "WHITE", render: (g) => g.white, sort: (a, b) => a.white.localeCompare(b.white) },
-    { key: "black", header: "BLACK", render: (g) => g.black, sort: (a, b) => a.black.localeCompare(b.black) },
+    { key: "white", header: "WHITE", render: (g) => g.white },
+    { key: "black", header: "BLACK", render: (g) => g.black },
     { key: "result", header: "RES", render: (g) => <span className="cell-result">{g.result}</span> },
     {
       key: "event",
@@ -392,13 +392,11 @@ export default function DatabaseScreen({
       key: "date",
       header: "DATE",
       render: (g) => <span className="cell-date">{g.date ?? ""}</span>,
-      sort: (a, b) => (a.date ?? "").localeCompare(b.date ?? ""),
     },
     {
       key: "eco",
       header: "ECO",
       render: (g) => <span className="cell-eco">{g.eco ?? ""}</span>,
-      sort: (a, b) => (a.eco ?? "").localeCompare(b.eco ?? ""),
     },
     {
       key: "source",
