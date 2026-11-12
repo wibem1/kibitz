@@ -1,3 +1,13 @@
+# Kibitz DE – 12.11.2026: Einstellungsbereinigung – erster kleiner Code-Schritt
+
+**Implementiert auf Branch `feat/de-simple-readable-ui`:** [Commit 332f5d5](https://github.com/wibem1/kibitz/commit/332f5d550810a8a619cafdc4d8c3fd84a5379d73) vereinfacht ausschließlich `app/src/SettingsView.tsx`: die nicht bedienbaren Zeilen **»Engine-Start«**, **»LLM verbaliser«** und **»Figurensatz«** sowie die doppelte Syzygy-Statuszeile und die redundante Anzeige der Kontensynchronisation wurden entfernt. Die eigenständige Engine-/Syzygy-Konfiguration, die Kontosynchronisation in ihrer eigenen Ansicht sowie alle ausführenden Einstellungen bleiben vorhanden. Mehrere sichtbare Buttons, Dialoge, Statuswerte und Brett-/Kommentaroptionen wurden auf Deutsch beschriftet. Batch-Aufrufe, TWIC-Umschalter, Termine, Diagnose, Theme, Erklärstil und Speicherfunktion sind weiterhin mit ihren bisherigen Handlern verbunden.
+
+**Prüfstatus:** GitHub-Diff und sichtbare JSX-Blöcke statisch kontrolliert. Noch **kein** nachgewiesener TypeScript-/Frontend-Testlauf und **keine** echte Mac-/Windows-Laufzeitabnahme; keine Versionsnummer oder Freigabe. Keine Engine-Logik geändert.
+
+**Nächster einzelner Schritt dieser Aufräumserie:** CI-/TypeScript-Prüfung dieses Commits auswerten, anschließend die Datenbank-Stapelaktionen ohne Funktionsverlust aus den Einstellungen in den vorhandenen Datenbank-Aktionsbereich verlagern. Der zuvor offene Intel-Mac-Engine-Praxistest bleibt als separater Blocker bestehen.
+
+---
+
 # Kibitz DE – 12.11.2026: Einstellungsseite als Aufräumziel konkretisiert
 
 **Dokumentierte Anforderung, noch keine UI-Änderung:** Codeprüfung der aktuellen `app/src/SettingsView.tsx` und zugehörigen Komponenten bestätigt die Vermischung echter Einstellungen mit Datenbank-Stapelaktionen, Kontosynchronisation, Statusanzeigen und technischen, teils unveränderbaren Zeilen. Weiterhin zahlreiche englische Schaltflächen und Meldungen. [docs/KIBITZ_DE_SCHACHSTUDIO.md, Abschnitt 9](docs/KIBITZ_DE_SCHACHSTUDIO.md) legt die Vereinfachungsziele und sichere Reihenfolge fest: Kibitz-Layout beibehalten, echte Einstellungen bündeln, ausführende Aufgaben an passende Arbeitsorte verlegen, technische Werte nachordnen, vollständig Deutsch, keine bestehenden Werte oder Funktionen verlieren.
