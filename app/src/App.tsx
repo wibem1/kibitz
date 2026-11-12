@@ -58,6 +58,7 @@ import {
   gameAnalyses,
   getGame,
   getGameTokens,
+  importPgnIntoDatabase,
   getNarrationVoice,
   getSavedDbPath,
   getSavedVoice,
@@ -226,6 +227,8 @@ export default function App() {
   const [exerciseSerial, setExerciseSerial] = useState(0);
   const [transferPending, setTransferPending] = useState(false);
   const [transferExported, setTransferExported] = useState(false);
+  const [transferDbState, setTransferDbState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [transferDbError, setTransferDbError] = useState<string | null>(null);
   const playerSnapshot = useRef<LocalGame | null>(null);
   const selectedTransfer = useRef<{ game: LoadedGame; ply: number } | null>(null);
   const rememberPlayerGame = useCallback((played: LocalGame) => { playerSnapshot.current = played; }, []);
@@ -243,6 +246,8 @@ export default function App() {
     setView("offline");
     setTransferPending(false);
     setTransferExported(false);
+    setTransferDbState("idle");
+    setTransferDbError(null);
     selectedTransfer.current = null;
   };
   const downloadPreviousPgn = () => {
@@ -258,6 +263,24 @@ export default function App() {
     URL.revokeObjectURL(url);
     // A download request cannot prove that the user actually saved the file.
     setTransferExported(true);
+  };
+  const savePreviousToDatabase = async () => {
+    const previous = getPreviousPlayerGame();
+    if (!previous || previous.sans.length === 0) return;
+    setTransferDbState("saving");
+    setTransferDbError(null);
+    try {
+      const report = await importPgnIntoDatabase(localPgn(previous), "Kibitz DE – Partie vor Übergabe");
+      if (report.imported === 1 || report.duplicates >= 1) {
+        setTransferDbState("saved");
+      } else {
+        setTransferDbState("error");
+        setTransferDbError(`Keine erfolgreiche Speicherung: ${report.failures.join(" · ")}`);
+      }
+    } catch (e) {
+      setTransferDbState("error");
+      setTransferDbError(`Datenbankspeicherung fehlgeschlagen: ${String(e)}`);
+    }
   };
   // One-shot per-screen navigation params (lib/shell.ts ViewParams):
   // e.g. navigate("profile", { claim }) pre-selects a claim's evidence.
@@ -1437,6 +1460,8 @@ export default function App() {
               if (!game) return;
               selectedTransfer.current = { game, ply: gv.ply };
               setTransferExported(false);
+              setTransferDbState("idle");
+              setTransferDbError(null);
               setTransferPending(true);
             }}
           />
@@ -1477,18 +1502,28 @@ export default function App() {
             : <p>Es ist derzeit keine gespielte Partie auf der Spielseite vorhanden.</p>}
           <p>Du kannst die bisherige Partie vor dem Ersetzen als PGN herunterladen.
             Prüfe anschließend, ob sie wirklich gespeichert wurde.</p>
+          {transferDbState === "saved" && <p role="status">Vorherige Partie in der geöffneten Datenbank dauerhaft gespeichert oder als Duplikat erkannt.</p>}
+          {transferDbState === "saving" && <p role="status">Speichert die vorherige Partie in der Datenbank …</p>}
+          {transferDbError && <p role="alert">{transferDbError}</p>}
           {transferExported && <p role="status">PGN-Download angefordert. Bitte kontrolliere,
             ob die Datei gespeichert wurde, bevor du die Partie ersetzt.</p>}
           <div className="play-actions" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             <button className="btn-secondary" onClick={() => {
               setTransferPending(false);
               setTransferExported(false);
+              setTransferDbState("idle");
+              setTransferDbError(null);
               selectedTransfer.current = null;
             }}>Abbrechen</button>
             <button className="btn-secondary"
               disabled={!getPreviousPlayerGame()?.sans.length}
               onClick={downloadPreviousPgn}>Vorherige Partie als PGN speichern</button>
-            <button className="btn-primary" onClick={applyTransfer}>
+            <button className="btn-secondary"
+              disabled={!dbSummary || !getPreviousPlayerGame()?.sans.length || transferDbState === "saving" || transferDbState === "saved"}
+              onClick={() => void savePreviousToDatabase()}>
+              {transferDbState === "saved" ? "In Datenbank gesichert ✓" : "Vorherige Partie in Datenbank speichern"}
+            </button>
+            <button className="btn-primary" disabled={transferDbState === "saving"} onClick={applyTransfer}>
               {transferExported ? "Nach Prüfung ersetzen" : "Ohne zusätzliche Sicherung ersetzen"}
             </button>
           </div>
