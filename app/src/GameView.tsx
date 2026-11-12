@@ -18,6 +18,7 @@ import EvalBar from "./EvalBar";
 import ExplainPanel from "./ExplainPanel";
 import MovesPanel, { type MovesEditing } from "./MovesPanel";
 import { evalsByPly, type AnalysisRow } from "./lib/analyses";
+import { reviewGame } from "./lib/gameReview";
 import {
   annotateGame,
   batchPause,
@@ -112,6 +113,7 @@ interface GameViewProps {
   onExitPreview: () => void;
   /** Event-line click — the parent opens the crosstable modal (run 10). */
   onCrosstable: (event: string) => void;
+  onPlayFromPosition: () => void;
 }
 
 /** Percent position of a square in the grid for an orientation. */
@@ -171,6 +173,7 @@ export default function GameView({
   onPreviewStep,
   onExitPreview,
   onCrosstable,
+  onPlayFromPosition,
 }: GameViewProps) {
   const colRef = useRef<HTMLDivElement | null>(null);
   const [boardSize, setBoardSize] = useState(656);
@@ -549,6 +552,8 @@ export default function GameView({
   }, [editing, game, analysisRows]);
 
   const evalsMap = useMemo(() => evalsByPly(analysisRows), [analysisRows]);
+  const review = useMemo(() => reviewGame(game?.sans ?? [], analysisRows), [game, analysisRows]);
+  const [reviewOpen, setReviewOpen] = useState(false);
   // Marks only render when repertoires exist — no toggle needed (run-9).
   const repGlyphs = useMemo(
     () => (repMarks.length > 0 ? repGlyphsByPly(repMarks) : null),
@@ -702,6 +707,13 @@ export default function GameView({
           >
             {gameId === null ? (currentSingleEval?.status === "running" ? "Stockfish bewertet …" : "Stellung bewerten") : "Neu bewerten"}
           </button>
+          <button className="btn" disabled={!game || Boolean(preview)}
+            title="Neue Übungspartie ab der angezeigten Stellung gegen Stockfish starten"
+            onClick={onPlayFromPosition}>Ab hier gegen Stockfish spielen</button>
+          <button className="btn" disabled={!game}
+            onClick={() => setReviewOpen((open) => !open)}>
+            {reviewOpen ? "Partieübersicht schließen" : "Fehler und Schlüsselstellen"}
+          </button>
           <button
             className="btn"
             onClick={() => void doExport()}
@@ -712,6 +724,33 @@ export default function GameView({
         </div>
       </header>
 
+      {reviewOpen && game && <section className="game-inline-job" aria-label="Fehler und Schlüsselstellen">
+        <h3>Partieauswertung – gespeicherte Enginebewertungen</h3>
+        <p>{review.eligibleMoves} von {review.totalMoves} Halbzügen haben Bewertungen unmittelbar davor und danach.
+          {review.coverage < 1 ? " Ohne vollständige Bewertungsabdeckung sind die Fehlerzahlen unvollständig." : ""}</p>
+        <p>Ungenauigkeiten: {review.moments.filter((m) => m.severity === "Ungenauigkeit").length} ·
+          Fehler: {review.moments.filter((m) => m.severity === "Fehler").length} ·
+          Grobe Fehler: {review.moments.filter((m) => m.severity === "Grober Fehler").length}</p>
+        {review.eligibleMoves === 0 && <p>Keine aufeinanderfolgenden Stellungsbewertungen vorhanden.
+          Bei gespeicherten Datenbankpartien zuerst „Neu bewerten“ ausführen. Bei geladenen PGN-Partien
+          ist vor einer vollständigen Bewertung ein Datenbankimport erforderlich.</p>}
+        <h4>Schlüsselstellen – größte gemessene Bewertungsverluste</h4>
+        {review.keyMoments.length === 0 && <p>Keine nachweisbaren Fehlerstellen in den bislang bewerteten Zügen.</p>}
+        {review.keyMoments.map((m) => <div key={m.ply} className="play-actions">
+          <button className="btn-secondary" onClick={() => setPly(m.ply)}>
+            {Math.ceil(m.ply / 2)}{m.ply % 2 === 1 ? "." : "..."} {m.san} · {m.severity} · −{(m.lossCp / 100).toFixed(2)} Bauern
+            {" — Stellung zeigen"}
+          </button>
+        </div>)}
+        <h4>Alle erkannten Fehler</h4>
+        {review.moments.map((m) => <button key={m.ply} className="btn-secondary"
+          onClick={() => setPly(m.ply)}>
+          {Math.ceil(m.ply / 2)}{m.ply % 2 === 1 ? "." : "..."} {m.san}: {m.severity}
+        </button>)}
+        <p>Die Schwellenwerte (0,50/1,00/2,00 Bauern) sind eine einfache Einordnung anhand vorhandener Bewertungen.
+          Die Schlüsselstellen sind vorläufig die größten Bewertungsverluste, noch keine strategische KI-Auswahl.
+          Auf einen Eintrag klicken, zur Stellung springen und anschließend „Ab hier gegen Stockfish spielen“ wählen.</p>
+      </section>}
       {gameExplainProgress && <p role="status" className="game-inline-job">{gameExplainProgress}</p>}
       {gameId === null && currentSingleEval && (
         <div className="game-inline-job" role="status">
