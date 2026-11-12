@@ -1,3 +1,17 @@
+# Kibitz DE – 12.11.2026: Nachfrage und PGN-Sicherung vor Übergabe an die Spielseite
+
+**Implementiert im Entwicklungsbranch (noch nicht verifiziert):** Beim Klick auf »Ganze Partie zur Spielseite« wird die Übergabe vor dem Wechsel durch ein Dialogfenster bestätigt. Es zeigt die Zahl der Halbzüge einer bereits vorhandenen Player-Partie (sofern vorhanden) und bietet **»Abbrechen«**, **»Vorherige Partie als PGN speichern«** und **»Ohne zusätzliche Sicherung ersetzen«**. Nach einem angestoßenen PGN-Download wird ausdrücklich darauf hingewiesen, dessen tatsächliche Speicherung zu prüfen; die Web-App kann den erfolgreichen Download nicht nachweisen. Der Nutzer bestätigt den anschließenden Wechsel selbst. Das Original in der Datenbank oder in der Analyseansicht wird nicht verändert. `App.tsx` hält für die laufende Sitzung einen Snapshot der zuletzt auf der Offline-Spielseite gespielten Partie. `OfflinePlayView.tsx` meldet Spieländerungen über `onPlayerStateChange`, nicht aber beim bloßen Durchblättern einer übernommenen Originalpartie. Nach Neustart wird der normale Offline-Spielstand bei Bedarf aus dem bestehenden `localStorage`-Autosave wiederhergestellt.
+
+**Speichersemantik ausdrücklich überprüft:** Importierte/synchronisierte Partien sind in der geöffneten SQLite-Datenbank; Offline-Standardpartien werden ausschließlich unter `kibitz.offlineGame.v1` in `localStorage` automatisch gesichert, **nicht** in SQLite. Übungsfortsetzungen aus der analysierten Partie werden nicht automatisch gespeichert, insbesondere nicht in der Datenbank und überschreiben absichtlich nicht die normale Offline-Autosicherung. Sie sind beim späteren Wechsel gegebenenfalls nur als Sitzungssnapshot verfügbar, bis ein PGN exportiert wird. `ui_session` und `last_game` in SQLite speichern Navigationszustand, nicht alle Offline-Partieinhalte. Eine separate SQLite-Persistierung und späteres Wiederöffnen beliebiger Übungsfortsetzungen bleiben offen.
+
+**Commits:** [b7b5c34e](https://github.com/wibem1/kibitz/commit/b7b5c34e936b73c4a076412fc4148a59a2532ec5), [b46a5cab](https://github.com/wibem1/kibitz/commit/b46a5cab363e8159d712b82e852120a27f65046f), [a24b9ecb](https://github.com/wibem1/kibitz/commit/a24b9ecb202912ce9905d2b63563a770a6669a91), [631d2969](https://github.com/wibem1/kibitz/commit/631d29698fb205696c74ab03cd57d2b7dae6e970).
+
+**Prüfstatus:** Quellcodeänderungen gesichert, kein bestätigter TypeScript/Vitest/CI-Lauf, keine echte Dialog-/Download-/Mac-Laufzeitabnahme. Keine neue Versionsnummer und keine Veröffentlichung.
+
+**Nächster Einzeltest:** Auf echtem Intel-Mac: alte Offline-Partie mit Zügen im Player, Partie aus Datenbank laden und Übergabe auslösen, `Abbrechen`, PGN-Download kontrollieren, erst dann `Ersetzen`, originale komplette Zugliste nachweisen, Fortsetzung ab frei gewählter Stellung beginnen, zur Analyse zurückkehren. Kontrollieren, dass normaler Offline-Spielstand im `localStorage` bleibt und Übungsfortsetzung nicht irrtümlich als automatisch datenbankgesichert dargestellt wird.
+
+---
+
 # Kibitz DE – 12.11.2026: Partie-Fehlerübersicht und Weiter­spielen gegen Stockfish ab Stellung
 
 **Entwickelt im Branch `feat/de-simple-readable-ui`, noch NICHT als geprüfte Version freigegeben.**
