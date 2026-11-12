@@ -9,7 +9,6 @@
  * already live in DatabaseScreen (including confirmation, progress and pause);
  * this screen must not duplicate them. Existing preference handlers stay wired.
  */
-import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import ScreenHeader from "./shell/ScreenHeader";
 import EngineSection from "./settings/EngineSection";
@@ -17,11 +16,6 @@ import LichessSection from "./settings/LichessSection";
 import StorageSection from "./settings/StorageSection";
 import UpdatesSettings from "./UpdatesSettings";
 import { clearDiagnostics, saveDiagnosticReport } from "./lib/diagnostics";
-import {
-  commitmentGet,
-  commitmentSet,
-} from "./lib/db";
-import { twicCatalog, twicSetAutoSync } from "./lib/net";
 import type { AnnotationMode, BoardTreatmentChoice, Theme, Voice } from "./lib/gameView";
 
 interface SettingsViewProps {
@@ -75,70 +69,6 @@ export default function SettingsView({
   theme,
   onTheme,
 }: SettingsViewProps) {
-  const [note, setNote] = useState<string | null>(null);
-
-  // Recurring commitment (meta-backed; absent by default).
-  const [commitLabel, setCommitLabel] = useState("");
-  const [commitOpponent, setCommitOpponent] = useState("");
-  const [commitNote, setCommitNote] = useState<string | null>(null);
-
-  // Network-ingestion mirrors (run 9): configured sync accounts and the
-  // TWIC automatisch laden toggle (same meta keys the TWIC screen writes).
-  const [twicAuto, setTwicAuto] = useState<boolean | null>(null);
-  const [twicWeek, setTwicWeek] = useState<number | null>(null);
-
-  useEffect(() => {
-    commitmentGet()
-      .then((c) => {
-        setCommitLabel(c.label ?? "");
-        setCommitOpponent(c.opponent ?? "");
-      })
-      .catch(() => {}); // no database open — the row stays empty
-    twicCatalog()
-      .then((c) => {
-        setTwicAuto(c.autoSync);
-        setTwicWeek(c.latestImported);
-      })
-      .catch(() => setTwicAuto(null));
-  }, []);
-
-  const toggleTwicAuto = useCallback(async () => {
-    if (twicAuto === null) return;
-    try {
-      await twicSetAutoSync(!twicAuto);
-      setTwicAuto(!twicAuto);
-    } catch (e) {
-      setNote(`TWIC-Aktualisierung: ${e}`);
-    }
-  }, [twicAuto]);
-
-  /* ---- commitment ---- */
-
-  const saveCommitment = useCallback(async () => {
-    try {
-      const c = await commitmentSet(
-        commitLabel.trim() === "" ? null : commitLabel.trim(),
-        commitOpponent.trim() === "" ? null : commitOpponent.trim(),
-      );
-      setCommitLabel(c.label ?? "");
-      setCommitOpponent(c.opponent ?? "");
-      setCommitNote(c.label ? "Gespeichert – Termin auf der Startseite." : "Gespeichert.");
-    } catch (e) {
-      setCommitNote(`Speichern fehlgeschlagen: ${e}`);
-    }
-  }, [commitLabel, commitOpponent]);
-
-  const clearCommitment = useCallback(async () => {
-    try {
-      await commitmentSet(null, null);
-      setCommitLabel("");
-      setCommitOpponent("");
-      setCommitNote("Entfernt.");
-    } catch (e) {
-      setCommitNote(`Entfernen fehlgeschlagen: ${e}`);
-    }
-  }, []);
-
   const ghost = (label: string, onClick: () => void, disabled = false) => (
     <button className="btn-ghost" onClick={onClick} disabled={disabled}>
       {label}
@@ -166,59 +96,11 @@ export default function SettingsView({
             />
           </div>
 
-          {/* ---- DATA ---- */}
+          {/* ---- DATABASE STORAGE ---- */}
           <div className="set-group">
             <div className="set-group-head">DATEN</div>
             {/* ---- DATABASE STORAGE (own file: settings/StorageSection.tsx) ---- */}
             <StorageSection />
-            <Row
-              label="TWIC automatisch laden"
-              help="Lädt beim Öffnen der Datenbank höchstens fünf neue TWIC-Ausgaben. Ältere Ausgaben können im TWIC-Bereich manuell geladen werden. Nur zur persönlichen Nutzung."
-              value={
-                <div className="set-value mono">
-                  {twicAuto === null
-                    ? "Unbekannt (keine Datenbank geöffnet)"
-                    : `${twicAuto ? "Ein" : "Aus"}${twicWeek !== null ? ` · neueste Ausgabe: Woche ${twicWeek}` : ""}`}
-                </div>
-              }
-              action={
-                twicAuto !== null &&
-                ghost(twicAuto ? "Ausschalten" : "Einschalten", () => void toggleTwicAuto())
-              }
-            />
-            <Row
-              label="Termin"
-              help="Ein wiederkehrender Schachtermin für die Startseite. Der Gegnername ist optional."
-              value={
-                <div className="set-commit">
-                  <input
-                    className="set-value editing"
-                    type="text"
-                    value={commitLabel}
-                    placeholder="Bezeichnung des Termins"
-                    spellCheck={false}
-                    onChange={(e) => setCommitLabel(e.target.value)}
-                    aria-label="Terminbezeichnung"
-                  />
-                  <input
-                    className="set-value editing"
-                    type="text"
-                    value={commitOpponent}
-                    placeholder="Gegner (optional)"
-                    spellCheck={false}
-                    onChange={(e) => setCommitOpponent(e.target.value)}
-                    aria-label="Gegner des Termins"
-                  />
-                </div>
-              }
-              action={
-                <>
-                  {ghost("Speichern", () => void saveCommitment())}
-                  {ghost("Entfernen", () => void clearCommitment())}
-                </>
-              }
-            />
-            {commitNote && <div className="set-note">{commitNote}</div>}
           </div>
 
           {/* ---- LICHESS PLAY (own file: settings/LichessSection.tsx, run 10) ---- */}
