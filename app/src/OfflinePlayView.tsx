@@ -13,7 +13,7 @@ import { offlineBoardSize } from "./lib/offlineLayout";
 import { diagnoseEngineFailure, recordDiagnostic } from "./lib/diagnostics";
 import {
   localGameFromFen, localLegalMoves, localPgn, localPosition, localResultText, newLocalGame,
-  playLocalMove, playLocalUci, undoLocalTurn,
+  playLocalMove, playLocalUci, undoLocalTurn, type LocalGame,
 } from "./lib/localPlay";
 
 interface Props { treatment: BoardTreatmentChoice; onEngineSettings: () => void; onAnalyze: (pgn: string) => void; sourceGame?: LoadedGame | null; sourcePly?: number; onReturnToAnalysis?: () => void; onPlayerStateChange?: (game: LocalGame) => void }
