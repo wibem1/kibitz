@@ -6,12 +6,16 @@ export function requestOfflineEngineMove(
   nodes = 20_000,
   userPath = "",
   elo: number | null = null,
+  opponentEngine: "stockfish" | "maia2" = "stockfish",
+  opponentElo: number | null = null,
 ): Promise<string> {
   return invoke<string>("offline_engine_move", {
     fen,
     nodes,
     userPath: userPath.trim() || null,
     elo,
+    opponentEngine,
+    opponentElo,
   });
 }
 
