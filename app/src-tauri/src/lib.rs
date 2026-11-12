@@ -394,6 +394,7 @@ pub fn run() {
             dbops::repertoire_marks,
             dbops::export_game_pgn,
             dbops::build_profile,
+            dbops::build_profile_selected,
             dbops::get_narration_voice,
             dbops::set_narration_voice,
             dbops::set_window_title,
