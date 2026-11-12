@@ -1,6 +1,46 @@
 import { describe, expect, it } from "vitest";
 import { loadGame } from "./game";
-import { localLegalMoves, localPgn, localPosition, localResult, localResultText, newLocalGame, playLocalMove, playLocalUci, undoLocalMove, undoLocalTurn } from "./localPlay";
+import { localGameFromFen, localLegalMoves, localPgn, localPosition, localResult, localResultText, newLocalGame, playLocalMove, playLocalUci, undoLocalMove, undoLocalTurn } from "./localPlay";
+
+describe("Ganze Partie an Spielseite übergeben", () => {
+  const imported = loadGame('[White "Test"]\\n[Black "Gegner"]\\n\\n1. e4 e5 2. Nf3 Nc6 3. Bb5 *');
+  if (!imported.ok) throw new Error("Testpartie konnte nicht geladen werden");
+  const original = imported.game;
+
+  it("stellt jede Hauptlinien-Stellung ohne Änderung an der Originalpartie bereit", () => {
+    const before = JSON.stringify(original);
+    for (let ply = 0; ply <= original.sans.length; ply++) {
+      const exercise = localGameFromFen(original.fens[ply]);
+      expect(exercise.fens[0]).toBe(original.fens[ply]);
+      expect(exercise.sans).toEqual([]);
+      expect(exercise.ucis).toEqual([]);
+      expect(localPosition(exercise).turn).toBe(ply % 2 ? "black" : "white");
+    }
+    expect(JSON.stringify(original)).toBe(before);
+  });
+
+  it("startet nach schwarzem Zug eine separate weiße Fortsetzung samt FEN im PGN", () => {
+    const start = localGameFromFen(original.fens[2]);
+    const continuation = playLocalMove(start, "d2", "d4");
+    expect(continuation).not.toBeNull();
+    expect(original.sans).toEqual(["e4", "e5", "Nf3", "Nc6", "Bb5"]);
+    const pgn = localPgn(continuation!);
+    expect(pgn).toContain('[SetUp "1"]');
+    expect(pgn).toContain(`[FEN "${original.fens[2]}"]`);
+    expect(pgn).toContain("2. d4");
+    const reloaded = loadGame(pgn);
+    expect(reloaded.ok).toBe(true);
+    if (reloaded.ok) expect(reloaded.game.fens.at(-1)).toBe(continuation!.fens.at(-1));
+  });
+
+  it("beginnt nach weißem Zug korrekt mit schwarzer Zugnummer", () => {
+    const start = localGameFromFen(original.fens[1]);
+    const continuation = playLocalMove(start, "c7", "c5");
+    expect(continuation).not.toBeNull();
+    expect(localPgn(continuation!)).toContain("1... c5");
+    expect(original.sans).toHaveLength(5);
+  });
+});
 
 describe("Offline-Partie für zwei Menschen", () => {
   it("beginnt in der Ausgangsstellung mit legalen weißen Zügen", () => {
