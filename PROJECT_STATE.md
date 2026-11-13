@@ -1,3 +1,15 @@
+# Kibitz DE – 13.11.2026: Version 0.1.5 in main übernommen; offizieller Download noch offen
+
+**Neuer verbindlicher Stand:** PR [#2](https://github.com/wibem1/kibitz/pull/2) mit dem vollständig versionierten 0.1.5-Release-Branch wurde erfolgreich nach `main` gemergt; Merge-Commit `3c8ac23bdb74d690e04164159e093ba69a73d0d6`. `app/src-tauri/tauri.conf.json` in `main` nach dem Merge mit Version `0.1.5` geprüft.
+
+**Bestätigte Prüfungen:** Release-Commit `10f1c9e3365d275fa1184ef25ecfa1f33c732d21`: [CI-Lauf 43220165590](https://github.com/wibem1/kibitz/actions/runs/43220165590) vier grüne Jobs (Rust/Frontend jeweils Ubuntu und macOS). [Intel-Mac-Preview 43220165530](https://github.com/wibem1/kibitz/actions/runs/43220165530) erfolgreich, einschließlich Maia-2-x86_64-Smoke-Test, DMG-Erzeugung und Intel-Architekturkontrolle. Der Build als **unsigniertes, zeitlich begrenztes** Workflow-Artefakt `kibitz-de-intel-mac-unsigned-test` (ID 13947120749) ist kein offizieller Release.
+
+**Veröffentlichung noch nicht abgeschlossen:** Git-Tag `v0.1.5` und GitHub-Release mit dauerhaftem Downloadlink wurden nicht erstellt; die angeschlossene GitHub-Aktion bietet keine Tag-/Release-Erstellung. Kein bestätigter Praxisdurchgang auf dem Mac mit realer Datenbank. Der neu nach `main` ergänzte Text [docs/KIBITZ_DE_0.1.5_RELEASE_NOTES.md](docs/KIBITZ_DE_0.1.5_RELEASE_NOTES.md) enthält Änderungsumfang, Nachweise und bekannte Grenzen. Warnungen von `npm ci` zu Abhängigkeiten erfordern vor einer breiten Freigabe eine bewertete Entscheidung. Der Release-Workflow verlangt zudem Überprüfung von Website-Downloads und Zielplattformen.
+
+**Nächster gezielter Schritt:** Tag-/Release-Funktion über geeigneten GitHub-Zugang ausführen (oder in GitHub-Weboberfläche) und das tatsächlich veröffentlichte 0.1.5-Installationspaket samt Checksummen und Download prüfen. Bis dahin die befristete GitHub-Action-Testversion nicht als regulären Release bezeichnen.
+
+---
+
 # Kibitz DE – 12.11.2026: Release-Prüfung nach gezielten Korrekturen (noch kein Paket)
 
 **Nutzerziel:** Alle neu entwickelten Funktionen sollen in der nächsten **neuen** Version erscheinen; derzeit bleibt die Manifestversion **0.1.4**, weil die vollständige Freigabeprüfung noch aussteht. Weder ein neuer Installer noch eine neue Release-Version wurde veröffentlicht.
