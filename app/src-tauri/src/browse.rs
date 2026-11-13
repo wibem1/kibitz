@@ -404,12 +404,45 @@ const LIST_WHERE: &str = "WHERE (?1 IS NULL
              AND replace(g.date, '?', '0') <= ?6))
         AND (?7 IS NULL OR s.kind = ?7)";
 
+#[cfg(test)]
 pub(crate) fn list_games_impl(
     conn: &Connection,
     filter: &GameFilter,
     offset: i64,
     limit: i64,
 ) -> Result<GameList, String> {
+    list_games_sorted_impl(conn, filter, offset, limit, None, None)
+}
+
+/// Server-side sorting must happen before LIMIT/OFFSET: sorting the React
+/// DataTable's loaded page gives misleading results for large databases.
+/// Only allow a fixed set of SQL expressions, never interpolate input SQL.
+pub(crate) fn list_games_sorted_impl(
+    conn: &Connection,
+    filter: &GameFilter,
+    offset: i64,
+    limit: i64,
+    sort_by: Option<&str>,
+    descending: Option<bool>,
+) -> Result<GameList, String> {
+    let column = match sort_by.unwrap_or("import") {
+        "import" => "g.id",
+        "date" => "g.date",
+        "white" => "wp.name",
+        "black" => "bp.name",
+        "result" => "g.result",
+        "eco" => "g.eco",
+        "event" => "e.name",
+        "moves" => "g.ply_count",
+        other => return Err(format!("Unbekanntes Sortierfeld: {other}")),
+    };
+    let direction = if descending.unwrap_or(true) {
+        "DESC"
+    } else {
+        "ASC"
+    };
+    let order_sql = format!("{column} COLLATE NOCASE {direction}, g.id DESC");
+
     let clean = |s: &Option<String>| {
         s.as_deref()
             .map(str::trim)
@@ -473,7 +506,7 @@ pub(crate) fn list_games_impl(
          LEFT JOIN players bp ON bp.id = g.black_id
          LEFT JOIN events e ON e.id = g.event_id
          {LIST_WHERE}
-         ORDER BY g.id DESC
+         ORDER BY {order_sql}
          LIMIT ?8 OFFSET ?9"
     );
     let mut stmt = conn.prepare_cached(&rows_sql).map_err(|e| e.to_string())?;
@@ -531,8 +564,12 @@ pub async fn list_games(
     filter: GameFilter,
     offset: i64,
     limit: i64,
+    sort_by: Option<String>,
+    descending: Option<bool>,
 ) -> Result<GameList, String> {
-    with_conn(&state, |conn| list_games_impl(conn, &filter, offset, limit))
+    with_conn(&state, |conn| {
+        list_games_sorted_impl(conn, &filter, offset, limit, sort_by.as_deref(), descending)
+    })
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -1106,6 +1143,50 @@ mod tests {
         )
         .unwrap();
         assert_eq!(db_summary_impl(&conn).unwrap().sources, 2);
+    }
+
+    #[test]
+    fn list_games_global_sort_precedes_pagination() {
+        let (_dir, conn) = fixture_db();
+        let all = list_games_sorted_impl(
+            &conn,
+            &GameFilter::default(),
+            0,
+            50,
+            Some("white"),
+            Some(false),
+        )
+        .unwrap();
+        assert_eq!(all.total, 3);
+        let first = list_games_sorted_impl(
+            &conn,
+            &GameFilter::default(),
+            0,
+            1,
+            Some("white"),
+            Some(false),
+        )
+        .unwrap();
+        let second = list_games_sorted_impl(
+            &conn,
+            &GameFilter::default(),
+            1,
+            1,
+            Some("white"),
+            Some(false),
+        )
+        .unwrap();
+        assert_eq!(first.rows[0].id, all.rows[0].id);
+        assert_eq!(second.rows[0].id, all.rows[1].id);
+        assert!(list_games_sorted_impl(
+            &conn,
+            &GameFilter::default(),
+            0,
+            1,
+            Some("arbitrary SQL"),
+            None,
+        )
+        .is_err());
     }
 
     #[test]

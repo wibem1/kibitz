@@ -107,10 +107,10 @@ function renderPrep(opponent: string | null = "Halvorsen") {
 describe("Prep — opponent param prefill (Home's Go)", () => {
   it("prefills step 1 and searches immediately", async () => {
     const { findByText, getByPlaceholderText } = renderPrep("Halvorsen");
-    expect((getByPlaceholderText("Opponent name…") as HTMLInputElement).value).toBe("Halvorsen");
+    expect((getByPlaceholderText("Name des Gegners…") as HTMLInputElement).value).toBe("Halvorsen");
     expect(mocked.matchingPlayers).toHaveBeenCalledWith("Halvorsen");
     expect(await findByText("R. Halvorsen")).toBeTruthy();
-    expect(await findByText("148 games")).toBeTruthy();
+    expect(await findByText("148 Partien")).toBeTruthy();
   });
 
   it("does not search on its own without the param", () => {
@@ -136,10 +136,10 @@ describe("Prep — stepper persistence and back-navigation", () => {
 
     // Free backward navigation: chip ① → step 1, selections intact.
     fireEvent.click(getByText("Opponent"));
-    expect((getByPlaceholderText("Opponent name…") as HTMLInputElement).value).toBe("Halvorsen");
+    expect((getByPlaceholderText("Name des Gegners…") as HTMLInputElement).value).toBe("Halvorsen");
     // Forward onto a reached step works too.
     fireEvent.click(getByText("Fingerprint"));
-    expect(getByText("REPERTOIRE FINGERPRINT")).toBeTruthy();
+    expect(getByText("ERÖFFNUNGSPROFIL")).toBeTruthy();
   });
 
   it("weak-line selection carries its name and master count into the chips", async () => {
@@ -149,7 +149,7 @@ describe("Prep — stepper persistence and back-navigation", () => {
     fireEvent.click(await findByText("Sicilian, Alapin"));
     // Top-ranked card → step 4.
     fireEvent.click(await findByText("38% in 21"));
-    expect(getByText("MASTER GAMES IN THIS EXACT POSITION")).toBeTruthy();
+    expect(getByText("MEISTERPARTIEN IN DIESER STELLUNG")).toBeTruthy();
     expect(getByText("1 game")).toBeTruthy(); // chip ④ value
     expect(getByText("Sveshnikov, E.")).toBeTruthy();
   });
@@ -167,7 +167,7 @@ describe("Prep — prep_state recorded once at step-2 entry", () => {
     // Back to step 1 and into step 2 again — no second record.
     fireEvent.click(getByText("Opponent"));
     fireEvent.click(getByText("Fingerprint"));
-    await waitFor(() => expect(getByText("REPERTOIRE FINGERPRINT")).toBeTruthy());
+    await waitFor(() => expect(getByText("ERÖFFNUNGSPROFIL")).toBeTruthy());
     expect(mocked.prepStateSet).toHaveBeenCalledTimes(1);
   });
 });
@@ -183,7 +183,7 @@ describe("Prep — honest surfaces", () => {
 
   it("account-fetch buttons are disabled (sync is CLI-only today)", () => {
     const { getByText } = renderPrep(null);
-    expect((getByText("Fetch from Lichess") as HTMLButtonElement).disabled).toBe(true);
-    expect((getByText("Fetch from chess.com") as HTMLButtonElement).disabled).toBe(true);
+    expect((getByText("Von Lichess abrufen") as HTMLButtonElement).disabled).toBe(true);
+    expect((getByText("Von chess.com abrufen") as HTMLButtonElement).disabled).toBe(true);
   });
 });

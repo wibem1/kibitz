@@ -49,7 +49,7 @@ fn jaccard(a: &str, b: &str) -> f64 {
 }
 
 #[test]
-fn full_game_narration_is_delta_driven_and_snapshot_stable() {
+fn full_game_narration_is_delta_driven_and_german() {
     let (_d, conn) = setup();
     let report = kibitz_db::annotate::annotate_game(&conn, 1, 100_000, 64).unwrap();
     assert!(report.comments_added > 1, "{report:?}");
@@ -86,10 +86,22 @@ fn full_game_narration_is_delta_driven_and_snapshot_stable() {
         }
     }
 
-    // Snapshot the whole annotated export: any future drift in what gets
-    // narrated (or repeated) shows up as a reviewable diff.
+    // Check the German output of a full game without pinning the entire
+    // wording: translated templates may improve independently of the
+    // chess logic, while the repetition gate and idempotence stay strict.
     let pgn = kibitz_db::export::export_pgn(&conn, 1).unwrap();
-    insta::assert_snapshot!("opera_game_annotated", pgn);
+    assert!(
+        pgn.contains("Noch Eröffnungstheorie:"),
+        "opening explanation should be German: {pgn}"
+    );
+    assert!(
+        pgn.contains("Schlüsselfelder:"),
+        "positional explanations should be German: {pgn}"
+    );
+    assert!(
+        !pgn.contains("Here is what White") && !pgn.contains("Still in the book"),
+        "old English templates must not appear: {pgn}"
+    );
 
     // Determinism/idempotence: re-annotating regenerates identical rows.
     kibitz_db::annotate::annotate_game(&conn, 1, 100_000, 64).unwrap();

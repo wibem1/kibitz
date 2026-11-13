@@ -335,20 +335,23 @@ textarea {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 18px;
   padding: 22px 26px;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Conditional analysis strips may change the column's scroll range.
+     Never let browser scroll anchoring shift the board on a move. */
+  overflow-anchor: none;
+  scrollbar-gutter: stable;
 }
-/* The box the board is fitted to. It owns the space the strips below it
-   do not, so the board is sized to what actually exists rather than to a
-   guess — and can never be cropped by `overflow: hidden` on the column. */
+/* The board stays anchored at the top; conditional rows below it
+   may change height without moving or resizing the board. */
 .board-stage {
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 auto;
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 }
 .board-row {
@@ -494,7 +497,10 @@ textarea {
 /* ---- right pane (design §D) ---------------------------------------------- */
 
 .right-pane {
-  flex: 0 0 472px;
+  /* Prior 472px panel made the board uncomfortably small on laptop screens.
+     Reserve about one quarter of the game area for explanations and moves. */
+  flex: 0 0 clamp(320px, 27%, 360px);
+  min-width: 0;
   background: var(--panel);
   border-left: 1px solid var(--line);
   display: flex;
@@ -509,6 +515,12 @@ textarea {
   padding: 12px 16px;
   border-bottom: 1px solid var(--line);
   flex: none;
+}
+/* The narrower comments pane must wrap rather than overflow its actions. */
+.explain-panel .panel-header {
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
 }
 .panel-label {
   font: 700 10.5px var(--font-mono);
@@ -5354,4 +5366,66 @@ button.mv-var-line:hover {
 }
 .sentence-scheme .sentence-dot {
   background: var(--accent, currentColor);
+}
+
+
+/* German accessible layout: preserves original board geometry and semantic colours. */
+body { font-size: 16px; line-height: 1.45; }
+.rail:not(.collapsed) { flex-basis: 238px; }
+.rail-item { font-size: 15px; min-height: 37px; }
+.rail-heading, .col-label { font-size: 12px; letter-spacing: .07em; }
+.rail-db, .rail-badge, .header-meta, .status-strip { font-size: 12px; }
+.header-title { font-size: 21px; }
+button, input, select, textarea, .btn, .btn-primary, .btn-secondary, .btn-ghost, .btn-save {
+  font-size: 15px; min-height: 32px;
+}
+.set-label, .set-value, .set-help, .help-article, .help-reader, .modal-prose {
+  font-size: 15px; line-height: 1.5;
+}
+.kibitz-more { font-weight: 600; color: var(--accent); }
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid var(--info); outline-offset: 2px;
+}
+
+/* Offline chess: board and opponent settings stay side by side on desktop.
+   Do not let a long missing-engine message enlarge the board column and wrap
+   the settings underneath it. Leave top padding so rank eight is visible. */
+.offline-play-page {
+  width: 100%;
+  max-width: none;
+  padding: 18px 20px 28px;
+  box-sizing: border-box;
+  overflow-anchor: none;
+}
+.offline-play-page .play-columns {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.offline-play-page .play-board-col {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.offline-play-page .play-board-col [role="status"] {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.offline-play-page .play-side-col {
+  min-width: 280px;
+}
+
+.offline-engine-help {
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+.offline-engine-help p {
+  margin: 8px 0 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.offline-engine-help code {
+  font-family: var(--font-mono);
 }

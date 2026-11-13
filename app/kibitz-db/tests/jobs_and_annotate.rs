@@ -374,9 +374,9 @@ fn plant_suggest_results(conn: &rusqlite::Connection, clear_all: bool) {
 
 fn is_closing(text: &str) -> bool {
     // The coach-voice closing templates (templates/coach.tmpl): the
-    // constructive "If I had the move: ..." and the prophylactic
-    // "First, deny the opponent: ...".
-    text.contains("If I had the move") || text.contains("First, deny the opponent")
+    // konstruktive "Mein Vorschlag: ..." und prophylaktische
+    // "Zuerst dem Gegner zuvorkommen: ...".
+    text.contains("Mein Vorschlag:") || text.contains("Zuerst dem Gegner zuvorkommen:")
 }
 
 /// End to end (2026-07-29 field report): once the suggestion reviews

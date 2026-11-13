@@ -68,7 +68,7 @@ describe("summary first", () => {
     // buries it. Advice about the future must survive the summary.
     expect(container.textContent).toContain("third finding");
     const expander = container.querySelector(".explain-expander")!;
-    expect(expander.textContent).toBe("▾ 1 more finding — evidence is already on the board");
+    expect(expander.textContent).toBe("▾ 1 weiterer Hinweis – bereits auf dem Brett markiert");
     fireEvent.click(expander);
     expect(props.onToggleFindings).toHaveBeenCalled();
   });
@@ -76,7 +76,7 @@ describe("summary first", () => {
   it("expanded shows every finding and offers the way back", () => {
     const { container } = renderPanel({ findingsExpanded: true });
     expect(container.textContent).toContain("third finding");
-    expect(container.querySelector(".explain-expander")!.textContent).toBe("▴ summary only");
+    expect(container.querySelector(".explain-expander")!.textContent).toBe("▴ Nur Zusammenfassung");
   });
 
   it("a single finding gets no expander", () => {
@@ -114,8 +114,8 @@ describe("pinned foot meta", () => {
   it("is a single line carrying source, voice and selection state", () => {
     const { container } = renderPanel({ selectedSquare: "d7" });
     const meta = container.querySelector(".explain-meta")!;
-    expect(meta.textContent).toContain("Static screen · no engine spawned");
-    expect(meta.textContent).toContain("Coach voice · templates");
+    expect(meta.textContent).toContain("Stellungsprüfung · ohne Engine");
+    expect(meta.textContent).toContain("Trainer · Textbausteine");
     expect(meta.textContent).toContain("d7");
     // One element, no nested rows — the nowrap/ellipsis contract.
     expect(container.querySelectorAll(".explain-meta").length).toBe(1);
@@ -143,13 +143,13 @@ describe("horizon grouping", () => {
   it("heads each horizon and orders them now, next, long-term", () => {
     const { container } = renderPanel({ explanation: WITH_SCHEME, collapsed: false });
     const labels = [...container.querySelectorAll(".horizon-label")].map((n) => n.textContent);
-    expect(labels).toEqual(["NOW", "NEXT", "LONG-TERM"]);
+    expect(labels).toEqual(["JETZT", "ALS NÄCHSTES", "LANGFRISTIG"]);
   });
 
   it("omits a horizon with nothing in it rather than promising an empty section", () => {
     const { container } = renderPanel({ explanation: EXPL, collapsed: false });
     const labels = [...container.querySelectorAll(".horizon-label")].map((n) => n.textContent);
-    expect(labels).not.toContain("LONG-TERM");
+    expect(labels).not.toContain("LANGFRISTIG");
   });
 
   it("puts the scheme in the long-term group", () => {

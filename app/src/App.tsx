@@ -33,6 +33,10 @@ import Help from "./Help";
 import ImportView from "./ImportView";
 import JobsView from "./JobsView";
 import PlayView from "./PlayView";
+import OfflinePlayView from "./OfflinePlayView";
+import { localPgn, type LocalGame } from "./lib/localPlay";
+import { recordDiagnostic } from "./lib/diagnostics";
+import { restoreOfflineSession } from "./lib/offlineSession";
 import PrepView from "./PrepView";
 import SyncsView from "./SyncsView";
 import TwicView from "./TwicView";
@@ -55,6 +59,7 @@ import {
   gameAnalyses,
   getGame,
   getGameTokens,
+  importPgnIntoDatabase,
   getNarrationVoice,
   getSavedDbPath,
   getSavedVoice,
@@ -122,7 +127,6 @@ import {
   isEditableTarget,
   keyboardAction,
   openingOrientation,
-  railCollapsed,
   reduceGameView,
   type EditableTargetLike,
   type ExplanationJson,
@@ -173,7 +177,7 @@ function initialGameView(): GameViewState {
       localStorage.getItem(TREATMENT_KEY) === "instrument"
         ? "instrument"
         : "walnut",
-    theme: localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark",
+    theme: localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light",
     flipped: false,
   };
 }
@@ -195,29 +199,91 @@ interface PendingVariation {
 }
 
 const VIEW_TITLES: Record<ViewId, string> = {
-  home: "Home",
-  database: "Database",
-  game: "Game",
-  tree: "Opening tree",
-  search: "Position search",
-  profile: "Player profile",
-  prep: "Opponent prep",
-  train: "Openings SRS",
-  triage: "Opening triage",
-  lab: "Opening lab",
-  tactics: "Tactics",
-  endgames: "Endgames",
-  play: "Play online",
-  import: "Import PGN / SCID",
-  twic: "TWIC ingest",
-  syncs: "Account syncs",
-  jobs: "Jobs",
-  settings: "Settings",
+  home: "Start",
+  database: "Partien",
+  game: "Partie & Analyse",
+  tree: "Eröffnungsbaum",
+  search: "Stellung suchen",
+  profile: "Spielerprofil",
+  prep: "Gegnervorbereitung",
+  train: "Eröffnungen üben",
+  triage: "Eröffnungen prüfen",
+  lab: "Eröffnungslabor",
+  tactics: "Taktik",
+  endgames: "Endspiele",
+  play: "Online spielen",
+  offline: "Offline spielen",
+  import: "Partien importieren",
+  twic: "TWIC importieren",
+  syncs: "Konten abgleichen",
+  jobs: "Aufträge",
+  settings: "Einstellungen",
 };
 
 export default function App() {
   // Home is the startup screen (round-2 maintainer ruling: Direction A).
   const [view, setView] = useState<ViewId>("home");
+  const [exerciseGame, setExerciseGame] = useState<LoadedGame | null>(null);
+  const [exercisePly, setExercisePly] = useState(0);
+  const [exerciseSerial, setExerciseSerial] = useState(0);
+  const [transferPending, setTransferPending] = useState(false);
+  const [transferExported, setTransferExported] = useState(false);
+  const [transferDbState, setTransferDbState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [transferDbError, setTransferDbError] = useState<string | null>(null);
+  const playerSnapshot = useRef<LocalGame | null>(null);
+  const selectedTransfer = useRef<{ game: LoadedGame; ply: number } | null>(null);
+  const rememberPlayerGame = useCallback((played: LocalGame) => { playerSnapshot.current = played; }, []);
+  const getPreviousPlayerGame = () => {
+    if (playerSnapshot.current) return playerSnapshot.current;
+    try { return restoreOfflineSession(window.localStorage).game; }
+    catch { return null; }
+  };
+  const applyTransfer = () => {
+    const pending = selectedTransfer.current;
+    if (!pending) return;
+    setExerciseGame(pending.game);
+    setExercisePly(pending.ply);
+    setExerciseSerial((n) => n + 1);
+    setView("offline");
+    recordDiagnostic("game_handoff_confirmed");
+    setTransferPending(false);
+    setTransferExported(false);
+    setTransferDbState("idle");
+    setTransferDbError(null);
+    selectedTransfer.current = null;
+  };
+  const downloadPreviousPgn = () => {
+    const previous = getPreviousPlayerGame();
+    if (!previous || previous.sans.length === 0) return;
+    const url = URL.createObjectURL(new Blob([localPgn(previous)], { type: "application/x-chess-pgn;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Kibitz-DE-Partie-vor-Uebergabe.pgn";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    // A download request cannot prove that the user actually saved the file.
+    setTransferExported(true);
+  };
+  const savePreviousToDatabase = async () => {
+    const previous = getPreviousPlayerGame();
+    if (!previous || previous.sans.length === 0) return;
+    setTransferDbState("saving");
+    setTransferDbError(null);
+    try {
+      const report = await importPgnIntoDatabase(localPgn(previous), "Kibitz DE – Partie vor Übergabe");
+      if (report.imported === 1 || report.duplicates >= 1) {
+        setTransferDbState("saved");
+      } else {
+        setTransferDbState("error");
+        setTransferDbError(`Keine erfolgreiche Speicherung: ${report.failures.join(" · ")}`);
+      }
+    } catch (e) {
+      setTransferDbState("error");
+      setTransferDbError(`Datenbankspeicherung fehlgeschlagen: ${String(e)}`);
+    }
+  };
   // One-shot per-screen navigation params (lib/shell.ts ViewParams):
   // e.g. navigate("profile", { claim }) pre-selects a claim's evidence.
   const [viewParams, setViewParams] = useState<ViewParams>({});
@@ -228,7 +294,7 @@ export default function App() {
 
   const [game, setGame] = useState<LoadedGame | null>(null);
   const [status, setStatus] = useState(
-    "Open a game from the Database, or paste a PGN under Import.",
+    "Öffne eine Partie oder importiere eine PGN-Datei.",
   );
   const [annot, setAnnot] = useState<AnnotState | null>(null);
   const [saving, setSaving] = useState(false);
@@ -307,6 +373,9 @@ export default function App() {
 
   /** Route to a screen, optionally with one-shot params (ViewParams). */
   const navigate = useCallback((id: ViewId, params?: ViewParams) => {
+    // Selecting Offline spielen via navigation returns to the ordinary saved game.
+    // A new exercise is started exclusively with the game-view action.
+    if (id === "offline") setExerciseGame(null);
     setView(id);
     setViewParams(params ?? {});
   }, []);
@@ -513,7 +582,6 @@ export default function App() {
       setStatus(label + (warning ? ` ${warning}` : ""));
       setExplanations(new Map());
       setVerifications(new Map());
-      setRevealedQuiet(new Set());
       setPendingVar(null);
       setPreview(null);
     },
@@ -807,23 +875,15 @@ export default function App() {
   }, []);
 
   /* ---- explain (cache per ply; both voices arrive at once) ---- */
-  // Quiet positions keep the empty state until the user explicitly asks;
-  // fired screens show their explanation as soon as the (static, free)
-  // analysis lands.
-  const [revealedQuiet, setRevealedQuiet] = useState<Set<number>>(new Set());
-  const fetched = explainOn ? (explanations.get(gv.ply) ?? null) : null;
-  const currentExplanation =
-    fetched && (fetched.tag !== "QUIET POSITION" || revealedQuiet.has(gv.ply))
-      ? fetched
-      : null;
+  // A completed explanation must always be visible, including quiet
+  // positions. Hiding them created an endless "no explanation" state.
+  const currentExplanation = explainOn ? (explanations.get(gv.ply) ?? null) : null;
   const explainedPlies = useMemo(
     () => [...explanations.keys()].sort((a, b) => a - b),
     [explanations],
   );
 
   const doExplain = useCallback(async () => {
-    // An explicit request also reveals a quiet position's explanation.
-    setRevealedQuiet((r) => (r.has(gv.ply) ? r : new Set(r).add(gv.ply)));
     if (explaining || explanations.has(gv.ply)) return;
     const ply = gv.ply;
     setExplaining(true);
@@ -870,6 +930,51 @@ export default function App() {
       stale = true;
     };
   }, [explainOn, game, explanations, gv.ply, fen, gv.voice]);
+
+  // The direct-PGN workflow has no database ID. Let the explicit "Partie
+  // erläutern" action populate the existing per-ply explanation cache.
+  // This is static Kibitz narration, not a Stockfish full-game evaluation.
+  const [gameExplainProgress, setGameExplainProgress] = useState<string | null>(null);
+  const explainWholePgn = useCallback(async () => {
+    if (!game) return;
+    const requestedGame = game;
+    const requestToken = tokenReqRef.current;
+    const total = requestedGame.sans.length + 1;
+    const limit = Math.min(total, 300);
+    let completed = 0;
+    setGameExplainProgress(`0 / ${limit} Stellungen erklärt`);
+    setExplainOn(true);
+    for (let ply = 0; ply < limit; ply++) {
+      if (requestToken !== tokenReqRef.current) return;
+      try {
+        const res = await explainPosition(
+          requestedGame.fens[ply],
+          gv.voice,
+          ply > 0 ? requestedGame.fens[ply - 1] : undefined,
+          ply > 0 ? requestedGame.sans[ply - 1] : undefined,
+          requestedGame.sans.slice(0, ply),
+          requestedGame.fens[0],
+        );
+        if (requestToken !== tokenReqRef.current) return;
+        setExplanations((m) => new Map(m).set(ply, res.explanation));
+        completed++;
+      } catch (e) {
+        if (requestToken === tokenReqRef.current) {
+          setStatus(`Partieerläuterung bei Halbzug ${ply} abgebrochen: ${String(e)}`);
+          setGameExplainProgress(null);
+        }
+        return;
+      }
+      setGameExplainProgress(`${completed} / ${limit} Stellungen erklärt`);
+    }
+    if (requestToken !== tokenReqRef.current) return;
+    setGameExplainProgress(null);
+    setStatus(
+      limit < total
+        ? `${completed} Stellungen erläutert. Lange Partie: maximal 300 Stellungen pro Durchlauf.`
+        : `Alle ${completed} Stellungen der Partie erläutert. Keine Enginebewertung berechnet.`,
+    );
+  }, [game, gv.voice]);
 
   const toggleExplain = useCallback(() => setExplainOn((v) => !v), []);
 
@@ -1122,7 +1227,7 @@ export default function App() {
   }, [jobs]);
 
   /* ---- shell chrome data ---- */
-  const collapsed = railCollapsed(winWidth);
+  const collapsed = winWidth < 840; // retain readable navigation on normal desktop windows
   const dbLine = dbSummary
     ? `${dbSummary.path.split(/[\\/]/).pop() ?? dbSummary.path} · ${dbSummary.games.toLocaleString()} games`
     : null;
@@ -1152,7 +1257,8 @@ export default function App() {
     view === "prep" ||
     view === "tactics" ||
     view === "twic" ||
-    view === "play";
+    view === "play" ||
+    view === "offline";
 
   const pageView = (() => {
     switch (view) {
@@ -1255,6 +1361,8 @@ export default function App() {
         return <EndgameView treatment={gv.boardTreatment} />;
       case "play":
         return <PlayView treatment={gv.boardTreatment} onNavigate={navigate} />;
+      case "offline":
+        return <OfflinePlayView key={exerciseGame ? `exercise-${exerciseSerial}` : "normal-offline"} sourceGame={exerciseGame} sourcePly={exercisePly} onReturnToAnalysis={() => setView("game")} treatment={gv.boardTreatment} onEngineSettings={() => navigate("settings")} onAnalyze={doLoad} onPlayerStateChange={rememberPlayerGame} />;
       case "import":
         return <ImportView onLoad={doLoad} status={status} />;
       case "twic":
@@ -1337,6 +1445,8 @@ export default function App() {
             explainedPlies={explainedPlies}
             verification={verifications.get(gv.ply) ?? null}
             onExplain={() => void doExplain()}
+            onExplainGame={explainWholePgn}
+            gameExplainProgress={gameExplainProgress}
             pendingVar={pendingVar}
             onAcceptVar={acceptPendingVar}
             onDismissVar={() => setPendingVar(null)}
@@ -1348,6 +1458,14 @@ export default function App() {
             onPreviewStep={previewStepBy}
             onExitPreview={exitPreview}
             onCrosstable={setCrosstableEvent}
+            onPlayFromPosition={() => {
+              if (!game) return;
+              selectedTransfer.current = { game, ply: gv.ply };
+              setTransferExported(false);
+              setTransferDbState("idle");
+              setTransferDbError(null);
+              setTransferPending(true);
+            }}
           />
         ) : selfHeaded ? (
           pageView
@@ -1371,6 +1489,50 @@ export default function App() {
         />
       </div>
 
+      {transferPending && <div className="dialog-backdrop" role="presentation">
+        <section role="dialog" aria-modal="true" aria-labelledby="transfer-title"
+          style={{ background: "var(--viz-panel, #fff)", color: "var(--viz-text, #222)",
+            padding: 24, margin: "10vh auto", maxWidth: 560, borderRadius: 12 }}>
+          <h2 id="transfer-title">Partie auf der Spielseite ersetzen?</h2>
+          <p>Die gesamte angezeigte Partie wird auf die Spielseite übertragen.
+            Dort kannst du jede Stellung auswählen und von dort gegen Stockfish weiterspielen.</p>
+          {getPreviousPlayerGame()?.sans.length
+            ? <p><strong>Achtung:</strong> Auf der Spielseite liegt bereits eine Partie mit
+                {getPreviousPlayerGame()?.sans.length} Halbzügen.
+                Die bisherige Spielansicht wird beim Wechsel ersetzt. Die normale lokale
+                Zwischensicherung bleibt erhalten, ist aber keine Datenbanksicherung.</p>
+            : <p>Es ist derzeit keine gespielte Partie auf der Spielseite vorhanden.</p>}
+          <p>Du kannst die bisherige Partie vor der Übergabe als PGN herunterladen oder
+            ausdrücklich in der geöffneten Datenbank speichern. Prüfe beim PGN-Download,
+            ob die Datei tatsächlich gespeichert wurde.</p>
+          {transferDbState === "saved" && <p role="status">Vorherige Partie in der geöffneten Datenbank dauerhaft gespeichert oder als Duplikat erkannt.</p>}
+          {transferDbState === "saving" && <p role="status">Speichert die vorherige Partie in der Datenbank …</p>}
+          {transferDbError && <p role="alert">{transferDbError}</p>}
+          {transferExported && <p role="status">PGN-Download angefordert. Bitte kontrolliere,
+            ob die Datei gespeichert wurde, bevor du die Partie ersetzt.</p>}
+          <div className="play-actions" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <button className="btn-secondary" onClick={() => {
+              setTransferPending(false);
+              recordDiagnostic("game_handoff_cancelled");
+              setTransferExported(false);
+              setTransferDbState("idle");
+              setTransferDbError(null);
+              selectedTransfer.current = null;
+            }}>Abbrechen</button>
+            <button className="btn-secondary"
+              disabled={!getPreviousPlayerGame()?.sans.length}
+              onClick={downloadPreviousPgn}>Vorherige Partie als PGN speichern</button>
+            <button className="btn-secondary"
+              disabled={!dbSummary || !getPreviousPlayerGame()?.sans.length || transferDbState === "saving" || transferDbState === "saved"}
+              onClick={() => void savePreviousToDatabase()}>
+              {transferDbState === "saved" ? "In Datenbank gesichert ✓" : "Vorherige Partie in Datenbank speichern"}
+            </button>
+            <button className="btn-primary" disabled={transferDbState === "saving"} onClick={applyTransfer}>
+              {transferExported ? "Nach Prüfung ersetzen" : "Ohne zusätzliche Sicherung ersetzen"}
+            </button>
+          </div>
+        </section>
+      </div>}
       {crosstableEvent !== null && (
         <CrosstableView
           event={crosstableEvent}

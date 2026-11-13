@@ -67,7 +67,7 @@ function perfCell(row: TreeRow) {
   const delta = row.perf - row.avgElo;
   const cls = delta >= 0 ? "perf-pos" : "perf-neg";
   return (
-    <span className={cls} title={`performance ${row.perf} vs avg ${row.avgElo}`}>
+    <span className={cls} title={`Leistung ${row.perf}, Durchschnitt ${row.avgElo}`}>
       {delta >= 0 ? `+${delta}` : String(delta)}
     </span>
   );
@@ -161,17 +161,17 @@ export default function OpeningTreeView({ dbOpen, treatment, onOpenGameAt }: Ope
   };
 
   const columns: DataTableColumn<TreeRow>[] = [
-    { key: "move", header: "MOVE", render: (r) => <span className="tree-move">{r.san}</span> },
+    { key: "move", header: "ZUG", render: (r) => <span className="tree-move">{r.san}</span> },
     {
       key: "games",
-      header: "GAMES",
-      render: (r) => <span className="cell-mono">{r.count.toLocaleString("en-US")}</span>,
+      header: "PARTIEN",
+      render: (r) => <span className="cell-mono">{r.count.toLocaleString("de-DE")}</span>,
       sort: (a, b) => a.count - b.count,
     },
-    { key: "wdl", header: "W / D / L", render: wdlCell },
+    { key: "wdl", header: "S / R / N", render: wdlCell },
     {
       key: "elo",
-      header: "AVG ELO",
+      header: "Ø ELO",
       render: (r) => <span className="cell-mono">{r.avgElo ?? ""}</span>,
       sort: (a, b) => (a.avgElo ?? 0) - (b.avgElo ?? 0),
     },
@@ -201,8 +201,8 @@ export default function OpeningTreeView({ dbOpen, treatment, onOpenGameAt }: Ope
   return (
     <>
       <ScreenHeader
-        title="Opening tree"
-        subtitle={`Transposition-aware · follows the displayed position${timing}`}
+        title="Eröffnungsbaum"
+        subtitle={`Berücksichtigt Zugumstellungen · folgt der angezeigten Stellung${timing}`}
         actions={
           <>
             <button
@@ -210,15 +210,15 @@ export default function OpeningTreeView({ dbOpen, treatment, onOpenGameAt }: Ope
               onClick={toggleOnline}
               title={
                 online
-                  ? "Stop fetching lichess data (remembered)"
-                  : "Show the lichess opening explorer beside your database — fetches from explorer.lichess.ovh only while on"
+                  ? "Lichess-Abfrage ausschalten (Einstellung wird gemerkt)"
+                  : "Lichess-Eröffnungs-Explorer neben der Datenbank anzeigen; Daten werden nur bei Bedarf abgerufen"
               }
             >
-              {online ? "Online explorer: on" : "Online explorer: off"}
+              {online ? "Online-Explorer: ein" : "Online-Explorer: aus"}
             </button>
             {line.length > 0 && (
               <button className="btn-secondary" onClick={() => setLine([])}>
-                Back to start
+                Zur Anfangsstellung
               </button>
             )}
           </>
@@ -228,25 +228,25 @@ export default function OpeningTreeView({ dbOpen, treatment, onOpenGameAt }: Ope
         <div className="tree-main">
           <div className="tree-line">
             {crumbs.length === 0 ? (
-              <span className="tree-line-start">Initial position</span>
+              <span className="tree-line-start">Anfangsstellung</span>
             ) : (
               crumbs.map((c, i) => (
                 <button
                   key={`${i}-${c.san}`}
                   className="tree-crumb"
-                  title="Rewind to this move"
+                  title="Zu diesem Zug zurück"
                   onClick={() => setLine(line.slice(0, i + 1))}
                 >
                   {c.label}
                 </button>
               ))
             )}
-            <span className="tree-line-hint">follows the board</span>
+            <span className="tree-line-hint">folgt dem Brett</span>
           </div>
-          {error && <div className="error">Opening tree failed: {error}</div>}
+          {error && <div className="error">Eröffnungsbaum konnte nicht geladen werden: {error}</div>}
           <div className={`tree-tables${online ? " with-online" : ""}`}>
             <div className="tree-local">
-              {online && <div className="tree-pane-tag">YOUR DATABASE</div>}
+              {online && <div className="tree-pane-tag">DEINE DATENBANK</div>}
               <DataTable
                 columns={columns}
                 rows={rows}
@@ -259,17 +259,17 @@ export default function OpeningTreeView({ dbOpen, treatment, onOpenGameAt }: Ope
             {online && (
               <div className="tree-online">
                 <div className="tree-pane-tag online">
-                  LICHESS · ONLINE DATA
+                  LICHESS · ONLINE-DATEN
                   {onlineState?.kind === "data" && (
                     <span className="online-total">
-                      {explorerTotal(onlineState.reply).toLocaleString("en-US")} games
+                      {explorerTotal(onlineState.reply).toLocaleString("de-DE")} Partien
                     </span>
                   )}
                 </div>
                 {onlineState?.kind === "error" ? (
                   <div className="online-error">
-                    Lichess explorer unavailable: {onlineState.message}. Your local tree is
-                    unaffected.
+                    Lichess-Explorer nicht verfügbar: {onlineState.message}. Dein lokaler
+                    Eröffnungsbaum bleibt unverändert.
                   </div>
                 ) : (
                   <DataTable
@@ -280,27 +280,27 @@ export default function OpeningTreeView({ dbOpen, treatment, onOpenGameAt }: Ope
                     onRowClick={(r) => setLine([...line, r.san])}
                     empty={
                       onlineState?.kind === "loading" || onlineState === null
-                        ? "Fetching from lichess…"
-                        : "No lichess games from this position."
+                        ? "Lichess-Daten werden geladen …"
+                        : "Keine Lichess-Partien mit dieser Stellung gefunden."
                     }
                   />
                 )}
                 <div className="online-foot">
-                  explorer.lichess.ovh — community games, not your database. Fetched only
-                  while this pane is on; one request per position, cached.
+                  explorer.lichess.ovh – Partien anderer Spieler, nicht deine Datenbank.
+                  Abruf nur bei geöffnetem Bereich; Ergebnisse werden zwischengespeichert.
                 </div>
               </div>
             )}
           </div>
           <p className="tree-prose">
-            Transposition-aware: these counts merge every move order that reaches this
-            position, so a move here includes games that arrived by a different sequence.
+            Zugumstellungen werden zusammengefasst: Die Zahlen enthalten alle Partien,
+            die diese Stellung erreichen, auch über eine andere Zugfolge.
           </p>
         </div>
         <aside className="tree-aside">
           <Board fen={derived.fen} lastMove={derived.lastMove} treatment={treatment} size={472} />
           <div>
-            <div className="aside-title">GAMES REACHING THIS POSITION</div>
+            <div className="aside-title">PARTIEN MIT DIESER STELLUNG</div>
             {gamesAt && gamesAt.rows.length > 0 ? (
               <>
                 <div className="reaching-list">
@@ -321,7 +321,7 @@ export default function OpeningTreeView({ dbOpen, treatment, onOpenGameAt }: Ope
                   ))}
                 </div>
                 <div className="reaching-foot">
-                  {gamesAt.total.toLocaleString("en-US")} game{gamesAt.total === 1 ? "" : "s"} total
+                  {gamesAt.total.toLocaleString("de-DE")} {gamesAt.total === 1 ? "Partie" : "Partien"} insgesamt
                 </div>
               </>
             ) : (

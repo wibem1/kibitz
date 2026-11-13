@@ -22,45 +22,57 @@ function panel(currentPly: number, annotationMode: AnnotationMode = "full") {
   );
 }
 
-/** jsdom has no scrollIntoView; its zeroed layout rects make the
- * "current move out of view" branch always taken, so a spy observes
- * exactly when the follow-scroll effect fires. */
-const scrollSpy = vi.fn();
+/** Geometry is mocked because jsdom does not lay out elements.
+ * A current move lies outside the panel until the panel scrolls to it.
+ * Crucially the outer page must never be scrolled. */
+const scrollIntoViewSpy = vi.fn();
+let outerScroll: HTMLDivElement | null = null;
 
 beforeEach(() => {
-  scrollSpy.mockClear();
-  Element.prototype.scrollIntoView = scrollSpy;
+  scrollIntoViewSpy.mockClear();
+  Element.prototype.scrollIntoView = scrollIntoViewSpy;
+  vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
+    const panel = this.closest(".moves-panel")?.querySelector<HTMLElement>(".moves-body");
+    const top = this.classList.contains("moves-body")
+      ? 100
+      : this.classList.contains("mv-cell")
+        ? 400 - (panel?.scrollTop ?? 0)
+        : 0;
+    const height = this.classList.contains("moves-body") ? 200 : 20;
+    return { x: 0, y: top, top, left: 0, width: 400, height,
+      right: 400, bottom: top + height, toJSON: () => ({}) } as DOMRect;
+  });
+  outerScroll = document.createElement("div");
+  outerScroll.scrollTop = 73;
+  document.body.append(outerScroll);
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  outerScroll?.remove();
+  outerScroll = null;
+});
 
-describe("MovesPanel follow-scroll (audit #14)", () => {
-  it("centers the current move when the rows first arrive (game load)", () => {
-    // A resumed game renders mid-line on MOUNT — not only on stepping.
-    render(panel(4));
-    expect(scrollSpy).toHaveBeenCalledTimes(1);
-    expect(scrollSpy).toHaveBeenCalledWith({ block: "center" });
+describe("MovesPanel follow-scroll (audit #14, game window stability)", () => {
+  it("centers the move inside the moves list without scrolling ancestors", () => {
+    const { container } = render(panel(4));
+    const body = container.querySelector<HTMLElement>(".moves-body")!;
+    expect(body.scrollTop).toBe(210);
+    expect(scrollIntoViewSpy).not.toHaveBeenCalled();
+    expect(outerScroll?.scrollTop).toBe(73);
   });
 
-  it("re-centers after the annotation display mode changes", () => {
-    const { rerender } = render(panel(4, "full"));
-    scrollSpy.mockClear();
-    // Toggling full → hidden reflows the list; the effect must re-run.
+  it("follows stepping and reflows without unnecessary repeated scrolling", () => {
+    const { container, rerender } = render(panel(4, "full"));
+    const body = container.querySelector<HTMLElement>(".moves-body")!;
+    const initial = body.scrollTop;
     rerender(panel(4, "hidden"));
-    expect(scrollSpy).toHaveBeenCalledTimes(1);
-    // A no-op rerender does not scroll again (free scrolling stays free).
-    scrollSpy.mockClear();
-    rerender(panel(4, "hidden"));
-    expect(scrollSpy).not.toHaveBeenCalled();
-  });
-
-  it("still follows stepping, and ply 0 with no current cell scrolls to top", () => {
-    const { rerender } = render(panel(2));
-    scrollSpy.mockClear();
-    rerender(panel(3));
-    expect(scrollSpy).toHaveBeenCalledTimes(1);
-    scrollSpy.mockClear();
-    rerender(panel(0)); // before the first move: nothing to center
-    expect(scrollSpy).not.toHaveBeenCalled();
+    expect(body.scrollTop).toBe(initial);
+    rerender(panel(2, "hidden"));
+    expect(body.scrollTop).toBe(initial);
+    rerender(panel(0));
+    expect(body.scrollTop).toBe(0);
+    expect(scrollIntoViewSpy).not.toHaveBeenCalled();
   });
 });
 

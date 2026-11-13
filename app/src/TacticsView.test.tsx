@@ -100,10 +100,10 @@ describe("Tactics — Train this weakness seeding", () => {
     await findByText("Weakness-targeted");
     // Mode is weakness and the seed pill names the motif.
     expect(container.querySelector(".tx2-mode.cur")?.textContent).toContain("Weakness-targeted");
-    expect(getByText("SEEDED")).toBeTruthy();
+    expect(getByText("ÜBERNOMMEN")).toBeTruthy();
     expect(getByText("WeakKing")).toBeTruthy();
     // Serving passes ONLY the seeded motif as the weights (the API's hint).
-    fireEvent.click(getByText("Start solving"));
+    fireEvent.click(getByText("Training starten"));
     await waitFor(() => expect(mocked.nextPuzzle).toHaveBeenCalledTimes(1));
     expect(mocked.nextPuzzle).toHaveBeenCalledWith("weakness", undefined, [
       { kind: "WeakKing", allowed: 1, missed: 0 },
@@ -112,8 +112,8 @@ describe("Tactics — Train this weakness seeding", () => {
 
   it("without a seed and without a profile, weakness mode refuses honestly", async () => {
     const { findByText, getByText } = renderTactics();
-    await findByText("Start solving");
-    fireEvent.click(getByText("Start solving"));
+    await findByText("Training starten");
+    fireEvent.click(getByText("Training starten"));
     await findByText(/needs your profile/);
     expect(mocked.nextPuzzle).not.toHaveBeenCalled();
   });
@@ -122,14 +122,14 @@ describe("Tactics — Train this weakness seeding", () => {
 describe("Tactics — keyboard (⏎ / H / S / G, never inside inputs)", () => {
   it("Enter serves the next puzzle", async () => {
     const { findByText } = renderTactics("motif:WeakKing:missed");
-    await findByText("Start solving");
+    await findByText("Training starten");
     fireEvent.keyDown(window, { key: "Enter" });
     await waitFor(() => expect(mocked.nextPuzzle).toHaveBeenCalledTimes(1));
   });
 
   it("keys inside a focused input are swallowed (the editable exception)", async () => {
     const { container, findByText } = renderTactics("motif:WeakKing:missed");
-    await findByText("Start solving");
+    await findByText("Training starten");
     // The Woodpecker create panel provides a real text input.
     const input = container.querySelector(".tx2-wood-create input[type='text']")!;
     fireEvent.keyDown(input, { key: "Enter" });
@@ -143,15 +143,15 @@ describe("Tactics — keyboard (⏎ / H / S / G, never inside inputs)", () => {
 describe("Tactics — reasoning aside", () => {
   it("shows WHY THIS PUZZLE with the voice segmented wired to the app voice", async () => {
     const { getByText, findByText, onVoice } = renderTactics();
-    await findByText("WHY THIS PUZZLE");
+    await findByText("WARUM DIESE AUFGABE");
     fireEvent.click(getByText("Neutral"));
     expect(onVoice).toHaveBeenCalledWith("neutral");
   });
 
   it("the facts block labels sit in a 78px mono column (MOTIF/SOURCE/RATING)", async () => {
     const { findByText, getByText } = renderTactics();
-    await findByText("WHY THIS PUZZLE");
-    for (const label of ["MOTIF", "SOURCE", "RATING"]) {
+    await findByText("WARUM DIESE AUFGABE");
+    for (const label of ["MOTIV", "QUELLE", "WERTUNG"]) {
       expect(getByText(label)).toBeTruthy();
     }
   });

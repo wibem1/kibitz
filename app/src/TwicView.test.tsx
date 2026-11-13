@@ -211,7 +211,7 @@ describe("auto-sync idle trace (field report 2026-07-28)", () => {
   it("shows no trace when the toggle is off or nothing has run", async () => {
     vi.mocked(twicCatalog).mockResolvedValue(catalogFixture({ autoSync: true, autoLast: null }));
     const { container } = render(<TwicView progress={null} />);
-    await waitFor(() => expect(container.textContent).toContain("Automatically download"));
+    await waitFor(() => expect(container.textContent).toContain("automatisch laden"));
     expect(container.textContent).not.toContain("Last auto-check");
   });
 });

@@ -17,19 +17,19 @@ exports[`Home — degraded state (maintainer ruling: short honest list) > render
     class="home-degraded"
   >
     <p>
-      Nothing due today.
+      Heute keine Aufgaben fällig.
     </p>
     <p>
-      No new games this week.
+      Diese Woche keine neuen Partien.
     </p>
     <p>
       <button
         class="home-link"
       >
-        Build a profile
+        Spielprofil erstellen
       </button>
        
-      to surface findings.
+      und damit Hinweise zu deinem Spiel erhalten.
     </p>
   </div>
 </div>

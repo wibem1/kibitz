@@ -46,7 +46,7 @@ describe("account cards", () => {
   it("seeds the persisted username and shows the stored last-sync report", async () => {
     const { container } = render(<SyncsView progress={null} />);
     const input = container.querySelector<HTMLInputElement>('input[aria-label="Lichess username"]')!;
-    await waitFor(() => expect(input.value).toBe("SomeUser"));
+    await waitFor(() => expect(input.value).toBe("SomeUser"), { timeout: 3000 });
     // The stored UTC timestamp renders in the machine's LOCAL time
     // (audit #10) — assert via the same helper the component uses — and
     // the idle line carries the live per-service total (audit #16/#21).

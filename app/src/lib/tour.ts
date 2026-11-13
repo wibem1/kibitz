@@ -22,54 +22,38 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: "rail",
     anchor: "header",
-    title: "This is the rail.",
-    body:
-      "It is the whole app's router — every capability has a home here, " +
-      "including the command-line-only ones. The badges are live data or " +
-      "absent, never fake numbers.",
+    title: "Das ist die Navigation.",
+    body: "Hier erreichst du die Funktionen von Kibitz. Die kleinen Zahlen zeigen echte Daten an und bleiben sonst leer.",
   },
   {
     id: "study",
     anchor: "study",
-    title: "Study.",
-    body:
-      "Your games live here: the Database, the Game view (the centrepiece " +
-      "— board, Explain, moves), the transposition-aware Opening tree, and " +
-      "Position search.",
+    title: "Partien.",
+    body: "Hier findest du die Partiedatenbank, das Schachbrett mit der Zugliste, den Eröffnungsbaum und die Stellungssuche.",
   },
   {
     id: "coach",
     anchor: "coach",
-    title: "This is Coach.",
-    body:
-      "Everything Kibitz knows about your play lives in these screens — " +
-      "Explain reads positions, Profile reads your games, Prep reads your " +
-      "opponent. No engine runs unless a screen fires or you ask.",
+    title: "Analyse.",
+    body: "Kibitz erklärt Stellungen und untersucht deine Partien. Das Spielerprofil zeigt Stärken und Schwächen, die Gegnervorbereitung hilft vor einer Partie. Die Engine läuft nicht ohne Anlass.",
   },
   {
     id: "train",
     anchor: "train",
-    title: "Train.",
-    body:
-      "The daily queues: Openings SRS (FSRS-scheduled repertoire cards), " +
-      "Tactics, and the tiered Endgames curriculum graded against " +
-      "tablebase truth.",
+    title: "Training.",
+    body: "Übe Eröffnungen, Taktik und Endspiele. Wiederholungen helfen dabei, Varianten zu behalten.",
   },
   {
     id: "data",
     anchor: "data",
-    title: "Data in / out.",
-    body:
-      "Imports (PGN, SCID), the TWIC ingester, account syncs and the Jobs " +
-      "queue — the only place the engine actually runs.",
+    title: "Datenverwaltung.",
+    body: "Hier importierst du PGN- oder SCID-Daten, lädst TWIC-Partien, gleichst Konten ab und verwaltest Analyseaufträge.",
   },
   {
     id: "footer",
     anchor: "footer",
-    title: "Settings and Help.",
-    body:
-      "Settings names the engine spawn policy in words; Help & tour holds " +
-      "the full user guide — and can replay this tour any time.",
+    title: "Einstellungen und Hilfe.",
+    body: "Stelle die Darstellung und Engine ein. In der Hilfe findest du die Bedienungsanleitung und kannst diese Einführung erneut starten.",
   },
 ];
 

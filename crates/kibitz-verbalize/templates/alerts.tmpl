@@ -7,40 +7,40 @@
 # Lookup order per alert: `alert.<Kind>.<detail>` first (which absorbs the
 # detail into the lead), then `alert.<Kind>.<severity>`, then the generic.
 
-alert.Undefended.high = {subject} is simply hanging — nothing defends it.
-alert.Undefended.medium = {subject} is loose — nobody defends it.
-alert.Undefended.low = {subject} is undefended at the moment, which is worth keeping an eye on.
-alert.Undefended.loose = {subject} has been left without a defender — worth keeping an eye on.
-alert.Undefended.attacked-and-undefended = {subject} hangs — nobody defends it.
+alert.Undefended.high = {subject} ist ungedeckt und unmittelbar gefährdet.
+alert.Undefended.medium = {subject} ist ungedeckt.
+alert.Undefended.low = {subject} ist momentan nicht gedeckt; das sollte man im Blick behalten.
+alert.Undefended.loose = {subject} steht ohne Deckung da.
+alert.Undefended.attacked-and-undefended = {subject} ist angegriffen und ungedeckt.
 
 # The detector fires on a POSITIVE static exchange: the capture sequence
 # on this square wins material. That is a threat to be answered, not a
 # remark about defensive density — say what is at stake and what answers
 # it (2026-08-02 field report: "it's calling for defense? More like it's
 # being attacked").
-alert.InadequatelyDefended.high = Taking {subject} wins material outright — move it, defend it, or take the attacker.
-alert.InadequatelyDefended.medium = {subject} can be taken for less than it is worth — move it, add a defender, or capture the attacker.
-alert.InadequatelyDefended.low = The exchange on {subject} comes out slightly in the attacker's favour as it stands.
+alert.InadequatelyDefended.high = Ein Schlag auf {subject} gewinnt Material. Die Figur sollte ziehen, besser gedeckt oder der Angreifer beseitigt werden.
+alert.InadequatelyDefended.medium = Beim Schlag auf {subject} entsteht Materialverlust. Die Figur sollte ausweichen, zusätzliche Deckung erhalten oder den Angreifer schlagen.
+alert.InadequatelyDefended.low = Der Schlagabtausch um {subject} begünstigt momentan leicht den Angreifer.
 
 # Pure overload alerts (the subject is itself the overworked defender).
-alert.overloaded = {subject} is overloaded — it is the only piece defending {defenders}.
+alert.overloaded = {subject} ist überlastet und deckt als einzige Figur {defenders}.
 
-alert.TrappedPiece.high = {subject} is trapped, with no safe square to run to.
-alert.TrappedPiece.medium = {subject} is dangerously short of squares.
-alert.TrappedPiece.low = {subject} has very little room to move.
-alert.TrappedPiece.trapped-and-attacked = {subject} is trapped — it has no safe square to run to.
-alert.TrappedPiece.trapped-attackable = {subject} is running out of squares — it has no safe retreat, and the trap is ready to be sprung.
+alert.TrappedPiece.high = {subject} ist gefangen und hat kein sicheres Fluchtfeld.
+alert.TrappedPiece.medium = {subject} hat gefährlich wenige sichere Felder.
+alert.TrappedPiece.low = {subject} hat nur wenig Bewegungsfreiheit.
+alert.TrappedPiece.trapped-and-attacked = {subject} ist angegriffen und hat kein sicheres Fluchtfeld.
+alert.TrappedPiece.trapped-attackable = {subject} hat keinen sicheren Rückzug mehr; die Falle droht zuzuschnappen.
 
-alert.WeakKing.high = {subject} is seriously exposed{target_clause}.
-alert.WeakKing.medium = {subject} is not entirely safe{target_clause}.
-alert.WeakKing.low = {subject} shows a little draftiness{target_clause}.
+alert.WeakKing.high = {subject} ist ernsthaft gefährdet{target_clause}.
+alert.WeakKing.medium = {subject} steht nicht ganz sicher{target_clause}.
+alert.WeakKing.low = {subject} zeigt leichte Schwächen{target_clause}.
 
 # Fallback for alert kinds this file does not know yet.
-alert.generic = {subject} deserves tactical attention{target_clause}.
+alert.generic = {subject} verdient taktische Aufmerksamkeit{target_clause}.
 
 # .alt variants — deterministic phrasing variety keyed off the target
 # square, so consecutive same-kind alerts on different squares do not read
 # as copy-paste (run-5 feedback item 2).
-alert.Undefended.medium.alt = Nobody is watching {subject} right now.
-alert.InadequatelyDefended.medium.alt = {subject} has more attackers than its defenders can handle.
-alert.InadequatelyDefended.high.alt = The defense of {subject} simply does not hold together.
+alert.Undefended.medium.alt = {subject} steht derzeit ohne Deckung.
+alert.InadequatelyDefended.medium.alt = Die Angreifer auf {subject} überfordern die Verteidigung.
+alert.InadequatelyDefended.high.alt = Die Verteidigung von {subject} hält dem Angriff nicht stand.

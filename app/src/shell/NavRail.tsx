@@ -4,6 +4,7 @@
  * live data or absent — never fake numbers. Collapses to icon-only 56px
  * below 1280px window width (deliverable 2c).
  */
+import { useState } from "react";
 import type { JobsStatus, PlayerProfile, TrainSummary } from "../lib/db";
 import { railBadge, RAIL_FOOTER, RAIL_GROUPS, type RailItem, type ViewId } from "../lib/shell";
 import type { TacticsState } from "../lib/tactics";
@@ -42,6 +43,9 @@ export default function NavRail({
   onToggleExplain,
   onHelp,
 }: NavRailProps) {
+  // Standard navigation stays focused; advanced tools remain available.
+  const [advanced, setAdvanced] = useState(false);
+  const important = new Set(["home","database","game","explain","profile","tactics","endgames","import","play","offline"]);
   const item = (it: RailItem) => {
     const badge = railBadge(it.id, data);
     const isActive = it.id === active;
@@ -52,6 +56,7 @@ export default function NavRail({
         key={it.id}
         className={`rail-item${isActive ? " active" : ""}`}
         onClick={onClick}
+        aria-pressed={it.id === "explain" ? data.explainOn : undefined}
         title={collapsed ? `${it.label}${badge ? ` — ${badge}` : ""}` : undefined}
       >
         {collapsed ? (
@@ -70,17 +75,24 @@ export default function NavRail({
     <nav className={`rail${collapsed ? " collapsed" : ""}`}>
       <div className="rail-header">
         <div className="rail-wordmark">{collapsed ? "S" : "KIBITZ"}</div>
-        {!collapsed && <div className="rail-db">{dbLine ?? "no database open"}</div>}
+        {!collapsed && <div className="rail-db">{dbLine ?? "Keine Datenbank geöffnet"}</div>}
       </div>
       <div className="rail-body">
         {RAIL_GROUPS.map((g) => (
           <div key={g.heading} className="rail-group">
             <div className="rail-heading">{collapsed ? g.heading.slice(0, 2) : g.heading}</div>
-            {g.items.map(item)}
+            {g.items.filter((it) => advanced || important.has(it.id) || it.id === active).map(item)}
           </div>
         ))}
       </div>
-      <div className="rail-footer">{RAIL_FOOTER.map(item)}</div>
+      <div className="rail-footer">
+        <button type="button" className="rail-item kibitz-more" aria-expanded={advanced}
+          aria-label={advanced ? "Weniger Funktionen anzeigen" : "Weitere Funktionen anzeigen"}
+          onClick={() => setAdvanced((x) => !x)}>
+          {collapsed ? "⋯" : advanced ? "Weniger anzeigen" : "Weitere Funktionen"}
+        </button>
+        {RAIL_FOOTER.map(item)}
+      </div>
     </nav>
   );
 }

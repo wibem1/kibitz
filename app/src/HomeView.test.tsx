@@ -48,9 +48,9 @@ describe("Home — degraded state (maintainer ruling: short honest list)", () =>
     // no action cards, no findings panel, no invented widgets.
     expect(container.firstChild).toMatchSnapshot();
     expect(container.querySelector(".home-degraded")).toBeTruthy();
-    expect(container.textContent).toContain("Nothing due today.");
-    expect(container.textContent).toContain("No new games this week.");
-    expect(container.textContent).toContain("to surface findings.");
+    expect(container.textContent).toContain("Heute keine Aufgaben fällig.");
+    expect(container.textContent).toContain("Diese Woche keine neuen Partien.");
+    expect(container.textContent).toContain("und damit Hinweise zu deinem Spiel erhalten.");
     expect(container.querySelectorAll(".home-card")).toHaveLength(0);
     expect(container.querySelector(".home-lower")).toBeNull();
   });
@@ -64,7 +64,7 @@ describe("Home — degraded state (maintainer ruling: short honest list)", () =>
       commitment: null,
       prepState: [],
     });
-    expect(getByText("Resume review")).toBeTruthy();
+    expect(getByText("Analyse fortsetzen")).toBeTruthy();
     expect(container.querySelector(".home-degraded")).toBeTruthy();
   });
 
@@ -80,7 +80,7 @@ describe("Home — degraded state (maintainer ruling: short honest list)", () =>
         now={FIXED_NOW}
       />,
     );
-    fireEvent.click(getByText("Build a profile"));
+    fireEvent.click(getByText("Spielprofil erstellen"));
     expect(onNavigate).toHaveBeenCalledWith("profile");
   });
 });
@@ -206,11 +206,11 @@ describe("Home — honest numerals and navigation", () => {
         now={FIXED_NOW}
       />,
     );
-    expect(container.textContent).toContain("NETWORK");
+    expect(container.textContent).toContain("NETZWERK");
     expect(container.textContent).toContain("TWIC auto-sync · 2 / 5");
     expect(container.textContent).not.toContain("Nothing is running — the engine is cold.");
     // Honest about the engine while only the network works.
-    expect(container.textContent).toContain("the engine stays cold");
+    expect(container.textContent).toContain("die Engine bleibt ausgeschaltet");
   });
 
   it("prep Go navigates to Prep with the typed opponent", () => {
@@ -225,10 +225,10 @@ describe("Home — honest numerals and navigation", () => {
         now={FIXED_NOW}
       />,
     );
-    fireEvent.change(getByPlaceholderText("Search a name…"), {
+    fireEvent.change(getByPlaceholderText("Gegner suchen …"), {
       target: { value: "R. Halvorsen" },
     });
-    fireEvent.click(getByText("Go"));
+    fireEvent.click(getByText("Suchen"));
     expect(onNavigate).toHaveBeenCalledWith("prep", { opponent: "R. Halvorsen" });
   });
 });

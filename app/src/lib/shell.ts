@@ -24,6 +24,7 @@ export type ViewId =
   | "tactics"
   | "endgames"
   | "play"
+  | "offline"
   | "import"
   | "twic"
   | "syncs"
@@ -45,48 +46,49 @@ export interface RailGroup {
 /** The rail structure is fixed by the design; badges are dynamic. */
 export const RAIL_GROUPS: RailGroup[] = [
   {
-    heading: "STUDY",
+    heading: "PARTIEN",
     items: [
-      { id: "database", label: "Database", icon: "Db" },
-      { id: "game", label: "Game", icon: "Gm" },
-      { id: "tree", label: "Opening tree", icon: "Tr" },
-      { id: "search", label: "Position search", icon: "Ps" },
+      { id: "database", label: "Partiedatenbank", icon: "Db" },
+      { id: "game", label: "Partie ansehen", icon: "Gm" },
+      { id: "tree", label: "Eröffnungsbaum", icon: "Tr" },
+      { id: "search", label: "Stellung suchen", icon: "Ps" },
     ],
   },
   {
-    heading: "COACH",
+    heading: "ANALYSE",
     items: [
-      { id: "home", label: "Home", icon: "Hm" },
-      { id: "explain", label: "Explain", icon: "Ex" },
-      { id: "profile", label: "Profile", icon: "Pf" },
-      { id: "prep", label: "Opponent prep", icon: "Op" },
+      { id: "home", label: "Start", icon: "Hm" },
+      { id: "explain", label: "Erklärung an/aus", icon: "Ex" },
+      { id: "profile", label: "Partien auswerten", icon: "Pf" },
+      { id: "prep", label: "Gegner vorbereiten", icon: "Op" },
     ],
   },
   {
-    heading: "TRAIN",
+    heading: "TRAINING",
     items: [
-      { id: "train", label: "Openings SRS", icon: "Sr" },
-      { id: "triage", label: "Opening triage", icon: "Ot" },
-      { id: "lab", label: "Opening lab", icon: "Ol" },
-      { id: "tactics", label: "Tactics", icon: "Tc" },
-      { id: "endgames", label: "Endgames", icon: "Eg" },
-      { id: "play", label: "Play online", icon: "Py" },
+      { id: "train", label: "Eröffnungen üben", icon: "Sr" },
+      { id: "triage", label: "Eröffnungen prüfen", icon: "Ot" },
+      { id: "lab", label: "Eröffnungslabor", icon: "Ol" },
+      { id: "tactics", label: "Taktiktraining", icon: "Tc" },
+      { id: "endgames", label: "Endspieltraining", icon: "Eg" },
+      { id: "play", label: "Online spielen", icon: "Py" },
+      { id: "offline", label: "Offline spielen", icon: "Of" },
     ],
   },
   {
-    heading: "DATA IN / OUT",
+    heading: "VERWALTUNG",
     items: [
-      { id: "import", label: "Import PGN / SCID", icon: "Im" },
-      { id: "twic", label: "TWIC ingest", icon: "Tw" },
-      { id: "syncs", label: "Account syncs", icon: "Ac" },
-      { id: "jobs", label: "Jobs", icon: "Jb" },
+      { id: "import", label: "Partien importieren", icon: "Im" },
+      { id: "twic", label: "TWIC importieren", icon: "Tw" },
+      { id: "syncs", label: "Konten synchronisieren", icon: "Ac" },
+      { id: "jobs", label: "Aufträge", icon: "Jb" },
     ],
   },
 ];
 
 export const RAIL_FOOTER: RailItem[] = [
-  { id: "settings", label: "Settings", icon: "St" },
-  { id: "help", label: "Help & tour", icon: "?" },
+  { id: "settings", label: "Einstellungen", icon: "St" },
+  { id: "help", label: "Hilfe", icon: "?" },
 ];
 
 /**

@@ -5,7 +5,7 @@
  * The token is a SECRET: it is validated and stored Rust-side (app config
  * dir, own file, 0o600 on unix), never in the database, never logged, and
  * never echoed back — this section only ever shows
- * "configured · ends in …XXXX" plus the username it authenticated as.
+ * "eingerichtet · endet auf …XXXX" plus the username it authenticated as.
  */
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -35,9 +35,9 @@ export default function LichessSection() {
       const s = await lichessTokenSet(draft);
       setStatus(s);
       setDraft(""); // the secret leaves the DOM immediately
-      setNote(`Token saved — signed in as ${s.username ?? "?"}.`);
+      setNote(`Token gespeichert – angemeldet als ${s.username ?? "?"}.`);
     } catch (e) {
-      setNote(`Token not saved: ${e}`);
+      setNote(`Token konnte nicht gespeichert werden: ${e}`);
     } finally {
       setBusy(false);
     }
@@ -48,9 +48,9 @@ export default function LichessSection() {
     setNote(null);
     try {
       setStatus(await lichessTokenClear());
-      setNote("Token removed. Play streams stop.");
+      setNote("Token entfernt. Laufende Verbindungen werden beendet.");
     } catch (e) {
-      setNote(`Clear failed: ${e}`);
+      setNote(`Entfernen fehlgeschlagen: ${e}`);
     } finally {
       setBusy(false);
     }
@@ -58,24 +58,23 @@ export default function LichessSection() {
 
   const statusText =
     status === null
-      ? "unavailable"
+      ? "nicht verfügbar"
       : status.configured
-        ? `configured · ends in …${status.tokenTail ?? "????"}` +
-          (status.username ? ` · signed in as ${status.username}` : "")
-        : "not set";
+        ? `Eingerichtet · endet auf …${status.tokenTail ?? "????"}` +
+          (status.username ? ` · angemeldet als ${status.username}` : "")
+        : "nicht eingerichtet";
 
   return (
     <div className="set-group">
-      <div className="set-group-head">LICHESS PLAY</div>
+      <div className="set-group-head">LICHESS-SPIEL</div>
       <div className="set-row">
         <div>
-          <div className="set-label">Access token</div>
+          <div className="set-label">Zugriffstoken</div>
           <div className="set-help">
-            Personal access token with the <b>board:play</b> scope — create one at lichess.org →
-            Preferences → API access tokens. Stored in an owner-only file on this machine (never
-            in the database, never logged) and used for the Play online screen. While a game
-            runs, engine assistance is disabled everywhere on the play screen (lichess Terms of
-            Service).
+            Persönliches Token mit der Berechtigung <b>board:play</b>. Erstelle es unter
+            lichess.org → Einstellungen → API-Zugriffstoken. Das Token wird ausschließlich
+            auf diesem Gerät gespeichert, nicht in der Datenbank. Während einer Onlinepartie
+            ist die Enginehilfe entsprechend den Lichess-Regeln deaktiviert.
           </div>
         </div>
         <div className="set-value-cell">
@@ -84,10 +83,10 @@ export default function LichessSection() {
             className="set-value mono editing"
             type="password"
             value={draft}
-            placeholder="paste token (shown never again)"
+            placeholder="Token einfügen (danach nicht erneut sichtbar)"
             spellCheck={false}
             autoComplete="off"
-            aria-label="Lichess access token"
+            aria-label="Lichess-Zugriffstoken"
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && void save()}
           />
@@ -98,11 +97,11 @@ export default function LichessSection() {
             onClick={() => void save()}
             disabled={busy || draft.trim() === ""}
           >
-            {busy ? "Working…" : "Save token"}
+            {busy ? "Bearbeitung läuft …" : "Token speichern"}
           </button>
           {status?.configured && (
             <button className="btn-ghost" onClick={() => void clear()} disabled={busy}>
-              Clear token
+              Token entfernen
             </button>
           )}
         </div>

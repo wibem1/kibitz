@@ -15,6 +15,7 @@ import DataTable, { type DataTableColumn } from "./components/DataTable";
 import EvidencePane, { type EvidenceGame } from "./components/EvidencePane";
 import StatTile from "./components/StatTile";
 import ScreenHeader from "./shell/ScreenHeader";
+import CompareGames from "./CompareGames";
 import {
   aliasDeclare,
   aliasRemove,
@@ -92,6 +93,7 @@ export default function ProfileView({
   const [player, setPlayer] = useState(profile?.player ?? "");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [building, setBuilding] = useState(false);
+  const [analysisScope, setAnalysisScope] = useState<"all" | "two" | "selected">("all");
   const [error, setError] = useState<string | null>(null);
 
   // The claim param is one-shot: re-parse whenever navigation changes it.
@@ -336,7 +338,7 @@ export default function ProfileView({
       )}
       {p && subject === "self" && (
         <button className="btn" onClick={() => void buildSelf()} disabled={building}>
-          {building ? "Rebuilding…" : "Rebuild"}
+          {building ? "Wird neu ausgewertet …" : "Erneut auswerten"}
         </button>
       )}
     </>
@@ -346,8 +348,7 @@ export default function ProfileView({
   const buildForm = (
     <div className="pf2-build">
       <p className="pf2-build-prose">
-        Build a profile from the open database: static screens plus stored evals — the engine
-        never runs from here. Every number it produces opens its supporting games.
+        Werte die Partien eines Spielers in der geöffneten Datenbank gemeinsam aus. Dafür werden vorhandene Analysen verwendet; die Engine wird hier nicht gestartet. Ein Klick auf ein Ergebnis zeigt die zugehörigen Partien.
       </p>
       <div className="pf2-build-row">
         <input
@@ -355,7 +356,7 @@ export default function ProfileView({
           value={player}
           onChange={(e) => setPlayer(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && player.trim() !== "" && void buildSelf()}
-          placeholder="your name as it appears in your games…"
+          placeholder="Spielername aus der Datenbank …"
           spellCheck={false}
         />
         <button
@@ -363,7 +364,7 @@ export default function ProfileView({
           onClick={() => void buildSelf()}
           disabled={building || player.trim() === ""}
         >
-          {building ? "Building…" : "Build profile"}
+          {building ? "Auswertung läuft …" : "Partien auswerten"}
         </button>
       </div>
       {suggestions.length > 0 && player.trim().length >= 2 && !suggestions.includes(player) && (
@@ -376,7 +377,7 @@ export default function ProfileView({
         </div>
       )}
       <div className="hint">
-        Names match as you type from the open database — pick yours, then Build.
+        Wähle den Spielernamen aus der Datenbank und starte die Auswertung.
       </div>
       {error && (
         <div className="error">
@@ -392,14 +393,30 @@ export default function ProfileView({
   return (
     <div className="pf2">
       <ScreenHeader
-        title="Profile"
+        title="Partien auswerten"
         subtitle={
           p
-            ? `${p.player} · ${p.games} games · eval coverage ${p.eval_coverage_pct.toFixed(1)}% — every number opens its supporting games`
-            : "Engine-derived findings · every number opens its supporting games"
+            ? `${p.player} · ${p.games} Partien · vorhandene Bewertungen: ${p.eval_coverage_pct.toFixed(1)} % · Ergebnisse führen zu Beispielpartien`
+            : "Vergleichende Auswertung gespeicherter Partien mit nachvollziehbaren Beispielen"
         }
         actions={headerActions}
       />
+      <div className="pf2-build" style={{ paddingBottom: 0 }}>
+        <label htmlFor="analysis-scope">Was soll ausgewertet werden? </label>
+        <select id="analysis-scope" aria-label="Umfang der Auswertung"
+          value={analysisScope}
+          onChange={(e) => setAnalysisScope(e.target.value as "all" | "two" | "selected")}
+        >
+          <option value="all">Alle Partien eines Spielers</option>
+          <option value="two">Zwei ausgewählte Partien vergleichen</option>
+          <option value="selected">Gefilterte oder manuell ausgewählte Partien auswerten</option>
+        </select>
+      </div>
+      {analysisScope === "two" ? (
+        <CompareGames onLoadGameAt={onLoadGameAt} />
+      ) : analysisScope === "selected" ? (
+        <CompareGames mode="group" onLoadGameAt={onLoadGameAt} />
+      ) : (
       <div className="pf2-body">
         <div className="pf2-content">
           {!p ? (
@@ -629,6 +646,7 @@ export default function ProfileView({
           }
         />
       </div>
+      )}
     </div>
   );
 }

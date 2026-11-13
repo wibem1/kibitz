@@ -18,6 +18,7 @@ import EvalBar from "./EvalBar";
 import ExplainPanel from "./ExplainPanel";
 import MovesPanel, { type MovesEditing } from "./MovesPanel";
 import { evalsByPly, type AnalysisRow } from "./lib/analyses";
+import { reviewGame } from "./lib/gameReview";
 import {
   annotateGame,
   batchPause,
@@ -31,7 +32,9 @@ import {
 import { repGlyphsByPly, type RepertoireMark } from "./lib/repMarks";
 import {
   analyzeLive,
+  analyzePosition,
   getSavedEnginePath,
+  onEngineDone,
   onEngineInfo,
   stopAnalysis,
 } from "./lib/engine";
@@ -49,7 +52,7 @@ import {
   COACH_HOVER_INDEX,
   deriveEvidence,
   deriveIntensity,
-  fitBoardSize,
+  fitGameBoardSize,
   selectPlyAnalysis,
   type ExplanationJson,
   type GameViewAction,
@@ -95,6 +98,8 @@ interface GameViewProps {
   /** CONSIDER-chip verification state for the current ply (run 11). */
   verification: VerificationState | null;
   onExplain: () => void;
+  onExplainGame: () => Promise<void>;
+  gameExplainProgress: string | null;
   pendingVar: PendingVariation | null;
   onAcceptVar: () => void;
   onDismissVar: () => void;
@@ -108,6 +113,7 @@ interface GameViewProps {
   onExitPreview: () => void;
   /** Event-line click — the parent opens the crosstable modal (run 10). */
   onCrosstable: (event: string) => void;
+  onPlayFromPosition: () => void;
 }
 
 /** Percent position of a square in the grid for an orientation. */
@@ -154,6 +160,8 @@ export default function GameView({
   explainedPlies,
   verification,
   onExplain,
+  onExplainGame,
+  gameExplainProgress,
   pendingVar,
   onAcceptVar,
   onDismissVar,
@@ -165,10 +173,9 @@ export default function GameView({
   onPreviewStep,
   onExitPreview,
   onCrosstable,
+  onPlayFromPosition,
 }: GameViewProps) {
   const colRef = useRef<HTMLDivElement | null>(null);
-  /** The box the board is fitted to: everything the strips leave behind. */
-  const stageRef = useRef<HTMLDivElement | null>(null);
   const [boardSize, setBoardSize] = useState(656);
 
   /* ---- live analysis (run-8): explicit toggle, go-infinite, hard stop ---- */
@@ -183,35 +190,120 @@ export default function GameView({
     info: EngineInfo;
     fen: string;
   } | null>(null);
+  const [singleEval, setSingleEval] = useState<{
+    fen: string;
+    status: "running" | "done" | "error";
+    info: EngineInfo | null;
+    error?: string;
+  } | null>(null);
+  const singleEvalRef = useRef<string | null>(null);
+  const [engineEventsReady, setEngineEventsReady] = useState(false);
+  const [liveError, setLiveError] = useState<string | null>(null);
   const liveRef = useRef(live);
   liveRef.current = live;
   const liveDispatch = useCallback((event: LiveEvent) => {
     const { next, commands } = liveReduce(liveRef.current, event);
     liveRef.current = next;
     setLive(next);
+    if (event.type === "toggle" && next.on) setLiveError(null);
     for (const c of commands) {
-      if (c.kind === "stop") void stopAnalysis().catch(() => {});
-      else void analyzeLive(c.fen, getSavedEnginePath()).catch(() => {});
+      if (c.kind === "stop") {
+        void stopAnalysis().catch((e) => onStatus(`Stockfish konnte nicht gestoppt werden: ${String(e)}`));
+      } else {
+        void analyzeLive(c.fen, getSavedEnginePath()).catch((e) => {
+          setLiveError(String(e));
+          onStatus(`Stockfish-Live-Analyse fehlgeschlagen: ${String(e)}`);
+          liveRef.current = liveInitial;
+          setLive(liveInitial);
+        });
+      }
     }
     if (!next.on) setLiveInfo(null);
-  }, []);
+  }, [onStatus]);
   useEffect(() => {
     // Follow the shown position while live; no-op when off.
     liveDispatch({ type: "fenChanged", fen });
   }, [fen, liveDispatch]);
   useEffect(() => {
-    // Streamed PV/eval while live only, attributed to the fen the search
-    // actually ran on (the event's own stamp — see the note above).
-    let un: (() => void) | undefined;
-    onEngineInfo((info) => {
-      if (liveRef.current.on && info.fen) {
-        setLiveInfo({ info, fen: info.fen });
+    // Subscribe before enabling explicit position evaluation. Every info
+    // is stamped by the backend with the actual FEN searched.
+    let cancelled = false;
+    let unsubscribeInfo: (() => void) | undefined;
+    let unsubscribeDone: (() => void) | undefined;
+    Promise.all([
+      onEngineInfo((info) => {
+        if (liveRef.current.on && info.fen) {
+          setLiveInfo({ info, fen: info.fen });
+        }
+        if (singleEvalRef.current === info.fen) {
+          setSingleEval((v) =>
+            v?.fen === info.fen ? { ...v, info } : v,
+          );
+        }
+      }),
+      onEngineDone((done) => {
+        const searchedFen = singleEvalRef.current;
+        if (searchedFen === null) {
+          // Live mode is unbounded; an unexpected engine-done means
+          // the search stopped or failed. Never leave "Engine rechnet"
+          // indefinitely without an explanation.
+          if (liveRef.current.on) {
+            const message = done.error
+              ? `Stockfish-Fehler: ${done.error}`
+              : "Stockfish hat die Live-Analyse beendet.";
+            setLiveError(message);
+            liveRef.current = liveInitial;
+            setLive(liveInitial);
+            onStatus(message);
+          }
+          return;
+        }
+        singleEvalRef.current = null;
+        setSingleEval((v) => {
+          if (v?.fen !== searchedFen) return v;
+          if (done.error) return { ...v, status: "error", error: done.error };
+          if (!v.info) return {
+            ...v, status: "error", error: "Stockfish beendete die Berechnung ohne Stellungsbewertung.",
+          };
+          return { ...v, status: "done" };
+        });
+      }),
+    ]).then(([unInfo, unDone]) => {
+      if (cancelled) { unInfo(); unDone(); }
+      else {
+        unsubscribeInfo = unInfo;
+        unsubscribeDone = unDone;
+        setEngineEventsReady(true);
       }
-    }).then((u) => {
-      un = u;
+    }).catch((e) => onStatus(`Stockfish-Ereignisse konnten nicht abonniert werden: ${String(e)}`));
+    return () => {
+      cancelled = true;
+      unsubscribeInfo?.();
+      unsubscribeDone?.();
+    };
+  }, [onStatus]);
+
+  const doSingleEvaluation = useCallback(() => {
+    if (!engineEventsReady || singleEvalRef.current !== null || liveRef.current.on) return;
+    const searchedFen = fen;
+    singleEvalRef.current = searchedFen;
+    setSingleEval({ fen: searchedFen, status: "running", info: null });
+    // A bounded request terminates with engine-done; unlike "go infinite"
+    // it produces a stable result for the user's explicit evaluation button.
+    void analyzePosition(searchedFen, 250_000, getSavedEnginePath()).catch((e) => {
+      if (singleEvalRef.current === searchedFen) {
+        singleEvalRef.current = null;
+        setSingleEval({ fen: searchedFen, status: "error", info: null, error: String(e) });
+      }
     });
-    return () => un?.();
-  }, []);
+  }, [engineEventsReady, fen]);
+
+  useEffect(() => {
+    if (singleEvalRef.current !== null && singleEvalRef.current !== fen) {
+      singleEvalRef.current = null;
+      void stopAnalysis().catch(() => {});
+    }
+  }, [fen]);
   useEffect(
     () => () => {
       // Unmount (view change / game close) hard-stops the search.
@@ -222,6 +314,16 @@ export default function GameView({
 
   // Info for the SHOWN position only (see the stamped-fen note above).
   const liveCur = liveInfo && liveInfo.fen === fen ? liveInfo.info : null;
+  const currentSingleEval = singleEval?.fen === fen ? singleEval : null;
+  // A running engine with no score is not a successful analysis. Make the
+  // missing stream visible instead of showing a perpetual "rechnet".
+  useEffect(() => {
+    if (!live.on || liveCur) return;
+    const timeout = window.setTimeout(() => {
+      setLiveError((prev) => prev ?? "Stockfish liefert nach 12 Sekunden noch keine Bewertungsdaten. Engine-Pfad und Ereignisübertragung prüfen.");
+    }, 12000);
+    return () => window.clearTimeout(timeout);
+  }, [live.on, liveCur, fen]);
   const pvSans = useMemo(
     () => (liveCur?.pv ? uciPvToSan(fen, liveCur.pv) : []),
     [liveCur, fen],
@@ -256,7 +358,7 @@ export default function GameView({
       ),
     );
     onStatus(
-      `Engine line added as a variation of ${game?.sans[gv.ply] ?? "the next move"} — Save to keep it.`,
+      `Engine-Variante zu ${game?.sans[gv.ply] ?? "dem nächsten Zug"} eingefügt. Bitte speichern.`,
     );
   };
 
@@ -375,21 +477,17 @@ export default function GameView({
   // Resize (deliverable 2c): the board column absorbs extra width; the
   // board snaps to the largest multiple of 8 that fits (min 496).
   //
-  // Measure the STAGE — the flex child that owns whatever vertical space
-  // is left once the strips and controls have taken theirs. The previous
-  // version measured the whole column and subtracted a fixed 120px for
-  // its chrome, which is right only when none of the conditional rows
-  // (live analysis, preview pill, variation offer) is showing. With one
-  // up, the board was sized for more room than existed and `overflow:
-  // hidden` cropped it — read as the board changing size while stepping
-  // (2026-08-02 field report). The strip row now also reserves its
-  // height, so the stage is the same box whether a strip is up or not.
+  // Stable board geometry: measure the BOARD COLUMN, not the remaining
+  // flexible stage. Conditional live/preview/explanation rows must never
+  // resize or vertically recenter the board when stepping through moves.
+  // Keep room for controls and optional strips; on smaller windows the
+  // column scrolls instead of cropping the board.
   useLayoutEffect(() => {
-    const el = stageRef.current;
+    const el = colRef.current;
     if (!el) return;
     const measure = () => {
       const r = el.getBoundingClientRect();
-      setBoardSize(fitBoardSize(r.width - 46, r.height, gv.boardTreatment));
+      setBoardSize(fitGameBoardSize(r.width, r.height, gv.boardTreatment));
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -454,6 +552,8 @@ export default function GameView({
   }, [editing, game, analysisRows]);
 
   const evalsMap = useMemo(() => evalsByPly(analysisRows), [analysisRows]);
+  const review = useMemo(() => reviewGame(game?.sans ?? [], analysisRows), [game, analysisRows]);
+  const [reviewOpen, setReviewOpen] = useState(false);
   // Marks only render when repertoires exist — no toggle needed (run-9).
   const repGlyphs = useMemo(
     () => (repMarks.length > 0 ? repGlyphsByPly(repMarks) : null),
@@ -472,7 +572,7 @@ export default function GameView({
   const headers = game?.headers ?? {};
   const title = game
     ? `${headers["White"] ?? "?"} — ${headers["Black"] ?? "?"}`
-    : "No game loaded";
+    : "Keine Partie geladen";
   const meta = game
     ? [
         [headers["Site"], headers["Date"]?.slice(0, 4)]
@@ -488,7 +588,12 @@ export default function GameView({
     : "Open a game from the Database, or paste a PGN under Import.";
 
   const doAnnotate = async () => {
-    if (gameId === null) return;
+    if (gameId === null) {
+      setActing(true);
+      try { await onExplainGame(); }
+      finally { setActing(false); }
+      return;
+    }
     setActing(true);
     try {
       const s: AnnotateSummary = await annotateGame(gameId);
@@ -564,22 +669,22 @@ export default function GameView({
           {game && crosstableEligible(headers["Event"]) && (
             <button
               className="header-event-link"
-              title="Open the crosstable for this event"
+              title="Kreuztabelle dieses Turniers öffnen"
               onClick={() => onCrosstable(headers["Event"]!)}
             >
-              {headers["Event"]} · crosstable
+              {headers["Event"]} · Kreuztabelle
             </button>
           )}
         </div>
         <div className="header-actions">
-          <span className="seg" role="group" aria-label="Board treatment">
+          <span className="seg" role="group" aria-label="Brettdarstellung">
             {(["walnut", "instrument"] as const).map((t) => (
               <button
                 key={t}
                 className={gv.boardTreatment === t ? "cur" : ""}
                 onClick={() => dispatch({ type: "setTreatment", treatment: t })}
               >
-                {t}
+                {t === "walnut" ? "Holz" : "Neutral"}
               </button>
             ))}
           </span>
@@ -587,33 +692,80 @@ export default function GameView({
           <button
             className="btn"
             onClick={() => void doAnnotate()}
-            disabled={gameId === null || acting}
-            title="The coach: write prose comments for the whole game (static, free) and engine-verify any tactical alerts"
+            disabled={!game || acting || gameExplainProgress !== null}
+            title={gameId === null ? "Alle Stellungen ohne Datenbank erläutern (ohne Enginebewertung)" : "Die ganze Partie erläutern; taktische Hinweise bei Bedarf mit der Engine prüfen"}
           >
-            Annotate
+            Partie erläutern
           </button>
           <button
             className="btn"
-            onClick={() => void doReanalyze()}
-            disabled={gameId === null || acting}
-            title="The numbers: fresh engine evaluation of every position — fills the eval column and eval bar"
+            onClick={() => gameId === null
+              ? doSingleEvaluation()
+              : void doReanalyze()}
+            disabled={!game || acting || (gameId === null && (!engineEventsReady || live.on || singleEvalRef.current !== null))}
+            title={gameId === null ? "Einmalige Stockfish-Bewertung der aktuellen Stellung (250.000 Knoten)" : "Alle Stellungen neu mit der Engine bewerten"}
           >
-            Re-analyze
+            {gameId === null ? (currentSingleEval?.status === "running" ? "Stockfish bewertet …" : "Stellung bewerten") : "Neu bewerten"}
+          </button>
+          <button className="btn" disabled={!game}
+            title="Die vollständige Partie einschließlich aller Züge auf die Spielseite übertragen. Dort ab beliebiger Stellung gegen Stockfish spielen."
+            onClick={onPlayFromPosition}>Ganze Partie zur Spielseite</button>
+          <button className="btn" disabled={!game}
+            onClick={() => setReviewOpen((open) => !open)}>
+            {reviewOpen ? "Partieübersicht schließen" : "Fehler und Schlüsselstellen"}
           </button>
           <button
             className="btn"
             onClick={() => void doExport()}
             disabled={gameId === null}
           >
-            Export PGN
+            PGN exportieren
           </button>
         </div>
       </header>
 
+      {reviewOpen && game && <section className="game-inline-job" aria-label="Fehler und Schlüsselstellen">
+        <h3>Partieauswertung – gespeicherte Enginebewertungen</h3>
+        <p>{review.eligibleMoves} von {review.totalMoves} Halbzügen haben Bewertungen unmittelbar davor und danach.
+          {review.coverage < 1 ? " Ohne vollständige Bewertungsabdeckung sind die Fehlerzahlen unvollständig." : ""}</p>
+        <p>Ungenauigkeiten: {review.moments.filter((m) => m.severity === "Ungenauigkeit").length} ·
+          Fehler: {review.moments.filter((m) => m.severity === "Fehler").length} ·
+          Grobe Fehler: {review.moments.filter((m) => m.severity === "Grober Fehler").length}</p>
+        {review.eligibleMoves === 0 && <p>Keine aufeinanderfolgenden Stellungsbewertungen vorhanden.
+          Bei gespeicherten Datenbankpartien zuerst „Neu bewerten“ ausführen. Bei geladenen PGN-Partien
+          ist vor einer vollständigen Bewertung ein Datenbankimport erforderlich.</p>}
+        <h4>Schlüsselstellen – größte gemessene Bewertungsverluste</h4>
+        {review.keyMoments.length === 0 && <p>Keine nachweisbaren Fehlerstellen in den bislang bewerteten Zügen.</p>}
+        {review.keyMoments.map((m) => <div key={m.ply} className="play-actions">
+          <button className="btn-secondary" onClick={() => setPly(m.ply)}>
+            {Math.ceil(m.ply / 2)}{m.ply % 2 === 1 ? "." : "..."} {m.san} · {m.severity} · −{(m.lossCp / 100).toFixed(2)} Bauern
+            {" — Stellung zeigen"}
+          </button>
+        </div>)}
+        <h4>Alle erkannten Fehler</h4>
+        {review.moments.map((m) => <button key={m.ply} className="btn-secondary"
+          onClick={() => setPly(m.ply)}>
+          {Math.ceil(m.ply / 2)}{m.ply % 2 === 1 ? "." : "..."} {m.san}: {m.severity}
+        </button>)}
+        <p>Die Schwellenwerte (0,50/1,00/2,00 Bauern) sind eine einfache Einordnung anhand vorhandener Bewertungen.
+          Die Schlüsselstellen sind vorläufig die größten Bewertungsverluste, noch keine strategische KI-Auswahl.
+          Auf einen Eintrag klicken, zur Stellung springen und anschließend „Ab hier gegen Stockfish spielen“ wählen.</p>
+      </section>}
+      {gameExplainProgress && <p role="status" className="game-inline-job">{gameExplainProgress}</p>}
+      {gameId === null && currentSingleEval && (
+        <div className="game-inline-job" role="status">
+          {currentSingleEval.status === "error"
+            ? `Stockfish-Fehler: ${currentSingleEval.error}`
+            : currentSingleEval.info
+              ? `Stockfish: ${formatScore(currentSingleEval.info, fen)}${currentSingleEval.info.depth !== undefined ? ` · Tiefe ${currentSingleEval.info.depth}` : ""}${currentSingleEval.status === "running" ? " · rechnet …" : " · fertig"}`
+              : "Stockfish berechnet die Stellung …"}
+        </div>
+      )}
+      {liveError && <p role="alert" className="game-inline-job">{liveError}</p>}
       {gameBatch && (
         <div className="inline-job-row game-inline-job" role="status">
           <span className="inline-job-label">
-            {gameBatch.kind === "reanalyze" ? "REANALYZING" : "ANNOTATING"} ·{" "}
+            {gameBatch.kind === "reanalyze" ? "NEUBEWERTUNG" : "ERLÄUTERUNG"} ·{" "}
             {gameBatch.positions.toLocaleString("en-US")} position
             {gameBatch.positions === 1 ? "" : "s"}
           </span>
@@ -625,7 +777,7 @@ export default function GameView({
           </span>
           <span className="inline-job-detail">
             {gameBatch.done
-              ? "done — evals and annotations refreshed"
+              ? "Fertig – Bewertungen und Kommentare aktualisiert"
               : `${Math.round(batchFraction * 100)}% · ${Math.max(
                   0,
                   gameBatch.total - (batchRemaining ?? gameBatch.total),
@@ -637,7 +789,7 @@ export default function GameView({
             <button
               className="btn-ghost"
               onClick={() => setGameBatch(null)}
-              title="Dismiss"
+              title="Schließen"
             >
               ✕
             </button>
@@ -647,7 +799,7 @@ export default function GameView({
               onClick={() => void doPauseBatch()}
               disabled={pausing}
             >
-              {pausing ? "Pausing…" : "Pause"}
+              {pausing ? "Wird pausiert …" : "Pause"}
             </button>
           )}
         </div>
@@ -655,7 +807,7 @@ export default function GameView({
 
       <div className="game-main">
         <div className="board-column" ref={colRef}>
-          <div className="board-stage" ref={stageRef}>
+          <div className="board-stage">
             <div className="board-row">
               <EvalBar
                 row={preview ? null : evalRow}
@@ -702,33 +854,33 @@ export default function GameView({
 
           {preview && (
             <div className="preview-pill" role="status">
-              <span className="preview-tag">PREVIEWING VARIATION</span>
+              <span className="preview-tag">VARIANTE ANSEHEN</span>
               <span className="preview-label">{preview.label}</span>
               <span className="btn-group preview-nav">
                 <button
                   onClick={() => onPreviewStep(-1)}
                   disabled={preview.at === 0}
-                  title="Back within the variation (←)"
+                  title="In der Variante zurück (←)"
                 >
                   ◀
                 </button>
                 <button
                   onClick={() => onPreviewStep(1)}
                   disabled={preview.at >= preview.sans.length}
-                  title="Forward within the variation (→)"
+                  title="In der Variante vorwärts (→)"
                 >
                   ▶
                 </button>
               </span>
               <span className="ply-pill">
-                move {preview.at} / {preview.sans.length}
+                Zug {preview.at} / {preview.sans.length}
               </span>
               <button
                 className="btn preview-exit"
                 onClick={onExitPreview}
-                title="Esc also exits"
+                title="Auch Esc beendet die Vorschau"
               >
-                ← Back to game
+                ← Zur Partie
               </button>
             </div>
           )}
@@ -738,45 +890,48 @@ export default function GameView({
               <button
                 onClick={() => setPly(0)}
                 disabled={!game || gv.ply === 0}
-                title="Start (Home)"
+                title="Partieanfang (Pos1)"
               >
                 |◀
               </button>
               <button onClick={() => step(-1)} disabled={!game || gv.ply === 0}>
-                ◀ Prev
+                ◀ Zurück
               </button>
               <button
                 onClick={() => step(1)}
                 disabled={!game || gv.ply >= plyCount}
               >
-                Next ▶
+                Weiter ▶
               </button>
               <button
                 onClick={() => setPly(plyCount)}
                 disabled={!game || gv.ply >= plyCount}
-                title="End (End)"
+                title="Partieende (Ende)"
               >
                 ▶|
               </button>
             </span>
             <span className="ply-pill">
-              ply {gv.ply} / {plyCount}
+              Halbzug {gv.ply} / {plyCount}
             </span>
             <button
               className="btn"
               onClick={() => dispatch({ type: "toggleFlip" })}
             >
-              Flip
+              Brett drehen
             </button>
             <button
               className={`btn live-toggle${live.on ? " live-on" : ""}`}
-              onClick={() => liveDispatch({ type: "toggle", fen })}
-              title="Infinite engine analysis of the shown position — runs until switched off"
+              onClick={() => {
+                setLiveError(null);
+                liveDispatch({ type: "toggle", fen });
+              }}
+              title="Fortlaufende Engineanalyse der angezeigten Stellung bis zum Ausschalten"
             >
-              {live.on ? "■ Live analysis" : "Live analysis"}
+              {live.on ? "■ Live-Analyse" : "Live-Analyse"}
             </button>
             <span className="kbd-hint">
-              ← → step · ↑ ↓ jump 5 · f flip · e explain
+              ← → Zug · ↑ ↓ 5 Züge · f Brett drehen · e erklären
             </span>
           </div>
 
@@ -807,21 +962,21 @@ export default function GameView({
                     disabled={!canAddPv}
                     title={
                       canAddPv
-                        ? `Insert the first ${Math.min(pvSans.length, PV_INSERT_PLIES)} moves of this line as a variation at the current move`
+                        ? `Die ersten ${Math.min(pvSans.length, PV_INSERT_PLIES)} Halbzüge als Variante einfügen`
                         : editing === null
-                          ? "Open a database game to add engine lines as variations"
+                          ? "Zum Einfügen einer Variante eine Datenbankpartie öffnen"
                           : preview !== null
-                            ? "Exit the variation preview first"
+                            ? "Zuerst die Variantenvorschau schließen"
                             : gv.ply >= plyCount
-                              ? "End of the mainline — nothing to vary here"
-                              : "Waiting for an engine line"
+                              ? "Am Ende der Hauptvariante ist kein weiterer Zug vorhanden"
+                              : "Warte auf die Engine-Variante"
                     }
                   >
-                    + Add as variation
+                    + Als Variante
                   </button>
                 </>
               ) : (
-                <span className="live-text">engine thinking…</span>
+                <span className="live-text">Engine rechnet …</span>
               )}
             </div>
           )}
@@ -829,14 +984,14 @@ export default function GameView({
           {pendingVar && (
             <div className="var-offer">
               <span>
-                Add {pendingVar.label} as a variation of{" "}
+                {pendingVar.label} als Variante zu{" "}
                 {game?.sans[pendingVar.ply - 1]}?
               </span>
               <button className="btn" onClick={onAcceptVar}>
-                Add as variation
+                Als Variante einfügen
               </button>
               <button className="btn" onClick={onDismissVar}>
-                Dismiss
+                Verwerfen
               </button>
             </div>
           )}
@@ -845,9 +1000,9 @@ export default function GameView({
         <div className="right-pane">
           {explainOn && preview && (
             <div className="preview-note">
-              Variation preview — the explanation and eval bar track the main
-              game and are paused.{" "}
-              <button onClick={onExitPreview}>Back to game</button>
+              Variantenvorschau: Erklärung und Bewertungsanzeige beziehen sich
+              weiterhin auf die Hauptvariante.{" "}
+              <button onClick={onExitPreview}>Zur Partie</button>
             </div>
           )}
           {explainOn && !preview && (
@@ -899,15 +1054,15 @@ export default function GameView({
           />
           {game && game.sans.length > 0 && (
             <div className="rep-footer">
-              <span title="Adds the moves up to the current ply (whole game at ply 0) as training cards">
-                {gv.ply > 0 ? `Line (first ${gv.ply} plies)` : "Mainline"} →
-                repertoire:
+              <span title="Übernimmt die Züge bis zum aktuellen Halbzug als Trainingskarten">
+                {gv.ply > 0 ? `Variante (erste ${gv.ply} Halbzüge)` : "Hauptvariante"} →
+                Repertoire:
               </span>
               <button onClick={() => onAddToRepertoire("white")}>
-                as White
+                für Weiß
               </button>
               <button onClick={() => onAddToRepertoire("black")}>
-                as Black
+                für Schwarz
               </button>
             </div>
           )}
@@ -917,7 +1072,7 @@ export default function GameView({
       {exportText !== null && (
         <div className="modal-overlay" onClick={() => setExportText(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Export PGN</h3>
+            <h3>PGN exportieren</h3>
             <textarea readOnly value={exportText} spellCheck={false} />
             <div className="modal-buttons">
               <button
@@ -926,10 +1081,10 @@ export default function GameView({
                   void navigator.clipboard?.writeText(exportText);
                 }}
               >
-                Copy
+                Kopieren
               </button>
               <button className="btn" onClick={() => setExportText(null)}>
-                Close
+                Schließen
               </button>
             </div>
           </div>

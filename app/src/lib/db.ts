@@ -5,6 +5,7 @@
  */
 import { invoke } from "@tauri-apps/api/core";
 import type { AnalysisRow } from "./analyses";
+import { recordDiagnostic } from "./diagnostics";
 import type { FeatureRecordJson } from "./explainView";
 import type { ExplanationJson } from "./gameView";
 import type { RepertoireMark } from "./repMarks";
@@ -229,8 +230,20 @@ export function fetchDbSummary(): Promise<DbSummary> {
   return invoke<DbSummary>("db_summary");
 }
 
-export function listGames(filter: GameFilter, offset: number, limit: number): Promise<GameList> {
-  return invoke<GameList>("list_games", { filter, offset, limit });
+export type GameSortBy = "import" | "date" | "white" | "black" | "result" | "eco" | "event" | "moves";
+export interface GameSort { by: GameSortBy; descending: boolean }
+
+export function listGames(
+  filter: GameFilter,
+  offset: number,
+  limit: number,
+  sort?: GameSort,
+): Promise<GameList> {
+  return invoke<GameList>("list_games", {
+    filter, offset, limit,
+    sortBy: sort?.by ?? "import",
+    descending: sort?.descending ?? true,
+  });
 }
 
 export function getGame(id: number): Promise<GameDetail> {
@@ -418,6 +431,33 @@ export function verifySuggestions(
 /* ---- Run 4: analyses, annotate/re-analyze/jobs, export, profile ---- */
 
 /** All stored evals for one game (fresh rows first per ply). */
+/** Persist a PGN (one complete game or collection) in the open SQLite database.
+ * Does not silently open another DB or claim that a download was saved. */
+export interface PgnImportReport {
+  imported: number;
+  duplicates: number;
+  failed: number;
+  positions: number;
+  failures: string[];
+}
+
+export async function importPgnIntoDatabase(pgn: string, sourceName: string): Promise<PgnImportReport> {
+  // No file names, PGN text, paths or backend error strings are written to diagnostics.
+  recordDiagnostic("database_save_request");
+  try {
+    const report = await invoke<PgnImportReport>("import_pgn_database", { pgn, sourceName });
+    if (report.imported > 0) recordDiagnostic("database_save_success");
+    if (report.duplicates > 0) recordDiagnostic("database_save_duplicate");
+    if (report.failed > 0 || (!report.imported && !report.duplicates)) {
+      recordDiagnostic("database_save_failure");
+    }
+    return report;
+  } catch (error) {
+    recordDiagnostic("database_save_failure");
+    throw error;
+  }
+}
+
 export function gameAnalyses(gameId: number): Promise<AnalysisRow[]> {
   return invoke<AnalysisRow[]>("game_analyses", { gameId });
 }
@@ -529,6 +569,12 @@ export interface PlayerProfile {
 
 export function buildProfile(player: string): Promise<PlayerProfile> {
   return invoke<PlayerProfile>("build_profile", { player });
+}
+
+/** Reuse the real player-profile pipeline, restricted to explicit game IDs.
+ * This does not overwrite the user's cached all-games profile. */
+export function buildProfileSelected(player: string, gameIds: number[]): Promise<PlayerProfile> {
+  return invoke<PlayerProfile>("build_profile_selected", { player, gameIds });
 }
 
 export interface CachedProfileInfo {

@@ -224,9 +224,17 @@ pub fn parse_bestmove_line(line: &str) -> Option<BestMove> {
 /// 1. Explicit user-set path (persisted in the UI). If set but missing,
 ///    this is a hard error — an explicit choice is never silently ignored.
 /// 2. `KIBITZ_STOCKFISH` environment variable (skipped if stale/missing).
-/// 3. `tools/stockfish/stockfish-macos-m1-apple-silicon` relative to the
-///    repo root, found by walking up from the current dir and the exe dir.
-/// 4. `stockfish` on `PATH`.
+/// 3. Repo-local Apple Silicon dev binary, only on macOS ARM64.
+///    It must not be auto-selected on Intel macOS, Linux or Windows.
+/// 4. `stockfish` on `PATH` (including Intel macOS).
+///
+/// The repository's bundled development binary targets Apple Silicon.
+/// Using it as the default on Intel Macs or other operating systems
+/// would produce an unusable engine even though the file exists.
+fn use_repo_apple_silicon_binary() -> bool {
+    cfg!(all(target_os = "macos", target_arch = "aarch64"))
+}
+
 pub fn resolve_engine_path(user_path: Option<&str>) -> Result<PathBuf, String> {
     if let Some(p) = user_path.map(str::trim).filter(|p| !p.is_empty()) {
         let path = PathBuf::from(p);
@@ -251,11 +259,13 @@ pub fn resolve_engine_path(user_path: Option<&str>) -> Result<PathBuf, String> {
             roots.push(dir.to_path_buf());
         }
     }
-    for root in &roots {
-        for dir in root.ancestors() {
-            let candidate = dir.join(REPO_ENGINE_RELPATH);
-            if candidate.is_file() {
-                return Ok(candidate);
+    if use_repo_apple_silicon_binary() {
+        for root in &roots {
+            for dir in root.ancestors() {
+                let candidate = dir.join(REPO_ENGINE_RELPATH);
+                if candidate.is_file() {
+                    return Ok(candidate);
+                }
             }
         }
     }
@@ -269,6 +279,22 @@ pub fn resolve_engine_path(user_path: Option<&str>) -> Result<PathBuf, String> {
                     return Ok(candidate);
                 }
             }
+        }
+    }
+    // macOS GUI applications started from Finder often inherit a minimal PATH
+    // without Homebrew/MacPorts directories. Probe the standard installed
+    // locations directly, rather than requiring a Terminal launch.
+    #[cfg(target_os = "macos")]
+    for candidate in [
+        "/usr/local/bin/stockfish",    // Homebrew on Intel Macs
+        "/opt/homebrew/bin/stockfish", // Homebrew on Apple Silicon
+        "/opt/local/bin/stockfish",    // MacPorts
+        "/usr/local/opt/stockfish/bin/stockfish",
+        "/opt/homebrew/opt/stockfish/bin/stockfish",
+    ] {
+        let path = PathBuf::from(candidate);
+        if path.is_file() {
+            return Ok(path);
         }
     }
     Err(
@@ -338,6 +364,20 @@ impl Engine {
         engine.send("isready").await?;
         engine.wait_for("readyok", Duration::from_secs(10)).await?;
         Ok(engine)
+    }
+
+    /// Configure Stockfish's built-in Elo limiter before a local game move.
+    /// Analysis and other UCI clients remain unaffected.
+    pub async fn set_stockfish_elo(&mut self, elo: u32) -> Result<(), String> {
+        if !(1320..=3190).contains(&elo) {
+            return Err("Ungültige Stockfish-Spielstärke".to_owned());
+        }
+        self.send("setoption name UCI_LimitStrength value true")
+            .await?;
+        self.send(&format!("setoption name UCI_Elo value {elo}"))
+            .await?;
+        self.send("isready").await?;
+        self.wait_for("readyok", Duration::from_secs(10)).await
     }
 
     /// The binary path this engine was spawned from.
@@ -507,6 +547,16 @@ mod tests {
     }
 
     #[test]
+    fn apple_silicon_dev_binary_is_never_selected_on_intel_mac() {
+        #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
+        assert!(!use_repo_apple_silicon_binary());
+        #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+        assert!(use_repo_apple_silicon_binary());
+        #[cfg(not(target_os = "macos"))]
+        assert!(!use_repo_apple_silicon_binary());
+    }
+
+    #[test]
     fn explicit_user_path_must_exist() {
         let err = resolve_engine_path(Some("/definitely/not/a/real/engine")).unwrap_err();
         assert!(err.contains("does not exist"));
@@ -544,6 +594,58 @@ mod tests {
         let id = identify(&script).await.unwrap();
         assert_eq!(id.name.as_deref(), Some("FakeFish 1.0"));
         assert!(id.path.ends_with("fake-engine.sh"));
+    }
+
+    /// Exercises the same spawn/handshake/position/go/bestmove UCI path used
+    /// by offline play, without requiring a platform-specific Stockfish binary.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn scripted_engine_returns_a_bounded_bestmove() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = tempfile::tempdir().unwrap();
+        let script = dir.path().join("uci-test-engine.sh");
+        std::fs::write(
+            &script,
+            r#"#!/bin/sh
+while IFS= read -r line; do
+  case "$line" in
+    uci) printf 'id name TestFish\nuciok\n' ;;
+    isready) printf 'readyok\n' ;;
+    "position fen "*) position_seen=1 ;;
+    "go nodes 1234")
+      if [ "$position_seen" = 1 ]; then
+        printf 'info depth 1 score cp 12 pv e7e5\nbestmove e7e5\n'
+      else
+        printf 'bestmove (none)\n'
+      fi
+      ;;
+    quit) exit 0 ;;
+  esac
+done
+"#,
+        )
+        .unwrap();
+        std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+        let mut engine = Engine::spawn(&script).await.unwrap();
+        assert!(engine.set_stockfish_elo(1000).await.is_err());
+        engine.set_stockfish_elo(1500).await.unwrap();
+        let fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
+        let mut infos = Vec::new();
+        let result = tokio::time::timeout(
+            Duration::from_secs(3),
+            engine.analyze(&UciPosition::Fen(fen.to_owned()), Some(1234), |info| {
+                infos.push(info);
+            }),
+        )
+        .await
+        .expect("UCI response timed out")
+        .expect("UCI search failed");
+        assert_eq!(result.bestmove, "e7e5");
+        assert_eq!(infos.len(), 1);
+        assert_eq!(infos[0].score_cp, Some(12));
+        engine.quit().await;
     }
 
     /// A binary that is not a UCI engine fails the handshake with an

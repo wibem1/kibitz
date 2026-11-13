@@ -18,84 +18,84 @@ evidence.order = passed|isolated|doubled|backward|hanging|queenside_majority|kin
 
 # Pawn-structure weaknesses and assets. The .neutral variants are used
 # when no owner can be established from the key or the FEN.
-evidence.isolated = {side}'s {items}-pawn is isolated
-evidence.isolated.plural = {side}'s pawns on {items} are isolated
-evidence.isolated.neutral = the pawn on {items} is isolated
-evidence.isolated.neutral.plural = the pawns on {items} are isolated
+evidence.isolated = {side} hat auf {items} einen isolierten Bauern
+evidence.isolated.plural = die Bauern von {side} auf {items} sind isoliert
+evidence.isolated.neutral = der Bauer auf {items} ist isoliert
+evidence.isolated.neutral.plural = die Bauern auf {items} sind isoliert
 
-evidence.doubled = {side} has a doubled pawn on {items}
-evidence.doubled.plural = {side}'s pawns on {items} are doubled
-evidence.doubled.neutral = the pawn on {items} is doubled
-evidence.doubled.neutral.plural = the pawns on {items} are doubled
+evidence.doubled = {side} hat einen Doppelbauern auf {items}
+evidence.doubled.plural = die Bauern von {side} auf {items} bilden Doppelbauern
+evidence.doubled.neutral = der Bauer auf {items} gehört zu einem Doppelbauern
+evidence.doubled.neutral.plural = die Bauern auf {items} bilden Doppelbauern
 
-evidence.backward = {side}'s {items}-pawn is backward
-evidence.backward.plural = {side}'s pawns on {items} are backward
-evidence.backward.neutral = the pawn on {items} is backward
-evidence.backward.neutral.plural = the pawns on {items} are backward
+evidence.backward = der Bauer von {side} auf {items} ist rückständig
+evidence.backward.plural = die Bauern von {side} auf {items} sind rückständig
+evidence.backward.neutral = der Bauer auf {items} ist rückständig
+evidence.backward.neutral.plural = die Bauern auf {items} sind rückständig
 
-evidence.passed = {side} has a passed pawn on {items}
-evidence.passed.plural = {side} has passed pawns on {items}
-evidence.passed.neutral = there is a passed pawn on {items}
-evidence.passed.neutral.plural = there are passed pawns on {items}
+evidence.passed = {side} hat einen Freibauern auf {items}
+evidence.passed.plural = {side} hat Freibauern auf {items}
+evidence.passed.neutral = auf {items} steht ein Freibauer
+evidence.passed.neutral.plural = auf {items} stehen Freibauern
 
-evidence.hanging = {side} has a hanging pawn on {items}
-evidence.hanging.plural = {side}'s pawns on {items} are hanging
-evidence.hanging.neutral = the pawn on {items} is hanging
-evidence.hanging.neutral.plural = the pawns on {items} are hanging
+evidence.hanging = {side} hat einen hängenden Bauern auf {items}
+evidence.hanging.plural = die Bauern von {side} auf {items} sind hängend
+evidence.hanging.neutral = auf {items} steht ein hängender Bauer
+evidence.hanging.neutral.plural = auf {items} stehen hängende Bauern
 
-evidence.queenside_majority = {side} has a queenside pawn majority
-evidence.kingside_majority = {side} has a kingside pawn majority
+evidence.queenside_majority = {side} hat eine Bauernmehrheit am Damenflügel
+evidence.kingside_majority = {side} hat eine Bauernmehrheit am Königsflügel
 
 # Minor pieces.
-evidence.bishop_pair = {side} owns the bishop pair
-evidence.bishop_pair.open = {side} owns the bishop pair in an open position
-evidence.bad_bishop = {side}'s {square}-bishop is a problem piece, hemmed in by its own pawns on {pawns}
-evidence.bad_bishop.bare = {side}'s {square}-bishop is a problem piece, hemmed in by its own pawns
-evidence.character.closed = the position is closed, with a locked center
+evidence.bishop_pair = {side} besitzt das Läuferpaar
+evidence.bishop_pair.open = {side} verfügt in offener Stellung über das Läuferpaar
+evidence.bad_bishop = der Läufer von {side} auf {square} wird durch die eigenen Bauern auf {pawns} eingeschränkt
+evidence.bad_bishop.bare = der Läufer von {side} auf {square} wird durch eigene Bauern eingeschränkt
+evidence.character.closed = die Stellung hat ein geschlossenes Zentrum
 
 # Material. The raw centipawn figure is folded into pawn language; named
 # patterns take precedence over the figure.
-evidence.material.pawn_up = {side} is a pawn up
-evidence.material.two_pawns_up = {side} is two pawns up
-evidence.material.three_pawns_up = {side} is three pawns up
-evidence.material.many_pawns_up = {side} is up a decisive amount of material
-evidence.pattern.white-exchange-up = White is up the exchange
-evidence.pattern.black-exchange-up = Black is up the exchange
+evidence.material.pawn_up = {side} hat einen Bauern mehr
+evidence.material.two_pawns_up = {side} hat zwei Bauern mehr
+evidence.material.three_pawns_up = {side} hat drei Bauern mehr
+evidence.material.many_pawns_up = {side} hat entscheidenden Materialvorteil
+evidence.pattern.white-exchange-up = Weiß hat die Qualität mehr
+evidence.pattern.black-exchange-up = Schwarz hat die Qualität mehr
 
 # Files and the seventh rank.
-evidence.open_files = {files} is open
-evidence.open_files.plural = {files} are open
-evidence.half_open_files = {files} is half-open for {side}
-evidence.half_open_files.plural = {files} are half-open for {side}
-evidence.half_open_files.neutral = {files} is half-open
-evidence.half_open_files.neutral.plural = {files} are half-open
-evidence.doubled_majors = {side} has doubled heavy pieces on {files}
-evidence.rook_on_seventh = {side} has a rook on the seventh rank
+evidence.open_files = {files} ist offen
+evidence.open_files.plural = {files} sind offen
+evidence.half_open_files = {files} ist für {side} halboffen
+evidence.half_open_files.plural = {files} sind für {side} halboffen
+evidence.half_open_files.neutral = {files} ist halboffen
+evidence.half_open_files.neutral.plural = {files} sind halboffen
+evidence.doubled_majors = {side} hat die Schwerfiguren auf {files} verdoppelt
+evidence.rook_on_seventh = {side} hat einen Turm auf der siebten Reihe
 
 # Squares and outposts. For holes, {side} is the side whose camp has them.
-evidence.holes = {side}'s position has a hole on {items}
-evidence.holes.plural = {side}'s position has holes on {items}
-evidence.established_outpost = {side}'s knight is entrenched on {items}
+evidence.holes = in der Stellung von {side} gibt es ein schwaches Feld auf {items}
+evidence.holes.plural = in der Stellung von {side} gibt es schwache Felder auf {items}
+evidence.established_outpost = der Springer von {side} hat auf {items} einen festen Vorposten
 
 # Development prior (run 11): the classical principles as evidence.
 # The piece mix (knights/bishops/mixed) is resolved from the FEN.
-evidence.sleeping_minors.one_knight = {side}'s knight on {items} has yet to enter the game
-evidence.sleeping_minors.one_bishop = {side}'s bishop on {items} has yet to enter the game
-evidence.sleeping_minors.one = {side}'s minor piece on {items} has yet to enter the game
-evidence.sleeping_minors.knights = {side}'s knights on {items} are still at home
-evidence.sleeping_minors.bishops = {side}'s bishops on {items} are still at home
-evidence.sleeping_minors.mixed = {side}'s minor pieces on {items} are still at home
-evidence.sleeping_minors.plural = {side}'s minor pieces on {items} are still at home
-evidence.king_in_center.available = {side}'s king is still in the center, with castling available
-evidence.king_in_center.lost = {side}'s king is stuck in the center and can no longer castle
-evidence.queen_sortie = {side}'s queen is already out on {items} while the minor pieces wait at home
-evidence.wanderer = the {side} piece now on {square} has moved {times} while development waits
-evidence.center_unclaimed = {side} has yet to stake a claim in the center; the advance to {items} is still available
-evidence.center_unclaimed.plural = {side} has yet to stake a claim in the center; the advances to {items} are still available
+evidence.sleeping_minors.one_knight = der Springer von {side} auf {items} ist noch nicht entwickelt
+evidence.sleeping_minors.one_bishop = der Läufer von {side} auf {items} ist noch nicht entwickelt
+evidence.sleeping_minors.one = die Leichtfigur von {side} auf {items} ist noch nicht entwickelt
+evidence.sleeping_minors.knights = die Springer von {side} auf {items} stehen noch auf ihren Ausgangsfeldern
+evidence.sleeping_minors.bishops = die Läufer von {side} auf {items} stehen noch auf ihren Ausgangsfeldern
+evidence.sleeping_minors.mixed = die Leichtfiguren von {side} auf {items} sind noch nicht entwickelt
+evidence.sleeping_minors.plural = die Leichtfiguren von {side} auf {items} sind noch nicht entwickelt
+evidence.king_in_center.available = der König von {side} steht noch im Zentrum, kann aber noch rochieren
+evidence.king_in_center.lost = der König von {side} steckt im Zentrum fest und darf nicht mehr rochieren
+evidence.queen_sortie = die Dame von {side} steht schon auf {items}, obwohl die Leichtfiguren noch nicht entwickelt sind
+evidence.wanderer = die Figur von {side} auf {square} wurde bereits {times} gezogen, während die Entwicklung zurücksteht
+evidence.center_unclaimed = {side} hat das Zentrum noch nicht besetzt; der Vorstoß nach {items} ist noch möglich
+evidence.center_unclaimed.plural = {side} hat das Zentrum noch nicht besetzt; Vorstöße nach {items} sind noch möglich
 
 # Material in piece terms (run 9): a won knight is not "three pawns".
-evidence.material.piece_up = {side} is up a piece
-evidence.material.piece_for_pawn = {side} has a piece for a pawn
-evidence.material.piece_for_pawns = {side} has a piece for two pawns
-evidence.material.rook_up = {side} is up a rook
-evidence.material.queen_up = {side} is up a queen
+evidence.material.piece_up = {side} hat eine Figur mehr
+evidence.material.piece_for_pawn = {side} hat eine Figur für einen Bauern
+evidence.material.piece_for_pawns = {side} hat eine Figur für zwei Bauern
+evidence.material.rook_up = {side} hat einen Turm mehr
+evidence.material.queen_up = {side} hat eine Dame mehr

@@ -118,6 +118,105 @@ async fn engine_identify(user_path: Option<String>) -> Result<uci::EngineIdentit
     uci::identify(&path).await
 }
 
+/// An optional Maia-2 executable placed in the native app bundle.
+/// The engine is not on PATH and must never fall back to Stockfish.
+fn bundled_maia2_path() -> Option<std::path::PathBuf> {
+    let exe = std::env::current_exe().ok()?;
+    let bin_dir = exe.parent()?;
+    [
+        bin_dir.join("../Resources/maia2-uci"),
+        bin_dir.join("maia2-uci"),
+    ]
+    .into_iter()
+    .find(|p| p.is_file())
+}
+
+/// Request one bounded move for an explicitly chosen local engine opponent.
+/// A fresh process isolates game play from the shared analysis queue/stream.
+/// Every call has its own deadline; dropping Engine kills the subprocess.
+#[tauri::command]
+async fn offline_engine_move(
+    fen: String,
+    nodes: Option<u64>,
+    user_path: Option<String>,
+    elo: Option<u32>,
+    opponent_engine: Option<String>,
+    opponent_elo: Option<u32>,
+) -> Result<String, String> {
+    use std::time::Duration;
+    // Avoid sending arbitrary control sequences to the UCI subprocess.
+    if fen.len() > 160
+        || fen.contains('\n')
+        || fen.contains('\r')
+        || fen.split_whitespace().count() != 6
+    {
+        return Err("Ungültige FEN-Stellung".to_string());
+    }
+    let kind = opponent_engine.as_deref().unwrap_or("stockfish");
+    if kind != "stockfish" && kind != "maia2" {
+        return Err("Unbekannte Offline-Engine".to_owned());
+    }
+    // Maia uses its bundled executable when present; an explicit custom
+    // path overrides it. It must NEVER silently use the Stockfish binary.
+    let path = if kind == "maia2" {
+        let chosen = user_path.as_deref().unwrap_or("").trim();
+        if chosen.is_empty() {
+            bundled_maia2_path().ok_or_else(|| {
+                "Maia 2 ist in diesem Paket nicht enthalten. Bitte eigenen UCI-Engine-Pfad eintragen.".to_owned()
+            })?
+        } else {
+            uci::resolve_engine_path(Some(chosen))?
+        }
+    } else {
+        uci::resolve_engine_path(user_path.as_deref())?
+    };
+    let count = nodes.unwrap_or(20_000).clamp(1_000, 250_000);
+    tokio::time::timeout(Duration::from_secs(60), async move {
+        let mut engine = Engine::spawn(&path).await?;
+        if kind == "maia2" {
+            // Maia-2 is a one-decision model, not a node-searching
+            // Stockfish engine. Use its own rating options.
+            let rating = opponent_elo.unwrap_or(1500);
+            if !(1000..=2200).contains(&rating) {
+                return Err("Ungültige Maia-2-Spielstärke".to_owned());
+            }
+            engine
+                .send(&format!("setoption name SelfElo value {rating}"))
+                .await?;
+            engine
+                .send(&format!("setoption name OppElo value {rating}"))
+                .await?;
+            engine.send("setoption name Model value rapid").await?;
+            // Model policy is unchanged; avoid eight extra inference
+            // passes just to display an unused principal variation.
+            engine.send("setoption name PVDepth value 1").await?;
+        } else if let Some(elo) = elo {
+            engine.set_stockfish_elo(elo).await?;
+        }
+        // Maia 2 ignores node limits and emits a bestmove after inference.
+        // Its wrapper may silently fall back to a random legal move if the
+        // neural network fails to load. Require a real scored info line.
+        let mut scored = false;
+        let response = engine
+            .analyze(&UciPosition::Fen(fen), Some(count), |info| {
+                if info.has_score() {
+                    scored = true;
+                }
+            })
+            .await?;
+        engine.quit().await;
+        if kind == "maia2" && !scored {
+            return Err("Maia 2 hat keine Modellbewertung geliefert. Modellgewichte oder Engineprogramm prüfen.".to_owned());
+        }
+        if response.bestmove == "(none)" || response.bestmove == "0000" {
+            return Err("Die Engine hat keinen Zug geliefert.".to_owned());
+        }
+        Ok(response.bestmove)
+    })
+    .await
+    .map_err(|_| "Zeitlimit für Engine-Zug überschritten.".to_owned())?
+}
+
 /// Start `go nodes <nodes>` on `fen`. Returns as soon as the search task is
 /// launched; progress arrives via `engine-info` / `engine-done` events.
 #[tauri::command]
@@ -224,6 +323,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             resolve_engine_path,
             engine_identify,
+            offline_engine_move,
             analyze_position,
             stop_analysis,
             browse::open_database,
@@ -294,6 +394,8 @@ pub fn run() {
             dbops::repertoire_marks,
             dbops::export_game_pgn,
             dbops::build_profile,
+            dbops::build_profile_selected,
+            dbops::import_pgn_database,
             dbops::get_narration_voice,
             dbops::set_narration_voice,
             dbops::set_window_title,

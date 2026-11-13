@@ -1,7 +1,7 @@
 /**
  * Position search screen (design/handoff-2 §Position search, solid-
  * simplified): left 560px desk column with a drag-to-set-up board editor
- * (chessground free mode), FEN field + Paste FEN + hint line; right
+ * (chessground free mode), FEN field + FEN einfügen + hint line; right
  * results column with the mono "N GAMES · X ms" pill (measured timing —
  * a product claim, never estimated) and the Database table minus the
  * analysis column.
@@ -126,19 +126,19 @@ export default function PositionSearchView({
   );
 
   const columns: DataTableColumn<GameAtRow>[] = [
-    { key: "white", header: "WHITE", render: (g) => g.white },
-    { key: "black", header: "BLACK", render: (g) => g.black },
-    { key: "result", header: "RES", render: (g) => <span className="cell-result">{g.result}</span> },
-    { key: "event", header: "EVENT", render: (g) => <span className="cell-dim">{g.event}</span> },
+    { key: "white", header: "WEISS", render: (g) => g.white },
+    { key: "black", header: "SCHWARZ", render: (g) => g.black },
+    { key: "result", header: "ERG", render: (g) => <span className="cell-result">{g.result}</span> },
+    { key: "event", header: "TURNIER", render: (g) => <span className="cell-dim">{g.event}</span> },
     {
       key: "date",
-      header: "DATE",
+      header: "DATUM",
       render: (g) => <span className="cell-date">{g.date}</span>,
       sort: (a, b) => a.date.localeCompare(b.date),
     },
     {
       key: "ply",
-      header: "PLY",
+      header: "HALBZUG",
       align: "right",
       render: (g) => <span className="cell-mono">{g.ply}</span>,
       sort: (a, b) => a.ply - b.ply,
@@ -147,7 +147,7 @@ export default function PositionSearchView({
 
   const pill =
     results !== null
-      ? `${results.total.toLocaleString("en-US")} GAMES · ${
+      ? `${results.total.toLocaleString("de-DE")} PARTIEN · ${
           results.elapsedMs < 1 ? "<1" : Math.round(results.elapsedMs)
         } ms`
       : null;
@@ -155,15 +155,15 @@ export default function PositionSearchView({
   return (
     <>
       <ScreenHeader
-        title="Position search"
-        subtitle="Which games reached this position — drag pieces to set it up"
+        title="Stellungssuche"
+        subtitle="Finde Partien mit dieser Stellung – Figuren mit der Maus verschieben"
         actions={
           <>
             <button className="btn-secondary" onClick={() => applyFen(START_FEN)}>
-              Start position
+              Anfangsstellung
             </button>
             <button className="btn-secondary" onClick={() => applyFen(EMPTY_FEN)}>
-              Clear board
+              Brett leeren
             </button>
           </>
         }
@@ -182,28 +182,28 @@ export default function PositionSearchView({
               spellCheck={false}
             />
             <button className="btn-secondary" onClick={() => void pasteFen()}>
-              Paste FEN
+              FEN einfügen
             </button>
           </div>
           <div className="search-turn-row">
             <div className="seg">
               <button className={turn === "white" ? "cur" : ""} onClick={() => setTurn("white")}>
-                White to move
+                Weiß am Zug
               </button>
               <button className={turn === "black" ? "cur" : ""} onClick={() => setTurn("black")}>
-                Black to move
+                Schwarz am Zug
               </button>
             </div>
           </div>
           {fenError && <div className="error">{fenError}</div>}
           <div className="search-hint">
-            Set the position by dragging pieces (drop off the board to remove). Castling rights
-            follow king and rook home squares.
+            Stelle die Position durch Ziehen der Figuren ein. Zum Entfernen eine Figur neben
+            das Brett ziehen. Rochaderechte ergeben sich aus König und Türmen.
           </div>
         </div>
         <div className="search-results">
           <div className="search-results-head">
-            <span className="aside-title">RESULTS</span>
+            <span className="aside-title">ERGEBNISSE</span>
             {pill && <span className="home-pill">{pill}</span>}
             <div className="filter-spacer" />
             <input
@@ -213,7 +213,7 @@ export default function PositionSearchView({
               value={minElo}
               onChange={(e) => setMinElo(e.target.value)}
               placeholder="Elo ≥"
-              title="Bounds the game's higher rating; unrated games drop out when set"
+              title="Die höhere Elo-Zahl begrenzen; Partien ohne Wertung werden ausgeblendet"
               spellCheck={false}
             />
             <input
@@ -223,7 +223,7 @@ export default function PositionSearchView({
               value={maxElo}
               onChange={(e) => setMaxElo(e.target.value)}
               placeholder="Elo ≤"
-              title="Bounds the game's higher rating; unrated games drop out when set"
+              title="Die höhere Elo-Zahl begrenzen; Partien ohne Wertung werden ausgeblendet"
               spellCheck={false}
             />
             <input
@@ -231,8 +231,8 @@ export default function PositionSearchView({
               type="text"
               value={dateMin}
               onChange={(e) => setDateMin(e.target.value)}
-              placeholder="From YYYY[.MM[.DD]]"
-              title="Inclusive lower date bound (wildcard dates match permissively)"
+              placeholder="Ab JJJJ[.MM[.TT]]"
+              title="Frühestes Datum einschließlich; unvollständige Angaben werden berücksichtigt"
               spellCheck={false}
             />
             <input
@@ -240,8 +240,8 @@ export default function PositionSearchView({
               type="text"
               value={dateMax}
               onChange={(e) => setDateMax(e.target.value)}
-              placeholder="To YYYY[.MM[.DD]]"
-              title="Inclusive upper date bound"
+              placeholder="Bis JJJJ[.MM[.TT]]"
+              title="Spätestes Datum einschließlich"
               spellCheck={false}
             />
             <select
@@ -249,7 +249,7 @@ export default function PositionSearchView({
               value={resultFilter}
               onChange={(e) => setResultFilter(e.target.value)}
             >
-              <option value="">Result</option>
+              <option value="">Ergebnis</option>
               <option value="1-0">1-0</option>
               <option value="0-1">0-1</option>
               <option value="1/2-1/2">½-½</option>
@@ -268,13 +268,13 @@ export default function PositionSearchView({
                 gridTemplate={GRID}
                 rowKey={(g) => g.id}
                 onRowClick={(g) => onOpenGameAt(g.id, g.ply)}
-                empty={dbOpen ? "No games reach this position." : "Open a database first."}
+                empty={dbOpen ? "Keine Partien mit dieser Stellung gefunden." : "Bitte zuerst eine Datenbank öffnen."}
                 footer={
                   results.total > results.rows.length ? (
                     <div className="pager-row">
                       <span className="pager-note">
-                        Showing the first {results.rows.length} of{" "}
-                        {results.total.toLocaleString("en-US")} hits.
+                        Angezeigt werden {results.rows.length} von{" "}
+                        {results.total.toLocaleString("de-DE")} Treffern.
                       </span>
                     </div>
                   ) : undefined

@@ -8,7 +8,7 @@
  * itself (FirstRunOverlay) anchors beside the real nav rail.
  */
 import { useEffect, useMemo, useState } from "react";
-import guideSource from "../../docs/USER_GUIDE.md?raw";
+import guideSource from "../../docs/USER_GUIDE_DE.md?raw";
 import {
   parseMarkdown,
   splitSections,
@@ -28,21 +28,13 @@ interface HelpProps {
  * equivalent — only where one actually applies (no invented hints).
  */
 const SECTION_META: Record<string, string> = {
-  "Kibitz User Guide": "EVERY SURFACE · ESC CLOSES HELP",
-  "The window at a glance": "SHELL · RAIL NAVIGATION · STATUS STRIP",
-  "The Game view":
-    "GAME VIEW · ← → ↑ ↓ · F FLIP · E EXPLAIN · CLI: kibitz-cli export-pgn",
-  "STUDY views": "DATABASE · TREE · SEARCH · CLI: kibitz-cli find-fen",
-  "COACH views":
-    "EXPLAIN · PROFILE · PREP · CLI: kibitz-cli explain / profile / fingerprint",
-  "TRAIN views":
-    "OPENINGS SRS · 1–4 GRADE · ⏎ SUBMIT · CLI: kibitz-cli import-repertoire",
-  "DATA IN / OUT views":
-    "IMPORT · TWIC · SYNCS · JOBS · CLI: kibitz-cli import-pgn / run-jobs",
-  "Status strip": "ALWAYS VISIBLE · ENGINE DOT · BATCH PROGRESS",
-  Settings: "RAIL FOOTER",
-  "Deep links": "URL HASH · #game=…&ply=…",
-  "CLI-only features": "TERMINAL · kibitz-cli --db <path.sqlite>",
+  "Kibitz – Deutsche Bedienungsanleitung": "ALLE FUNKTIONEN · ESC SCHLIESST DIE HILFE",
+  "Oberfläche und Navigation": "NAVIGATION · STATUSANZEIGE",
+  "Partieansicht": "SCHACHBRETT · PFEILTASTEN · F DREHEN · E ERKLÄREN",
+  "Partiedatenbank": "PARTIEN · FILTER · SUCHEN",
+  "Training": "ERÖFFNUNGEN · TAKTIK · ENDSPIELE",
+  "Daten importieren und abgleichen": "PGN · SCID · TWIC · KONTEN",
+  "Einstellungen": "DARSTELLUNG · ENGINE · DATEN",
 };
 
 function Spans({ spans }: { spans: InlineSpan[] }) {
@@ -123,27 +115,27 @@ export default function Help({ onClose, onReplayTour }: HelpProps) {
       <header className="header-bar help-topbar">
         <div className="header-title-block">
           <div className="header-title-row">
-            <span className="header-title">Help</span>
+            <span className="header-title">Hilfe</span>
           </div>
           <div className="header-meta">
-            Rendered user guide · every surface and CLI command
+            Deutsche Bedienungsanleitung · Funktionen und Tastatur
           </div>
         </div>
         <div className="header-actions">
           {onReplayTour && (
             <button className="btn-secondary" onClick={onReplayTour}>
-              Replay tour
+              Einführung erneut anzeigen
             </button>
           )}
           <button className="btn-secondary" onClick={onClose}>
-            Close
+            Schließen
           </button>
         </div>
       </header>
       <div className="help-cols">
         {/* ---- TOC (250px) ---- */}
         <nav className="help-toc">
-          <div className="col-label">USER GUIDE</div>
+          <div className="col-label">BEDIENUNGSANLEITUNG</div>
           {sections.map((s, i) => (
             <button
               key={s.title + i}
@@ -176,27 +168,25 @@ export default function Help({ onClose, onReplayTour }: HelpProps) {
         <aside className="help-tour-rail">
           <div className="tour-card">
             <div className="tour-card-head">
-              <span className="tour-tag">FIRST-RUN TOUR</span>
+              <span className="tour-tag">EINFÜHRUNG</span>
               <span className="flex-spacer" />
-              <span className="tour-count">{TOUR_STEPS.length} cards</span>
+              <span className="tour-count">{TOUR_STEPS.length} Schritte</span>
             </div>
             <p className="tour-body">
-              One card per rail group — what lives in <b>Study</b>, <b>Coach</b>
-              , <b>Train</b> and <b>Data in / out</b>, and where Settings and
-              this guide sit.
+              In sechs Schritten lernst du <b>Partien</b>, <b>Analyse</b>, <b>Training</b>,
+              <b>Datenverwaltung</b> sowie Einstellungen und Hilfe kennen.
             </p>
             {onReplayTour && (
               <div className="tour-actions">
                 <button className="btn-primary" onClick={onReplayTour}>
-                  Replay the tour
+                  Einführung wiederholen
                 </button>
               </div>
             )}
           </div>
           <p className="tour-rail-note">
-            The tour anchors to the rail groups, one card per group, and never
-            covers the thing it is pointing at. It runs once on first launch and
-            can be replayed from here at any time.
+            Die Einführung erscheint neben der Navigation und verdeckt keine Bedienelemente.
+            Du kannst sie hier jederzeit erneut starten.
           </p>
         </aside>
       </div>

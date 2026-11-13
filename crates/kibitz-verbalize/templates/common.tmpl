@@ -4,113 +4,113 @@
 # trimmed; spacing between fragments is supplied by the composing code.
 
 # Side and piece vocabulary.
-side.white = White
-side.black = Black
-piece.pawn = pawn
-piece.knight = knight
-piece.bishop = bishop
-piece.rook = rook
-piece.queen = queen
-piece.king = king
+side.white = Weiß
+side.black = Schwarz
+piece.pawn = Bauer
+piece.knight = Springer
+piece.bishop = Läufer
+piece.rook = Turm
+piece.queen = Dame
+piece.king = König
 # Fallback when the record names a square the FEN has nothing on.
-piece.generic = piece
+piece.generic = Figur
 
 # Noun phrases for pieces and squares.
 # {side} / {piece} / {square} are always taken from the record (square lists)
 # or derived from the record's FEN (piece identity and color).
-phrase.owned_piece = {side}'s {piece} on {square}
-phrase.bare_piece = the {piece} on {square}
-phrase.unknown_piece = the piece on {square}
-phrase.side_piece = {side}'s piece on {square}
-phrase.some_piece = one of {side}'s pieces
-phrase.kings = {side}'s king
+phrase.owned_piece = {piece} von {side} auf {square}
+phrase.bare_piece = {piece} auf {square}
+phrase.unknown_piece = Figur auf {square}
+phrase.side_piece = Figur von {side} auf {square}
+phrase.some_piece = eine Figur von {side}
+phrase.kings = König von {side}
 
 # File phrases. {items} for the plural form is the pre-hyphenated joined
 # list ("d- and e-"), so the result reads "the d- and e-files".
-phrase.file = the {items}-file
-phrase.files = the {items}files
+phrase.file = die {items}-Linie
+phrase.files = die {items}Linien
 
 # Alert body clauses.
-clause.weak_king_target = around {target}
-clause.attacked_by = It is under attack from {attackers}.
-clause.attack_defend.both = It is attacked by {attackers} but defended only by {defenders}.
-clause.attack_defend.both.alt = The attack from {attackers} is met only by {defenders}.
-clause.attack_defend.attackers = It is attacked by {attackers}, and nothing defends it.
-clause.attack_defend.defenders = Only {defenders} keeps it defended.
-clause.attack_defend.defenders.plural = Only {defenders} keep it defended.
-clause.king_attackers = The pressure comes from {attackers}.
-clause.see = A capture sequence here wins {amount}.
-clause.see.alt = If the captures start, the attacker comes out ahead by {amount}.
+clause.weak_king_target = im Bereich von {target}
+clause.attacked_by = Die Angreifer sind {attackers}.
+clause.attack_defend.both = Die Angreifer sind {attackers}; die Verteidiger sind lediglich {defenders}.
+clause.attack_defend.both.alt = Dem Angriff durch {attackers} stehen nur {defenders} gegenüber.
+clause.attack_defend.attackers = Die Angreifer sind {attackers}; eine Deckung fehlt.
+clause.attack_defend.defenders = Nur {defenders} sorgt für Deckung.
+clause.attack_defend.defenders.plural = Nur {defenders} sorgen für Deckung.
+clause.king_attackers = Der Druck geht von {attackers} aus.
+clause.see = Eine Schlagfolge gewinnt hier {amount}.
+clause.see.alt = Nach Beginn des Schlagabtauschs gewinnt der Angreifer {amount}.
 
 # Weak-king detail clauses, joined into one sentence by the code.
-king.zone_pressure = enemy pieces are massing around it
-king.shield_missing = the pawn cover is gone on {files}
-king.shield_advanced = the shield pawn on {files} has pushed too far forward
-king.shield_advanced.plural = the shield pawns on {files} have pushed too far forward
-king.open_files = {files} in front of the king is wide open
-king.open_files.plural = {files} in front of the king are wide open
-king.back_rank = the back rank is airless
+king.zone_pressure = gegnerische Figuren sammeln sich in seiner Nähe
+king.shield_missing = der Bauernschutz auf {files} fehlt
+king.shield_advanced = der Schutzbauer auf {files} ist zu weit vorgerückt
+king.shield_advanced.plural = die Schutzbauern auf {files} sind zu weit vorgerückt
+king.open_files = {files} vor dem König ist vollständig offen
+king.open_files.plural = {files} vor dem König sind vollständig offen
+king.back_rank = die Grundreihe ist verwundbar
 
 # Static-exchange value bands (centipawns -> plain words).
-see.small = a small amount of material
-see.pawn = roughly a pawn
-see.two_pawns = about two pawns
-see.minor = roughly a minor piece
-see.rook = roughly a rook
-see.queen = roughly a queen
+see.small = etwas Material
+see.pawn = ungefähr einen Bauern
+see.two_pawns = etwa zwei Bauern
+see.minor = ungefähr eine Leichtfigur
+see.rook = ungefähr einen Turm
+see.queen = ungefähr eine Dame
 
 # Units for engine score deltas.
-unit.pawn = pawn
-unit.pawns = pawns
+unit.pawn = Bauer
+unit.pawns = Bauern
 
 # Engine-check verdicts attached to an alert.
-engine.confirmed.pv_delta = The engine confirms it: {pv}, winning about {delta}.
-engine.confirmed.pv = The engine confirms it: {pv}.
-engine.confirmed.delta = The engine confirms it, winning about {delta}.
-engine.confirmed = The engine confirms the idea.
-engine.confirmed.pv_mate = The engine confirms it: {pv} — forced mate in {mate}.
-engine.confirmed.mate = The engine confirms it — forced mate in {mate}.
-engine.confirmed.pv_mate_now = The engine confirms it: {pv} — checkmate.
-engine.confirmed.mate_against = The engine sides the other way — the defender mates in {mate}.
-engine.refuted = A quick engine check refutes this idea — the defense appears to hold.
-engine.unclear = The engine could not confirm this at the given budget.
+engine.confirmed.pv_delta = Die Engine bestätigt: {pv}, mit einem Gewinn von etwa {delta}.
+engine.confirmed.pv = Die Engine bestätigt: {pv}.
+engine.confirmed.delta = Die Engine bestätigt die Idee mit einem Gewinn von etwa {delta}.
+engine.confirmed = Die Engine bestätigt diese Idee.
+engine.confirmed.pv_mate = Die Engine bestätigt: {pv} — erzwungenes Matt in {mate} Zügen.
+engine.confirmed.mate = Die Engine bestätigt ein erzwungenes Matt in {mate} Zügen.
+engine.confirmed.pv_mate_now = Die Engine bestätigt: {pv} — Schachmatt.
+engine.confirmed.mate_against = Die Engine kommt zum gegenteiligen Ergebnis: Die verteidigende Seite setzt in {mate} Zügen matt.
+engine.refuted = Die Engine widerlegt die Idee: Die Verteidigung scheint zu halten.
+engine.unclear = Die Engine konnte die Idee innerhalb des Suchbudgets nicht bestätigen.
 
 # Whole-position engine verdict (only present when an engine actually ran).
-engine.eval = The engine's overall verdict: about {score}, and it likes {best} here.
-engine.eval.mate = The engine sees a forced mate in {mate} for {side}; the move is {best}.
+engine.eval = Gesamtbewertung der Engine: etwa {score}; sie bevorzugt {best}.
+engine.eval.mate = Die Engine erkennt ein erzwungenes Matt in {mate} Zügen für {side}; der Zug ist {best}.
 
 # Known alert detail qualifiers, phrased as complete follow-on sentences.
 # The trapped/loose tokens are absorbed into the lead sentence instead
 # (alerts.tmpl); unknown tokens fall back to clause.detail, humanized.
-detail.overloaded-defender = That defender is overloaded — it cannot cover everything at once.
-detail.back-rank = Its back rank is a genuine weakness.
-detail.pawn-shield = Its pawn shield is damaged.
-clause.detail = The deeper problem here is {detail}.
+detail.overloaded-defender = Diese Verteidigungsfigur ist überlastet und kann nicht alles gleichzeitig decken.
+detail.back-rank = Die eigene Grundreihe weist eine ernsthafte Schwäche auf.
+detail.pawn-shield = Der Bauernschutz des Königs ist beschädigt.
+clause.detail = Das grundlegende Problem ist {detail}.
 
 # Section-level lines.
-tactics.quiet = No immediate tactics jump out; the position will be decided by its long-term features.
-empty = Nothing stands out here: no tactical alarms, no significant imbalances. Improve your worst-placed piece and stay flexible.
+tactics.quiet = Eine unmittelbare taktische Drohung ist nicht erkennbar; langfristige Stellungsmerkmale sind entscheidend.
+empty = Keine akuten taktischen Gefahren und keine deutlichen Ungleichgewichte. Verbessere die am schlechtesten stehende Figur.
 
 # Deterministic sentence-start rotations, applied by index (i % n).
 # Entries are separated by `|`; the first entry is intentionally empty.
-rotation.alert = |Meanwhile,|On top of that,|Also,
-rotation.imbalance = |Meanwhile,|At the same time,|Beyond that,
+rotation.alert = |Außerdem:|Hinzu kommt:|Ebenfalls wichtig:
+rotation.imbalance = |Außerdem:|Gleichzeitig:|Darüber hinaus:
 
 # List glue (code pads with spaces as needed).
 glue.list_sep = ,
-glue.list_last = and
+glue.list_last = und
 
 # Spelled-out repetition counts (the template lint bans bare digits).
-count.twice = twice
-count.three_times = three times
-count.many_times = several times
+count.twice = zweimal
+count.three_times = dreimal
+count.many_times = mehrmals
 
 # Openings-book line (run 11): shown while the position is still in the
 # bundled openings book — theory outranks a principles lecture there.
-book.in_theory = This position is still in the opening book.
+book.in_theory = Diese Stellung ist noch aus der Eröffnungstheorie bekannt.
 
 # Decisive band (run-6): at or above 5 pawns of advantage the prose gives
 # a verdict; the exact number stays in the eval readout.
-engine.confirmed.pv_decisive = The engine confirms it: {pv} — the position is simply winning.
-engine.confirmed.decisive = The engine confirms it: the position is simply winning.
-engine.eval.decisive = The engine's verdict: completely winning for {side}; it likes {best} here.
+engine.confirmed.pv_decisive = Die Engine bestätigt: {pv} — die Stellung ist klar gewonnen.
+engine.confirmed.decisive = Die Engine bestätigt: Die Stellung ist klar gewonnen.
+engine.eval.decisive = Engine-Bewertung: klar gewonnen für {side}; bevorzugt wird {best}.

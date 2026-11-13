@@ -38,8 +38,8 @@ export default function StorageSection() {
       setPath(r.newPath);
       saveDbPath(r.newPath); // localStorage fallback follows the move
       setNote(
-        `Moved. The old copy at ${r.oldPath} was left as a backup — delete it (and its ` +
-          `-wal/-shm neighbours) once you are happy, or Dropbox will keep syncing it.`,
+        `Datenbank verschoben. Die alte Datei unter ${r.oldPath} bleibt als Sicherung erhalten. Entferne sie (und die ` +
+          `zugehörigen -wal/-shm-Dateien) erst nach erfolgreicher Prüfung, sonst synchronisiert Dropbox sie weiter.`,
       );
     } catch (e) {
       setError(String(e));
@@ -51,23 +51,22 @@ export default function StorageSection() {
   return (
     <>
       <div className="set-row">
-        <div className="set-label">Database location</div>
-        <div className="set-value mono">{path ?? "no database open"}</div>
+        <div className="set-label">Datenbank-Speicherort</div>
+        <div className="set-value mono">{path ?? "Keine Datenbank geöffnet"}</div>
       </div>
       {cloud && (
         <div className="set-row">
           <div className="set-label" />
           <div className="storage-warning">
-            This database lives in a <strong>cloud-synced folder</strong> — the
-            sync client re-uploads it on every write (this file is large, so
-            that can saturate the machine), and cloud sync interfering with a
-            live database risks corruption.
+            Die Datenbank liegt in einem <strong>synchronisierten Cloud-Ordner</strong>.
+            Das Hochladen bei jeder Änderung kann den Rechner belasten. Gleichzeitiger
+            Cloud-Abgleich kann eine laufende Datenbank beschädigen.
             <button
               className="btn-secondary storage-move"
               disabled={moving}
               onClick={() => void move()}
             >
-              {moving ? "Moving…" : "Move to app storage"}
+              {moving ? "Wird verschoben …" : "In App-Speicher verschieben"}
             </button>
           </div>
         </div>
@@ -76,7 +75,7 @@ export default function StorageSection() {
         <div className="set-row">
           <div className="set-label" />
           <div className="set-help">
-            In app storage — not cloud-synced. Good.
+            Die Datenbank liegt im lokalen App-Speicher und wird nicht automatisch synchronisiert.
           </div>
         </div>
       )}

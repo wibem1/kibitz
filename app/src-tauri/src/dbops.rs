@@ -28,6 +28,56 @@ pub struct JobsWorker {
     pub stop: Arc<AtomicBool>,
 }
 
+/// Database PGN import result, including skipped duplicates and malformed games.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PgnImportReport {
+    pub imported: u64,
+    pub duplicates: u64,
+    pub failed: u64,
+    pub positions: u64,
+    pub failures: Vec<String>,
+}
+
+/// Import every game in a PGN text into the currently open SQLite database.
+/// Input is size-bounded because the browser-to-Tauri IPC duplicates the text.
+/// For significantly larger collections, use the existing streaming CLI importer.
+#[tauri::command]
+pub async fn import_pgn_database(
+    state: State<'_, DbState>,
+    pgn: String,
+    source_name: String,
+) -> Result<PgnImportReport, String> {
+    if pgn.is_empty() || pgn.len() > 25 * 1024 * 1024 {
+        return Err("PGN muss zwischen 1 Byte und 25 MiB groß sein; größere Sammlungen bitte über den CLI-Importer laden.".to_string());
+    }
+    let name = source_name.trim();
+    if name.is_empty() || name.len() > 200 {
+        return Err("Ungültiger Quellenname".to_string());
+    }
+    with_conn(&state, |conn| {
+        let source = kibitz_db::import::SourceInfo {
+            name: name.to_string(),
+            origin: "Kibitz DE PGN-Dateiimport".to_string(),
+            license: "Benutzerdatei – keine Weitergabe".to_string(),
+            kind: kibitz_db::import::SourceKind::Personal,
+        };
+        let stats = kibitz_db::import::import_pgn(
+            conn,
+            &source,
+            std::io::BufReader::new(std::io::Cursor::new(pgn.as_bytes())),
+        )
+        .map_err(|e| e.to_string())?;
+        Ok(PgnImportReport {
+            imported: stats.games_imported,
+            duplicates: stats.duplicates_skipped,
+            failed: stats.games_failed,
+            positions: stats.positions_indexed,
+            failures: stats.failures.into_iter().take(5).collect(),
+        })
+    })
+}
+
 // ---------------------------------------------------------------------------
 // game_analyses (verdict 3c)
 // ---------------------------------------------------------------------------
@@ -508,6 +558,20 @@ pub async fn build_profile(
     })
 }
 
+/// Aggregate the same profile statistics over the specified games only.
+/// Unknown or unrelated IDs are excluded by the database profile query.
+#[tauri::command]
+pub async fn build_profile_selected(
+    state: State<'_, DbState>,
+    player: String,
+    game_ids: Vec<i64>,
+) -> Result<kibitz_profile::PlayerProfile, String> {
+    with_conn(&state, |conn| {
+        kibitz_db::profile::build_profile_selected(conn, &player, &game_ids)
+            .map_err(|e| e.to_string())
+    })
+}
+
 /// Set the native window title (used as "kibitz — <db filename>" once a
 /// database is open).
 #[tauri::command]
@@ -557,6 +621,23 @@ mod tests {
             params![game_id, ply, kind, engine, cp],
         )
         .unwrap();
+    }
+
+    #[test]
+    fn selected_profile_only_counts_requested_games() {
+        let (_dir, conn) = fixture_db();
+        let full = kibitz_db::profile::build_profile(&conn, "Morphy, Paul", 100).unwrap();
+        let selected =
+            kibitz_db::profile::build_profile_selected(&conn, "Morphy, Paul", &[1]).unwrap();
+        assert_eq!(selected.games, 1);
+        assert_eq!(selected.games, full.games);
+        assert_eq!(selected.score_pct, full.score_pct);
+        // An unknown ID must never pull another player's games in.
+        let absent =
+            kibitz_db::profile::build_profile_selected(&conn, "Morphy, Paul", &[999]).unwrap();
+        assert_eq!(absent.games, 0);
+        assert!(kibitz_db::profile::build_profile_selected(&conn, "Morphy, Paul", &[]).is_err());
+        assert!(kibitz_db::profile::build_profile_selected(&conn, "Morphy, Paul", &[-1]).is_err());
     }
 
     #[test]

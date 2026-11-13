@@ -19,6 +19,8 @@ interface PickerProps {
   onCancel: () => void;
 }
 
+const ROLE_LABELS: Record<PromoRole, string> = { queen: "Dame", rook: "Turm", bishop: "Läufer", knight: "Springer" };
+
 const ROLE_KEYS: Record<PromoRole, string> = { queen: "1", rook: "2", bishop: "3", knight: "4" };
 
 export function PromotionPicker({ color, onPick, onCancel }: PickerProps) {
@@ -45,13 +47,13 @@ export function PromotionPicker({ color, onPick, onCancel }: PickerProps) {
   return (
     <div className="promo-overlay" onClick={onCancel}>
       <div className="promo-card" onClick={(e) => e.stopPropagation()}>
-        <div className="promo-title">Promote to</div>
+        <div className="promo-title">Bauernumwandlung</div>
         <div className="promo-roles">
           {PROMO_ROLES.map((role) => (
             <button
               key={role}
               className="promo-btn"
-              title={`${role} (${ROLE_KEYS[role]})`}
+              title={`${ROLE_LABELS[role]} (${ROLE_KEYS[role]})`}
               onClick={() => onPick(role)}
             >
               <span className="promo-glyph">{PROMO_GLYPHS[color][role]}</span>
@@ -59,7 +61,7 @@ export function PromotionPicker({ color, onPick, onCancel }: PickerProps) {
             </button>
           ))}
         </div>
-        <div className="promo-hint">1–4 choose · Esc cancels</div>
+        <div className="promo-hint">1–4: Figur wählen · Esc: abbrechen</div>
       </div>
     </div>
   );

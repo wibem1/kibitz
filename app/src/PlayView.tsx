@@ -1,5 +1,5 @@
 /**
- * Play online (run 10): live games on lichess via the Board API. Seek →
+ * Online spielen (run 10): live games on lichess via the Board API. Seek →
  * play on the standard Board → the finished game auto-imports with
  * provenance and shows up on Home like any other personal/online game.
  *
@@ -145,7 +145,7 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
       } else if (ev.kind === "gameFinish") {
         refreshGames();
       } else if (ev.kind === "imported") {
-        setNote(`Game ${ev.gameId} imported — it is on Home under “New since”.`);
+        setNote(`Partie ${ev.gameId} importiert – du findest sie auf der Startseite.`);
       } else if (ev.kind === "error" && ev.detail) {
         setNote(ev.detail);
       }
@@ -217,7 +217,7 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
     playSeek(opts)
       .then(() => {
         if (corr) {
-          setNote("Correspondence seek created on lichess — the game appears here when someone joins.");
+          setNote("Fernschach-Angebot erstellt – die Partie erscheint, sobald jemand annimmt.");
           refreshGames();
         }
       })
@@ -233,9 +233,9 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
   if (token === null) {
     return (
       <>
-        <ScreenHeader title="Play online" subtitle="lichess Board API" />
+        <ScreenHeader title="Online spielen" subtitle="lichess Board API" />
         <div className="page-scroll">
-          <div className="play-page">Checking the lichess token…</div>
+          <div className="play-page">Lichess-Zugang wird geprüft…</div>
         </div>
       </>
     );
@@ -244,20 +244,20 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
   if (!token.configured) {
     return (
       <>
-        <ScreenHeader title="Play online" subtitle="lichess Board API" />
+        <ScreenHeader title="Online spielen" subtitle="lichess Board API" />
         <div className="page-scroll">
           <div className="play-page">
             <div className="sync-card">
-              <div className="sync-card-head">CONNECT A LICHESS ACCOUNT</div>
+              <div className="sync-card-head">LICHESS-KONTO VERBINDEN</div>
               <p className="sync-blurb">
-                Playing needs a lichess personal access token with the <b>board:play</b> scope.
-                Create one at lichess.org → Preferences → API access tokens, then paste it in
-                Settings. It is stored on this machine only (owner-readable file), never in the
-                database, and never shown again in full.
+                Zum Spielen benötigst du einen persönlichen Lichess-Zugangsschlüssel mit <b>board:play</b>.
+                Erstelle ihn bei Lichess unter Einstellungen → API-Zugangsschlüssel und trage ihn
+                in den Kibitz-Einstellungen ein. Er bleibt auf deinem Rechner und wird nicht in
+                der Partiedatenbank gespeichert oder später vollständig angezeigt.
               </p>
               <div className="sync-row">
                 <button className="btn-primary" onClick={() => onNavigate("settings")}>
-                  Open Settings
+                  Einstellungen öffnen
                 </button>
               </div>
             </div>
@@ -285,7 +285,7 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
         <span className="play-player-name">
           {name}
           {rating !== null ? ` (${rating})` : ""}
-          {snap.myColor === side ? " — you" : ""}
+          {snap.myColor === side ? " — du" : ""}
         </span>
         <span className="play-clock">{fmtClock(ms)}</span>
       </div>
@@ -298,8 +298,8 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
   return (
     <>
       <ScreenHeader
-        title="Play online"
-        subtitle={`lichess Board API · signed in as ${token.username ?? "?"}`}
+        title="Online spielen"
+        subtitle={`Lichess · angemeldet als ${token.username ?? "?"}`}
       />
       <div className="page-scroll">
         <div className="play-page">
@@ -323,14 +323,13 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
                   {playerRow(orientation)}
                   {finished ? (
                     <div className="play-result">
-                      {finished} · imported for review — analyze it from the Game view whenever
-                      you like.
+                      {finished} · für die Nachbesprechung importiert. Du kannst sie jetzt unter „Partie & Analyse“ untersuchen.
                     </div>
                   ) : (
                     <div className="play-actions">
                       {canAbort && (
                         <button className="btn-ghost" onClick={() => act(playAbort(snap.gameId))}>
-                          Abort
+                          Partie abbrechen
                         </button>
                       )}
                       {opponentOffersDraw ? (
@@ -339,13 +338,13 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
                             className="btn-secondary"
                             onClick={() => act(playDraw(snap.gameId, true))}
                           >
-                            Accept draw
+                            Remis annehmen
                           </button>
                           <button
                             className="btn-ghost"
                             onClick={() => act(playDraw(snap.gameId, false))}
                           >
-                            Decline draw
+                            Remis ablehnen
                           </button>
                         </>
                       ) : (
@@ -353,7 +352,7 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
                           className="btn-ghost"
                           onClick={() => act(playDraw(snap.gameId, true))}
                         >
-                          Offer draw
+                          Remis anbieten
                         </button>
                       )}
                       {confirmResign ? (
@@ -365,15 +364,15 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
                               act(playResign(snap.gameId));
                             }}
                           >
-                            Confirm resign
+                            Aufgabe bestätigen
                           </button>
                           <button className="btn-ghost" onClick={() => setConfirmResign(false)}>
-                            Keep playing
+                            Weiterspielen
                           </button>
                         </>
                       ) : (
                         <button className="btn-ghost" onClick={() => setConfirmResign(true)}>
-                          Resign
+                          Aufgeben
                         </button>
                       )}
                     </div>
@@ -384,31 +383,31 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
                 </>
               ) : (
                 <div className="play-empty">
-                  No game on the board — seek one, or rejoin an ongoing game.
+                  Noch keine Partie auf dem Brett. Suche einen Gegner oder setze eine Partie fort.
                 </div>
               )}
             </div>
 
             <div className="play-side-col">
               <div className="sync-card">
-                <div className="sync-card-head">SEEK A GAME</div>
+                <div className="sync-card-head">GEGNER SUCHEN</div>
                 <p className="sync-blurb">
-                  Lichess allows third-party clients rapid, classical and correspondence only —
-                  no bullet or blitz.
+                  Bei der normalen Gegnersuche mit externen Programmen unterstützt Lichess Schnellschach,
+                  klassische Partien und Fernschach, aber kein Bullet oder Blitz.
                 </p>
                 <div className="play-seek-modes">
                   <label>
-                    <input type="radio" checked={!corr} onChange={() => setCorr(false)} /> Realtime
+                    <input type="radio" checked={!corr} onChange={() => setCorr(false)} /> Live-Partie
                   </label>
                   <label>
                     <input type="radio" checked={corr} onChange={() => setCorr(true)} />{" "}
-                    Correspondence
+                    Fernschach
                   </label>
                 </div>
                 {corr ? (
                   <div className="sync-row">
                     <label>
-                      Days per move{" "}
+                      Tage pro Zug{" "}
                       <select value={days} onChange={(e) => setDays(Number(e.target.value))}>
                         {CORR_DAYS.map((d) => (
                           <option key={d} value={d}>
@@ -441,14 +440,14 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
                       checked={rated}
                       onChange={(e) => setRated(e.target.checked)}
                     />{" "}
-                    Rated
+                    Gewertet
                   </label>
                   <label>
-                    Color{" "}
+                    Farbe{" "}
                     <select value={color} onChange={(e) => setColor(e.target.value)}>
-                      <option value="random">random</option>
-                      <option value="white">white</option>
-                      <option value="black">black</option>
+                      <option value="random">zufällig</option>
+                      <option value="white">Weiß</option>
+                      <option value="black">Schwarz</option>
                     </select>
                   </label>
                 </div>
@@ -456,38 +455,38 @@ export default function PlayView({ treatment, onNavigate }: PlayViewProps) {
                   {seeking ? (
                     <>
                       <span className="sync-running">
-                        <span className="strip-dot on" /> Searching for an opponent…
+                        <span className="strip-dot on" /> Suche nach einem Gegner…
                       </span>
                       <button
                         className="btn-secondary"
                         onClick={() => seekCancel().catch(() => {})}
                       >
-                        Cancel
+                        Abbrechen
                       </button>
                     </>
                   ) : (
                     <button className="btn-primary" onClick={doSeek}>
-                      Seek
+                      Gegner suchen
                     </button>
                   )}
                 </div>
               </div>
 
               <div className="sync-card">
-                <div className="sync-card-head">ONGOING GAMES</div>
+                <div className="sync-card-head">LAUFENDE PARTIEN</div>
                 {games.length === 0 ? (
                   <p className="sync-blurb">
-                    None right now. Correspondence games survive app restarts and reappear here.
+                    Derzeit keine laufenden Partien. Fernschach-Partien erscheinen nach einem Neustart erneut.
                   </p>
                 ) : (
                   games.map((g) => (
                     <div key={g.gameId} className="play-ongoing-row">
                       <span>
-                        vs {g.opponent} · {g.speed}
-                        {g.isMyTurn ? " · your move" : ""}
+                        gegen {g.opponent} · {g.speed}
+                        {g.isMyTurn ? " · du bist am Zug" : ""}
                       </span>
                       <button className="btn-secondary" onClick={() => join(g.gameId)}>
-                        Rejoin
+                        Fortsetzen
                       </button>
                     </div>
                   ))

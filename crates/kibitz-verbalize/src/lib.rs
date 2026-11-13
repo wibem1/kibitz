@@ -396,11 +396,12 @@ fn apply_starter(voice: Voice, rotation_key: &str, index: usize, paragraph: Stri
     }
     let white = lookup(&["side.white"]);
     let black = lookup(&["side.black"]);
-    let body = if paragraph.starts_with(white) || paragraph.starts_with(black) {
-        paragraph
-    } else {
-        decapitalize_first(&paragraph)
-    };
+    let body =
+        if starter.ends_with(':') || paragraph.starts_with(white) || paragraph.starts_with(black) {
+            capitalize_first(&paragraph)
+        } else {
+            decapitalize_first(&paragraph)
+        };
     format!("{starter} {body}")
 }
 
@@ -622,7 +623,7 @@ fn render_king_details(detail: &str, voice: Voice) -> String {
 fn side_name_favors(favors: Favors) -> &'static str {
     match favors_side(favors) {
         Some(side) => side_name(side),
-        None => "both sides",
+        None => "beide Seiten",
     }
 }
 
@@ -1622,17 +1623,17 @@ pub(crate) fn render_scheme(
 /// words rather than pretending to be a measurement.
 fn moves_phrase(moves: u8) -> String {
     let word = match moves {
-        1 => "one",
-        2 => "two",
-        3 => "three",
-        4 => "four",
-        5 => "five",
-        _ => return format!("{moves} moves"),
+        1 => "einen",
+        2 => "zwei",
+        3 => "drei",
+        4 => "vier",
+        5 => "fünf",
+        _ => return format!("{moves} Züge"),
     };
     if moves == 1 {
-        format!("{word} move")
+        format!("{word} Zug")
     } else {
-        format!("{word} moves")
+        format!("{word} Züge")
     }
 }
 

@@ -57,7 +57,7 @@ export default function CrosstableView({ event, onClose, onOpenGame }: Crosstabl
     <button
       key={key}
       className={`xt-cell xt-${c.score === "1" ? "win" : c.score === "0" ? "loss" : "rest"}`}
-      title={`${c.color === "w" ? "White" : "Black"} vs ${c.opponent} — click to open the game`}
+      title={`${c.color === "w" ? "Weiß" : "Schwarz"} vs ${c.opponent} – klicken, um die Partie zu öffnen`}
       onClick={() => onOpenGame(c.gameId)}
     >
       {c.score}
@@ -69,20 +69,20 @@ export default function CrosstableView({ event, onClose, onOpenGame }: Crosstabl
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal xt-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-title xt-title">
-          <span>Crosstable — {event}</span>
+          <span>Kreuztabelle – {event}</span>
           {table && (
             <span className="xt-meta">
-              {table.games.toLocaleString("en-US")} game{table.games === 1 ? "" : "s"} ·{" "}
-              {table.players.length} player{table.players.length === 1 ? "" : "s"}
+              {table.games.toLocaleString("de-DE")} {table.games === 1 ? "Partie" : "Partien"} ·{" "}
+              {table.players.length} {table.players.length === 1 ? "Spieler" : "Spieler"}
             </span>
           )}
         </div>
 
-        {error && <div className="error">Crosstable failed: {error}</div>}
-        {!table && !error && <div className="xt-note">Loading…</div>}
+        {error && <div className="error">Kreuztabelle konnte nicht geladen werden: {error}</div>}
+        {!table && !error && <div className="xt-note">Wird geladen …</div>}
 
         {table && table.games === 0 && (
-          <p className="xt-note">No games under this event name in the open database.</p>
+          <p className="xt-note">Für dieses Turnier wurden in der geöffneten Datenbank keine Partien gefunden.</p>
         )}
 
         {table && table.games > 0 && (
@@ -91,16 +91,16 @@ export default function CrosstableView({ event, onClose, onOpenGame }: Crosstabl
               <thead>
                 <tr>
                   <th className="xt-rank">#</th>
-                  <th className="xt-player">PLAYER</th>
+                  <th className="xt-player">SPIELER</th>
                   <th>ELO</th>
-                  <th>PTS</th>
-                  <th>GAMES</th>
-                  <th title="avg opponent Elo + 800·score − 400, finished games vs rated opponents">
+                  <th>PKT</th>
+                  <th>PARTIEN</th>
+                  <th title="Durchschnittliche Gegner-Elo + 800 × Punktausbeute − 400 (gewertete Partien)">
                     PERF
                   </th>
                   {table.mode === "grid" &&
                     table.rounds.map((r) => <th key={r}>R{r}</th>)}
-                  {table.mode === "grid" && table.hasUnrounded && <th title="games whose Round tag could not be parsed">?</th>}
+                  {table.mode === "grid" && table.hasUnrounded && <th title="Partien ohne auswertbare Rundennummer">?</th>}
                 </tr>
               </thead>
               <tbody>
@@ -130,20 +130,20 @@ export default function CrosstableView({ event, onClose, onOpenGame }: Crosstabl
 
         {table && table.mode === "list" && table.games > 0 && (
           <p className="xt-note">
-            Most of this event's games carry no usable Round tag, so there is no honest
-            rounds grid — this is the scored player list instead.
+            Bei den meisten Partien fehlt eine auswertbare Rundennummer. Deshalb wird
+            eine Spielerliste mit Punktestand statt einer Rundentabelle angezeigt.
           </p>
         )}
         {truncated !== null && (
           <p className="xt-note">
-            Showing the first {table?.games.toLocaleString("en-US")} of{" "}
-            {truncated.toLocaleString("en-US")} games filed under this event name.
+            Angezeigt werden {table?.games.toLocaleString("de-DE")} von{" "}
+            {truncated.toLocaleString("de-DE")} Partien dieses Turniers.
           </p>
         )}
 
         <div className="modal-actions">
           <button className="btn-secondary" onClick={onClose}>
-            Close
+            Schließen
           </button>
         </div>
       </div>

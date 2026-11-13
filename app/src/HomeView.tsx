@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   commitmentGet,
+  commitmentSet,
   homeSummary,
   prepStateGet,
   type Commitment,
@@ -79,13 +80,13 @@ export function HomeContent({
 
   const continueCard = summary.lastGame && (
     <div className="home-card accented">
-      <div className="home-card-label">CONTINUE</div>
+      <div className="home-card-label">WEITERARBEITEN</div>
       <div className="home-card-title">
         {summary.lastGame.white} — {summary.lastGame.black}
       </div>
       <div className="home-card-prose">
         {/* Stored UTC → the user's local date (audit #10). */}
-        Stopped at ply {summary.lastGame.ply} · opened {utcDateLocal(summary.lastGame.openedAt)}.
+        Bei Halbzug {summary.lastGame.ply} unterbrochen · geöffnet am {utcDateLocal(summary.lastGame.openedAt)}.
       </div>
       <button
         className="btn-primary"
@@ -93,7 +94,7 @@ export function HomeContent({
           onOpenGame(summary.lastGame!.id, summary.lastGame!.ply, summary.lastGame!.flipped)
         }
       >
-        Resume review
+        Analyse fortsetzen
       </button>
     </div>
   );
@@ -111,13 +112,13 @@ export function HomeContent({
           </div>
         )}
         <div className="home-degraded">
-          <p>Nothing due today.</p>
-          <p>No new games this week.</p>
+          <p>Heute keine Aufgaben fällig.</p>
+          <p>Diese Woche keine neuen Partien.</p>
           <p>
             <button className="home-link" onClick={() => onNavigate("profile")}>
-              Build a profile
+              Spielprofil erstellen
             </button>{" "}
-            to surface findings.
+            und damit Hinweise zu deinem Spiel erhalten.
           </p>
         </div>
       </div>
@@ -141,46 +142,46 @@ export function HomeContent({
       <div className="home-cards">
         {continueCard}
         <div className="home-card">
-          <div className="home-card-label">DUE TODAY</div>
+          <div className="home-card-label">HEUTE FÄLLIG</div>
           <div className="home-due-row">
             <span className="home-due-num">{summary.dueSrs}</span>
-            <span className="home-due-unit">openings</span>
+            <span className="home-due-unit">Eröffnungen</span>
             {/* Tactics have no honest due count (endless queue): grayed, never a number. */}
             <span
               className="home-due-num muted"
-              title="The tactics queue is endless — weakness-weighted selection has no due count."
+              title="Taktikaufgaben sind jederzeit verfügbar und haben keinen Fälligkeitstermin."
             >
               –
             </span>
-            <span className="home-due-unit">tactics</span>
+            <span className="home-due-unit">Taktikaufgaben</span>
           </div>
           <div className="home-card-buttons">
             <button className="btn-secondary" onClick={() => onNavigate("train")}>
-              Review openings
+              Eröffnungen üben
             </button>
             <button className="btn-secondary" onClick={() => onNavigate("tactics")}>
-              Solve tactics
+              Taktik üben
             </button>
           </div>
         </div>
         <div className="home-card">
-          <div className="home-card-label">PREP AN OPPONENT</div>
+          <div className="home-card-label">GEGNER VORBEREITEN</div>
           <div className="home-prep-row">
             <input
               type="text"
               value={prepQuery}
               onChange={(e) => setPrepQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && goPrep()}
-              placeholder="Search a name…"
+              placeholder="Gegner suchen …"
               spellCheck={false}
             />
             <button className="btn-secondary" onClick={goPrep}>
-              Go
+              Suchen
             </button>
           </div>
           {prepState.length > 0 && (
             <div className="home-recents">
-              Recent: {prepState.map((p) => p.opponent).join(" · ")}
+              Zuletzt: {prepState.map((p) => p.opponent).join(" · ")}
             </div>
           )}
         </div>
@@ -190,14 +191,14 @@ export function HomeContent({
         <div className="home-panel home-findings">
           <div className="home-panel-head">
             <span className="home-panel-title">
-              {summary.profilePlayer ? `YOUR CHESS · ${summary.profilePlayer.toUpperCase()}` : "YOUR CHESS"}
+              {summary.profilePlayer ? `DEIN SCHACH · ${summary.profilePlayer.toUpperCase()}` : "DEIN SCHACH"}
             </span>
             {summary.profileBuiltAt && (
-              <span className="home-pill">BUILT {utcDateLocal(summary.profileBuiltAt)}</span>
+              <span className="home-pill">Erstellt {utcDateLocal(summary.profileBuiltAt)}</span>
             )}
             <div className="home-panel-spacer" />
             <button className="btn-ghost" onClick={() => onNavigate("profile")}>
-              Full profile
+              Ganzes Profil
             </button>
           </div>
           {summary.findingsAvailable ? (
@@ -216,7 +217,7 @@ export function HomeContent({
                       {f.value}
                     </span>
                     <span className="home-finding-evidence">
-                      {f.evidenceCount} game{f.evidenceCount === 1 ? "" : "s"}
+                      {f.evidenceCount} {f.evidenceCount === 1 ? "Partie" : "Partien"}
                     </span>
                   </button>
                 ))}
@@ -224,8 +225,8 @@ export function HomeContent({
             </>
           ) : (
             <p className="home-prose dim">
-              No profile has been built yet. Build one to surface findings here — static
-              analysis plus stored evals, no engine run.
+              Noch kein Spielprofil erstellt. Ein Profil zeigt dir Hinweise aus gespeicherten
+              Partien und Bewertungen – ohne zusätzliche Engineberechnung.
             </p>
           )}
         </div>
@@ -233,10 +234,10 @@ export function HomeContent({
         <div className="home-side">
           <div className="home-panel">
             <div className="home-panel-head">
-              <span className="home-panel-title">{since ?? "NEW THIS WEEK"}</span>
+              <span className="home-panel-title">{since ?? "NEU DIESE WOCHE"}</span>
             </div>
             {summary.newGames.length === 0 ? (
-              <p className="home-prose dim">No new games this week.</p>
+              <p className="home-prose dim">Diese Woche keine neuen Partien.</p>
             ) : (
               <>
                 <div className="home-new-rows">
@@ -258,19 +259,19 @@ export function HomeContent({
           </div>
           <div className="home-panel">
             <div className="home-panel-head">
-              <span className="home-panel-title">RUNNING</span>
+              <span className="home-panel-title">AKTIV</span>
             </div>
             {working ? (
               <>
                 {netLine && (
                   <div className="home-progress">
-                    <span className="home-progress-label">NETWORK</span>
+                    <span className="home-progress-label">NETZWERK</span>
                     <span className="home-progress-detail">{netLine}</span>
                   </div>
                 )}
                 {engineWorking && (
                   <div className="home-progress">
-                    <span className="home-progress-label">ENGINE JOBS</span>
+                    <span className="home-progress-label">ENGINEAUFTRÄGE</span>
                     {batchFraction !== null && (
                       <span className="home-progress-track">
                         <span
@@ -282,20 +283,20 @@ export function HomeContent({
                     <span className="home-progress-detail">
                       {batchFraction !== null
                         ? `${Math.round(batchFraction * 100)}%`
-                        : `${jobs.pending} pending · ${jobs.running} running`}
+                        : `${jobs.pending} offen · ${jobs.running} aktiv`}
                     </span>
                   </div>
                 )}
                 <p className="home-prose dim">
                   {engineWorking
                     ? jobs.workerActive
-                      ? "The job worker is running the queue you started."
-                      : "Jobs are queued but the worker is not running — the engine is cold."
-                    : "A network sync is running — the engine stays cold."}
+                      ? "Die gestarteten Analyseaufträge werden bearbeitet."
+                      : "Aufträge warten, die Engine ist derzeit ausgeschaltet."
+                    : "Die Konten werden abgeglichen; die Engine bleibt ausgeschaltet."}
                 </p>
               </>
             ) : (
-              <p className="home-prose dim">Nothing is running — the engine is cold.</p>
+              <p className="home-prose dim">Keine laufenden Aufgaben – die Engine ist ausgeschaltet.</p>
             )}
           </div>
         </div>
@@ -324,6 +325,32 @@ export default function HomeView({
 }: HomeViewProps) {
   const [data, setData] = useState<HomeData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editCommitment, setEditCommitment] = useState(false);
+  const [commitLabel, setCommitLabel] = useState("");
+  const [commitOpponent, setCommitOpponent] = useState("");
+  const [commitBusy, setCommitBusy] = useState(false);
+  const [commitError, setCommitError] = useState<string | null>(null);
+
+  const openCommitmentEditor = () => {
+    setCommitLabel(data?.commitment?.label ?? "");
+    setCommitOpponent(data?.commitment?.opponent ?? "");
+    setCommitError(null);
+    setEditCommitment(true);
+  };
+
+  const saveCommitment = async () => {
+    setCommitBusy(true);
+    setCommitError(null);
+    try {
+      await commitmentSet(commitLabel.trim() || null, commitOpponent.trim() || null);
+      setEditCommitment(false);
+      refresh();
+    } catch (e) {
+      setCommitError(String(e));
+    } finally {
+      setCommitBusy(false);
+    }
+  };
 
   const refresh = useCallback(() => {
     if (!dbOpen) return;
@@ -345,40 +372,73 @@ export default function HomeView({
     return (
       <div className="home">
         <p className="home-prose">
-          Welcome to Kibitz. Boards, coaching and training all grow out of a game
-          database — and there is no database open yet.
+          Willkommen bei Kibitz! Schachbrett, Analyse und Training nutzen eine Partiedatenbank.
+          Momentan ist noch keine Datenbank geöffnet.
         </p>
         <p className="home-prose dim">
-          Create one, then fill it: import a PGN file, or link your chess.com /
-          lichess username and your games download themselves.
+          Erstelle zuerst eine Datenbank. Danach kannst du PGN-Partien importieren oder
+          dein Lichess- bzw. Chess.com-Konto verbinden.
         </p>
         <div className="home-welcome-actions">
           <button className="btn-primary" onClick={() => onNavigate("database")}>
-            Set up your database
+            Datenbank einrichten
           </button>
           <button className="btn-secondary" onClick={() => onNavigate("import")}>
-            Import PGN
+            PGN importieren
           </button>
           <button className="btn-secondary" onClick={() => onNavigate("syncs")}>
-            Link an account
+            Konto verbinden
           </button>
         </div>
       </div>
     );
   }
   if (!data && !error) {
-    return <div className="home"><p className="home-prose dim">Open a database to see your day.</p></div>;
+    return <div className="home"><p className="home-prose dim">Öffne eine Datenbank, um deine Übersicht anzuzeigen.</p></div>;
   }
   if (error) {
-    return <div className="home"><p className="home-prose dim">Home unavailable: {error}</p></div>;
+    return <div className="home"><p className="home-prose dim">Startseite nicht verfügbar: {error}</p></div>;
   }
   return (
-    <HomeContent
-      data={data!}
-      batchFraction={batchFraction}
-      netProgress={netProgress}
-      onNavigate={onNavigate}
-      onOpenGame={onOpenGame}
-    />
+    <>
+      <div className="home" style={{ paddingBottom: 0 }}>
+        <button className="home-link" onClick={() => editCommitment ? setEditCommitment(false) : openCommitmentEditor()}>
+          {editCommitment ? "Terminbearbeitung schließen" : "Schachtermin bearbeiten"}
+        </button>
+        {editCommitment && (
+          <div className="home-card" style={{ marginTop: 8 }}>
+            <div className="home-card-label">WIEDERKEHRENDER SCHACHTERMIN</div>
+            <p className="home-prose dim">Optionaler Termin auf der Startseite. Zum Entfernen beide Felder leeren und speichern.</p>
+            <div className="home-prep-row">
+              <input
+                type="text"
+                value={commitLabel}
+                placeholder="Terminbezeichnung"
+                aria-label="Terminbezeichnung"
+                onChange={(e) => setCommitLabel(e.target.value)}
+              />
+              <input
+                type="text"
+                value={commitOpponent}
+                placeholder="Gegner (optional)"
+                aria-label="Gegner des Termins"
+                onChange={(e) => setCommitOpponent(e.target.value)}
+              />
+              <button className="btn-secondary" onClick={() => void saveCommitment()} disabled={commitBusy}>
+                {commitBusy ? "Wird gespeichert …" : "Speichern"}
+              </button>
+            </div>
+            {commitError && <p className="home-prose">{commitError}</p>}
+          </div>
+        )}
+      </div>
+      <HomeContent
+        data={data!}
+        batchFraction={batchFraction}
+        netProgress={netProgress}
+        onNavigate={onNavigate}
+        onOpenGame={onOpenGame}
+      />
+    </>
   );
 }
