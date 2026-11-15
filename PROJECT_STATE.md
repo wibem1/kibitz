@@ -1,18 +1,12 @@
-# Kibitz DE – Wiederherstellung des letzten App-Stands
+# Kibitz DE 0.1.6 – gemeinsamer Versions- und Funktionsstand (15.11.2026)
 
-**Implementiert:** Beim Start wird die gespeicherte Sitzung vollständig geladen, bevor neue Ansichten gespeichert werden. Damit kann der anfängliche Startbildschirm den letzten Stand nicht mehr überschreiben. „Offline spielen“ wird als gültige gespeicherte Ansicht wiederhergestellt; der bestehende Autospeicher lädt dazu Partie, Spielseite, Brettausrichtung und Enginewahl. Die bestehende Wiederherstellung von letzter Datenbank, Datenbankfiltern, letzter Partie, Zug und Brettausrichtung bleibt eingebunden. Ein Ansichtwechsel wird sofort gespeichert; Filteränderungen bleiben entprellt.
+**Neue Versionsregel umgesetzt:** Der aktuelle Entwicklungsstand führt die gemeinsame Versionsnummer **0.1.6**. Sie steht in den fünf App-Manifesten und in beiden Cargo-Lockfiles. macOS und Windows verwenden weiterhin denselben Quellstand; kein separater Plattformversionszweig.
 
-**Prüfstatus:** Frontend-Tests/-Build, Rust fmt/Clippy/Tests, Plattformversionen sowie Windows-x64-Installerprüfung sind mit GitHub Actions Lauf `43716158532` erfolgreich. Windows-Testinstaller (ohne eingebündelte Maia-Ressourcen) liegen im kurzlebigen Artefakt `14162567489` bis 22.11.2026. Der separate Maia-gebündelte Installer-Lauf `43716158530` ist noch in Arbeit. Kein Versionssprung und kein Release; reale interaktive Abnahme bleibt aus.
+**Enthalten:** Wiederherstellung der letzten Ansicht einschließlich der zuvor gespeicherten Offline-Partie bzw. Datenbankpartie; Sitzungslesen wird vor dem nächsten Speichern abgeschlossen. Maia-Zugauswahl wie in Chess Studio, Unterdrückung des Windows-Konsolenfensters und Produktname „Kibitz DE“ sind ebenfalls Bestandteil dieses Entwicklungsstands.
 
----
+**Prüfstatus:** CI-Lauf [43725396953](https://github.com/wibem1/kibitz/actions/runs/43725396953) erfolgreich: Versionsabgleich, Frontend, Rust, macOS/Linux/Windows und Windows-MSI-/NSIS-Paketprüfung. Testartefakt ohne eingebündelte Maia-Ressourcen: [14165209736](https://github.com/wibem1/kibitz/actions/runs/43725396953/artifacts/14165209736), befristet bis 22.11.2026. Der Maia-gebündelte Windows-Preview-Lauf [43725397008](https://github.com/wibem1/kibitz/actions/runs/43725397008) ist noch in Arbeit.
 
-# Kibitz DE – Maia- und Windows-Korrekturen (15.11.2026)
-
-**Implementiert, CI ausstehend:** Maia 2 nutzt jetzt dieselbe Auswahlidee wie Chess Studio: Maia-Kandidaten werden anhand ihrer Modellwahrscheinlichkeit gefiltert und gewichtet gezogen; seltene Eröffnungszüge und unmotivierte sofortige Figurenrückzüge werden vermieden. Rückzüge mit taktischem Grund bleiben möglich. Die Maia-Historie wird je Seite über die vorherigen zwölf eigenen Züge weitergereicht. Die Windows-Vorschau prüft zusätzlich, ob Maia MultiPV und move_prob liefert.
-
-**Windows/UI:** Der Anwendungsname, Fenstertitel und sichtbare Navigations-Schriftzug lauten „Kibitz DE“. UCI-Prozesse starten unter Windows mit CREATE_NO_WINDOW, damit kein Konsolenfenster aufblitzt.
-
-**Prüfstatus:** Rust-Unit-Tests für Wahrscheinlichkeits-Parsing, seltene Eröffnungszüge und taktisch notwendige Rückzüge ergänzt. GitHub Actions müssen diesen Commit noch bauen. Echte Installation und Spielprüfung auf Windows 11 steht weiterhin aus; kein Release.
+**Freigabe:** Kein Tag und kein offizielles Release. Eine reale Windows-11-Installation mit Neustart wurde noch nicht bestätigt. Ausführliche Änderungsübersicht: [docs/KIBITZ_DE_0.1.6_RELEASE_NOTES.md](docs/KIBITZ_DE_0.1.6_RELEASE_NOTES.md).
 
 ---
 
