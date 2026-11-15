@@ -33,35 +33,23 @@ jobs:
         working-directory: app
         run: npm ci
 
-      - name: Fetch pinned Maia 2 source and model weights
+      - name: Download and verify upstream Maia 2 Windows CPU package
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $source = Join-Path $env:RUNNER_TEMP 'maia2-uci'
-          git lfs install --skip-repo
-          $env:GIT_LFS_SKIP_SMUDGE = '1'
-          git clone --depth 1 https://github.com/ChessWaveIO/maia2-uci.git $source
-          git -C $source fetch --depth 1 origin 05d51ac73ca3ad006882f8956c848fe2411ce718
-          git -C $source checkout --detach 05d51ac73ca3ad006882f8956c848fe2411ce718
-          git -C $source lfs pull --include 'models/maia2-rapid.onnx,models/maia2-blitz.onnx' --exclude ''
-          foreach ($model in @('maia2-rapid.onnx', 'maia2-blitz.onnx')) {
-            $file = Join-Path $source "models/$model"
-            if ((Get-Item $file).Length -lt 90000000) { throw "Model weight file is incomplete: $model" }
-          }
-          "MAIA_SOURCE=$source" | Add-Content $env:GITHUB_ENV
-
-      - name: Build Maia 2 CPU engine with embedded weights
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          # fathom-syzygy-sys uses C11 atomics; MSVC requires both flags.
-          $env:CFLAGS_x86_64_pc_windows_msvc = '/std:c11 /experimental:c11atomics'
-          cargo build --manifest-path "$env:MAIA_SOURCE/Cargo.toml" --release --features embed-weights
-          $engineDir = Join-Path $env:MAIA_SOURCE 'target/release'
-          $engine = Join-Path $engineDir 'maia2-uci.exe'
-          if (-not (Test-Path $engine -PathType Leaf)) { throw 'Maia 2 engine executable is missing.' }
-          $runtime = @(Get-ChildItem $engineDir -Filter '*.dll' -File)
-          if (-not ($runtime.Name -contains 'onnxruntime.dll')) { throw 'ONNX Runtime CPU DLL was not copied beside Maia 2.' }
+          $zip = Join-Path $env:RUNNER_TEMP 'maia2-uci-1.0.3-windows-x86_64-cpu.zip'
+          $url = 'https://github.com/ChessWaveIO/maia2-uci/releases/download/v1.0.3/maia2-uci-1.0.3-windows-x86_64-cpu.zip'
+          Invoke-WebRequest -Uri $url -OutFile $zip
+          $digest = (Get-FileHash -Path $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          $expected = 'bb6df2c50784102f563e9c408b4deaca5b0cd75c462b35ebe58b9235d608e414'
+          if ($digest -ne $expected) { throw "Maia 2 upstream release checksum mismatch: $digest" }
+          $unpack = Join-Path $env:RUNNER_TEMP 'maia2-bundle'
+          Expand-Archive -LiteralPath $zip -DestinationPath $unpack -Force
+          $engines = @(Get-ChildItem $unpack -Filter 'maia2-uci.exe' -File -Recurse)
+          if ($engines.Count -ne 1) { throw "Expected one Maia 2 executable; found $($engines.Count)." }
+          $engineDir = $engines[0].Directory.FullName
+          if (-not (Test-Path (Join-Path $engineDir 'LICENSE') -PathType Leaf)) { throw 'Upstream Maia 2 license is missing.' }
+          if (-not (Test-Path (Join-Path $engineDir 'onnxruntime.dll') -PathType Leaf)) { throw 'Upstream ONNX Runtime CPU DLL is missing.' }
           "MAIA_ENGINE_DIR=$engineDir" | Add-Content $env:GITHUB_ENV
 
       - name: Smoke-test Maia 2 UCI and CPU inference
@@ -91,7 +79,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $resourceDir | Out-Null
           Copy-Item (Join-Path $env:MAIA_ENGINE_DIR 'maia2-uci.exe') $resourceDir
           Get-ChildItem $env:MAIA_ENGINE_DIR -Filter '*.dll' -File | Copy-Item -Destination $resourceDir
-          Copy-Item (Join-Path $env:MAIA_SOURCE 'LICENSE') (Join-Path $resourceDir 'maia2-LICENSE')
+          Copy-Item (Join-Path $env:MAIA_ENGINE_DIR 'LICENSE') (Join-Path $resourceDir 'maia2-LICENSE')
           $resources = @{}
           Get-ChildItem $resourceDir -File | ForEach-Object { $resources["resources/$($_.Name)"] = $_.Name }
           $config = @{ bundle = @{ resources = $resources } } | ConvertTo-Json -Depth 8
