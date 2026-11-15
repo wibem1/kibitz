@@ -269,7 +269,7 @@ pub fn select_maia_move(
 
 fn has_tactical_reason(board: &Board, mv: Move) -> bool {
     let opponent = !board.side_to_move();
-    let capture = board.colors(opponent).contains(mv.to)
+    let capture = board.piece_on(mv.to).is_some()
         || (board.piece_on(mv.from) == Some(Piece::Pawn)
             && board.en_passant() == Some(mv.to.file())
             && mv.from.file() != mv.to.file());
@@ -322,10 +322,16 @@ pub struct EngineIdentity {
 }
 
 fn engine_command(path: &Path) -> Command {
-    let mut command = Command::new(path);
     #[cfg(windows)]
-    command.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
-    command
+    {
+        let mut command = Command::new(path);
+        command.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
+        command
+    }
+    #[cfg(not(windows))]
+    {
+        Command::new(path)
+    }
 }
 
 /// Spawn `path`, run the `uci` → `uciok` handshake capturing the `id name`
