@@ -268,7 +268,6 @@ pub fn select_maia_move(
 }
 
 fn has_tactical_reason(board: &Board, mv: Move) -> bool {
-    let opponent = !board.side_to_move();
     let capture = board.piece_on(mv.to).is_some()
         || (board.piece_on(mv.from) == Some(Piece::Pawn)
             && board.en_passant() == Some(mv.to.file())

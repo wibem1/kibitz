@@ -38,7 +38,7 @@ pub mod verify;
 
 use std::sync::Arc;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::{Emitter, Manager, State};
 use tokio::sync::Mutex;
 
@@ -145,6 +145,13 @@ fn bundled_maia2_path_from_bin_dir(bin_dir: &std::path::Path) -> Option<std::pat
 /// Request one bounded move for an explicitly chosen local engine opponent.
 /// A fresh process isolates game play from the shared analysis queue/stream.
 /// Every call has its own deadline; dropping Engine kills the subprocess.
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct MaiaMoveContext {
+    plies: Option<u32>,
+    recent_own_moves: Option<Vec<uci::MaiaPriorMove>>,
+}
+
 #[tauri::command]
 async fn offline_engine_move(
     fen: String,
@@ -153,8 +160,7 @@ async fn offline_engine_move(
     elo: Option<u32>,
     opponent_engine: Option<String>,
     opponent_elo: Option<u32>,
-    plies: Option<u32>,
-    recent_own_moves: Option<Vec<uci::MaiaPriorMove>>,
+    maia_context: Option<MaiaMoveContext>,
 ) -> Result<String, String> {
     use std::time::Duration;
     // Avoid sending arbitrary control sequences to the UCI subprocess.
@@ -233,8 +239,14 @@ async fn offline_engine_move(
             return uci::select_maia_move(
                 &fen,
                 &maia_infos,
-                plies.unwrap_or(0) as usize,
-                recent_own_moves.as_deref().unwrap_or(&[]),
+                maia_context
+                    .as_ref()
+                    .and_then(|context| context.plies)
+                    .unwrap_or(0) as usize,
+                maia_context
+                    .as_ref()
+                    .and_then(|context| context.recent_own_moves.as_deref())
+                    .unwrap_or(&[]),
             );
         }
         Ok(response.bestmove)

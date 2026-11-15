@@ -18,8 +18,9 @@ export function requestOfflineEngineMove(
     elo,
     opponentEngine,
     opponentElo,
-    plies,
-    recentOwnMoves,
+    maiaContext: opponentEngine === "maia2"
+      ? { plies: plies ?? 0, recentOwnMoves: recentOwnMoves ?? [] }
+      : null,
   });
 }
 
