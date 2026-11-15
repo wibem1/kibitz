@@ -1,3 +1,11 @@
+# Kibitz DE – Wiederherstellung des letzten App-Stands
+
+**Implementiert, CI ausstehend:** Beim Start wird die gespeicherte Sitzung jetzt vollständig geladen, bevor neue Ansichten gespeichert werden. Damit kann der anfängliche Startbildschirm den letzten Stand nicht mehr überschreiben. „Offline spielen“ wird als gültige gespeicherte Ansicht wiederhergestellt; der bestehende Autospeicher lädt dazu Partie, Spielseite, Brettausrichtung und Enginewahl. Die bestehende Wiederherstellung von letzter Datenbank, Datenbankfiltern, letzter Partie, Zug und Brettausrichtung bleibt eingebunden. Ein Ansichtwechsel wird sofort gespeichert; Filteränderungen bleiben entprellt.
+
+**Prüfstatus:** Ein Frontend-Test für die Offline-Ansicht ist ergänzt. CI muss den geänderten Stand noch prüfen. Kein Versionssprung und kein Release.
+
+---
+
 # Kibitz DE – Maia- und Windows-Korrekturen (15.11.2026)
 
 **Implementiert, CI ausstehend:** Maia 2 nutzt jetzt dieselbe Auswahlidee wie Chess Studio: Maia-Kandidaten werden anhand ihrer Modellwahrscheinlichkeit gefiltert und gewichtet gezogen; seltene Eröffnungszüge und unmotivierte sofortige Figurenrückzüge werden vermieden. Rückzüge mit taktischem Grund bleiben möglich. Die Maia-Historie wird je Seite über die vorherigen zwölf eigenen Züge weitergereicht. Die Windows-Vorschau prüft zusätzlich, ob Maia MultiPV und move_prob liefert.
