@@ -1,3 +1,15 @@
+# Kibitz DE – 15.11.2026: Windows-x64-Prüfpfad ergänzt
+
+**Ziel dieses Schritts:** Die vorhandene Windows-Installer-Konfiguration als regelmäßigen Windows-x64-Build mit prüfbaren MSI-/NSIS-Ausgaben absichern; keine neue Version und kein Release.
+
+**Implementiert:** `.github/workflows/ci.yml` enthält jetzt einen `windows-latest`-Job. Er führt die bestehenden Frontend-Tests und den Frontend-Build sowie `cargo fmt`, `cargo clippy` und `cargo test` für die Tauri-App auf Windows aus. Danach erzeugt Tauri MSI- und NSIS-Installer. Ein PowerShell-Schritt prüft, dass genau ein Installer je Format und ein nichtleeres x64-PE-Anwendungsprogramm vorliegen. Die beiden Installationspakete werden als kurzlebiges GitHub-Actions-Testartefakt bereitgestellt. Die bestehende Release-Matrix und Plattformliste wurden nicht verändert.
+
+**Prüfstatus:** Workflow statisch ergänzt, **noch nicht auf GitHub ausgeführt**. Es gibt deshalb keinen nachgewiesenen Windows-Build, keine Installer-Artefakte und keine Aussage über grüne Windows-Tests. Ein realer Windows-11-x64-Installations- und Bedienungstest bleibt erforderlich. Maia 2/ONNX Runtime und Stockfish wurden in diesem Schritt nicht als Windows-Binärdateien gebündelt oder praktisch getestet.
+
+**Nächster einzelner Schritt:** Windows-CI auf einem PR ausführen und Fehlermeldungen gezielt beheben. Nach erfolgreicher CI einen befristeten Installer herunterladen und auf Windows 11 prüfen: Start, Dateidialoge und Speicherpfade, Datenbank, PGN-Rundreise, Stockfish-UCI-Handschlag und Spielzug sowie Maia-2-Paket/Modellbewertung. Erst nach realer Abnahme Windows als geprüften Download anbieten.
+
+---
+
 # Kibitz DE – 13.11.2026: Version 0.1.5 in main übernommen; offizieller Download noch offen
 
 **Neuer verbindlicher Stand:** PR [#2](https://github.com/wibem1/kibitz/pull/2) mit dem vollständig versionierten 0.1.5-Release-Branch wurde erfolgreich nach `main` gemergt; Merge-Commit `3c8ac23bdb74d690e04164159e093ba69a73d0d6`. `app/src-tauri/tauri.conf.json` in `main` nach dem Merge mit Version `0.1.5` geprüft.
