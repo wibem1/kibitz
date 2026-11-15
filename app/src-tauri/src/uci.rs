@@ -731,7 +731,10 @@ mod tests {
     fn maia_policy_keeps_tactically_motivated_reversal() {
         let fen = "r1bqkbnr/pppppppp/2n5/1B6/3P4/4P3/PPP2PPP/RN1QKBNR b KQkq - 0 2";
         let candidates = [maia_candidate("c6b8", 0.90), maia_candidate("g8f6", 0.10)];
-        let history = [MaiaPriorMove { from: "b8".into(), to: "c6".into() }];
+        let history = [MaiaPriorMove {
+            from: "b8".into(),
+            to: "c6".into(),
+        }];
         assert_eq!(
             select_maia_move(fen, &candidates, 4, &history).unwrap(),
             "c6b8"
