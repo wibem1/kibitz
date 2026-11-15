@@ -77,7 +77,8 @@ versions.
 | Name | License | Use |
 |---|---|---|
 | Stockfish | GPL-3.0 | Arm's-length UCI subprocess. Never linked, never bundled in the repo (user-local `tools/`, git-ignored). |
-| Maia 2 (ChessWaveIO/maia2-uci) | MIT; Maia-2 model weights MIT per upstream | Separate UCI subprocess for human-like offline chess. The Intel-Mac preview workflow builds the pinned source with embedded rapid/blitz model weights and bundles the executable plus its MIT LICENSE under the Tauri app's Resources; other packages require a user-installed compatible Maia 2 executable. Neither the engine nor the weights are linked into the BSD crates. Original Maia-2 model by CSSLab, University of Toronto. |
+| Maia 2 (ChessWaveIO/maia2-uci) | MIT; Maia-2 model weights MIT per upstream | Separate UCI subprocess for human-like offline chess. The Intel-Mac preview and Windows x64 Maia preview workflows build the pinned source with embedded rapid/blitz model weights and include its MIT LICENSE. Windows also bundles the CPU ONNX Runtime DLLs next to the engine. Other packages require a user-installed compatible Maia 2 executable. Neither the engine nor the weights are linked into the BSD crates. Original Maia-2 model by CSSLab, University of Toronto. |
+| ONNX Runtime (Microsoft) | MIT | Dynamically loaded runtime used by the separately built Maia 2 UCI executable; Windows Maia preview ships the matching DLLs next to that executable. The runtime is not linked into the Kibitz BSD crates. |
 
 ## Bundled fonts (app UI assets)
 

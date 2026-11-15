@@ -123,8 +123,19 @@ async fn engine_identify(user_path: Option<String>) -> Result<uci::EngineIdentit
 fn bundled_maia2_path() -> Option<std::path::PathBuf> {
     let exe = std::env::current_exe().ok()?;
     let bin_dir = exe.parent()?;
+    bundled_maia2_path_from_bin_dir(bin_dir)
+}
+
+fn bundled_maia2_path_from_bin_dir(bin_dir: &std::path::Path) -> Option<std::path::PathBuf> {
     [
+        // macOS app bundle: Kibitz.app/Contents/MacOS -> Contents/Resources.
         bin_dir.join("../Resources/maia2-uci"),
+        // Tauri Windows/Linux bundles place declared resources under resources/.
+        bin_dir.join("resources/maia2-uci.exe"),
+        bin_dir.join("resources/maia2-uci"),
+        // Keep compatibility with existing preview bundles and manual installs.
+        bin_dir.join("../Resources/maia2-uci.exe"),
+        bin_dir.join("maia2-uci.exe"),
         bin_dir.join("maia2-uci"),
     ]
     .into_iter()
@@ -466,6 +477,17 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bundled_maia2_resolves_from_a_windows_resources_directory() {
+        let dir = tempfile::tempdir().unwrap();
+        let resources = dir.path().join("resources");
+        std::fs::create_dir_all(&resources).unwrap();
+        let engine = resources.join("maia2-uci.exe");
+        std::fs::write(&engine, b"test executable path marker").unwrap();
+
+        assert_eq!(bundled_maia2_path_from_bin_dir(dir.path()), Some(engine));
+    }
 
     /// Audit 2026-07 #5: every streamed info carries the searched FEN so
     /// the frontend can attribute the (side-to-move POV) score to the

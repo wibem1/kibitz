@@ -1,0 +1,132 @@
+# Builds an unsigned Windows x64 preview with Maia 2 and its CPU ONNX Runtime.
+# This is a test installer, not a release; the workflow artifact expires after
+# seven days and does not claim real-machine Windows acceptance.
+name: Kibitz DE Windows Maia 2 preview
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/windows-maia2-preview.yml
+      - app/src-tauri/src/lib.rs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-maia2-preview:
+    name: Windows 11 x64 MSI + NSIS with Maia 2 CPU
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Fetch pinned Maia 2 source and model weights
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $source = Join-Path $env:RUNNER_TEMP 'maia2-uci'
+          git lfs install --skip-repo
+          $env:GIT_LFS_SKIP_SMUDGE = '1'
+          git clone --depth 1 https://github.com/ChessWaveIO/maia2-uci.git $source
+          git -C $source fetch --depth 1 origin 05d51ac73ca3ad006882f8956c848fe2411ce718
+          git -C $source checkout --detach 05d51ac73ca3ad006882f8956c848fe2411ce718
+          git -C $source lfs pull --include 'models/maia2-rapid.onnx,models/maia2-blitz.onnx' --exclude ''
+          foreach ($model in @('maia2-rapid.onnx', 'maia2-blitz.onnx')) {
+            $file = Join-Path $source "models/$model"
+            if ((Get-Item $file).Length -lt 90000000) { throw "Model weight file is incomplete: $model" }
+          }
+          "MAIA_SOURCE=$source" | Add-Content $env:GITHUB_ENV
+
+      - name: Build Maia 2 CPU engine with embedded weights
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          cargo build --manifest-path "$env:MAIA_SOURCE/Cargo.toml" --release --features embed-weights
+          $engineDir = Join-Path $env:MAIA_SOURCE 'target/release'
+          $engine = Join-Path $engineDir 'maia2-uci.exe'
+          if (-not (Test-Path $engine -PathType Leaf)) { throw 'Maia 2 engine executable is missing.' }
+          $runtime = @(Get-ChildItem $engineDir -Filter '*.dll' -File)
+          if (-not ($runtime.Name -contains 'onnxruntime.dll')) { throw 'ONNX Runtime CPU DLL was not copied beside Maia 2.' }
+          "MAIA_ENGINE_DIR=$engineDir" | Add-Content $env:GITHUB_ENV
+
+      - name: Smoke-test Maia 2 UCI and CPU inference
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $engine = Join-Path $env:MAIA_ENGINE_DIR 'maia2-uci.exe'
+          @'
+          import subprocess, sys
+          p = subprocess.run(
+              [sys.argv[1]],
+              input="uci\nisready\nsetoption name PVDepth value 1\nposition startpos\ngo\nquit\n",
+              capture_output=True, text=True, timeout=180, check=True
+          )
+          out = p.stdout
+          for required in ("id name Maia2-UCI", "readyok", "info string loaded embedded:rapid on Cpu", "score cp", "bestmove "):
+              if required not in out:
+                  raise SystemExit(f"Missing {required!r} in Maia 2 output:\n{out[-4000:]}")
+          print("Maia 2 Windows CPU UCI smoke test passed")
+          '@ | python - $engine
+
+      - name: Prepare Maia 2 app resources and Tauri config
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $resourceDir = 'app/src-tauri/resources'
+          New-Item -ItemType Directory -Force -Path $resourceDir | Out-Null
+          Copy-Item (Join-Path $env:MAIA_ENGINE_DIR 'maia2-uci.exe') $resourceDir
+          Get-ChildItem $env:MAIA_ENGINE_DIR -Filter '*.dll' -File | Copy-Item -Destination $resourceDir
+          Copy-Item (Join-Path $env:MAIA_SOURCE 'LICENSE') (Join-Path $resourceDir 'maia2-LICENSE')
+          $resources = @{}
+          Get-ChildItem $resourceDir -File | ForEach-Object { $resources["resources/$($_.Name)"] = $_.Name }
+          $config = @{ bundle = @{ resources = $resources } } | ConvertTo-Json -Depth 8
+          Set-Content -Path 'app/src-tauri/tauri.windows-maia2-preview.json' -Value $config -Encoding utf8
+
+      - name: Build Windows MSI and NSIS preview installers
+        working-directory: app
+        run: npm run tauri build -- --bundles msi,nsis --config src-tauri/tauri.windows-maia2-preview.json
+
+      - name: Verify x64 application, resources and installers
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = 'app/src-tauri/target/release/kibitz-app.exe'
+          $msi = @(Get-ChildItem 'app/src-tauri/target/release/bundle/msi' -Filter '*.msi' -File)
+          $nsis = @(Get-ChildItem 'app/src-tauri/target/release/bundle/nsis' -Filter '*-setup.exe' -File)
+          if (-not (Test-Path $exe -PathType Leaf)) { throw 'Windows application executable is missing.' }
+          if ($msi.Count -ne 1 -or $nsis.Count -ne 1) { throw 'Expected exactly one MSI and one NSIS setup installer.' }
+          foreach ($name in @('maia2-uci.exe', 'maia2-LICENSE', 'onnxruntime.dll')) {
+            if (-not (Test-Path "app/src-tauri/resources/$name" -PathType Leaf)) { throw "Bundled Maia resource missing: $name" }
+          }
+          $stream = [System.IO.File]::OpenRead($exe)
+          try {
+            $reader = [System.IO.BinaryReader]::new($stream)
+            $stream.Position = 0x3c
+            $peOffset = $reader.ReadInt32()
+            $stream.Position = $peOffset + 4
+            $machine = $reader.ReadUInt16()
+            if ($machine -ne 0x8664) { throw ('Expected x64 PE executable; found 0x{0:X4}.' -f $machine) }
+          } finally { $stream.Dispose() }
+          'Windows x64 application, Maia 2 CPU resources and MSI/NSIS installers verified.' | Add-Content $env:GITHUB_STEP_SUMMARY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kibitz-de-windows-x64-maia2-preview
+          path: |
+            app/src-tauri/target/release/bundle/msi/*.msi
+            app/src-tauri/target/release/bundle/nsis/*-setup.exe
+          if-no-files-found: error
+          retention-days: 7
