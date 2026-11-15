@@ -121,8 +121,16 @@ export default function OfflinePlayView({ treatment, onEngineSettings, onAnalyze
     try { path = getSavedEnginePath(); } catch { /* use default binary search */ }
     recordDiagnostic("offline_engine_request");
     const selectedPath = opponent === "maia2" ? maiaPath.trim() : path;
+    const maiaSide = humanColor === "white" ? "b" : "w";
+    const recentOwnMoves = opponent === "maia2"
+      ? game.ucis.map((uci, index) => ({ uci, side: game.fens[index]?.split(" ")[1] }))
+          .filter((move) => move.side === maiaSide)
+          .slice(-12)
+          .map(({ uci }) => ({ from: uci.slice(0, 2), to: uci.slice(2, 4) }))
+      : undefined;
     requestOfflineEngineMove(fen, 20_000, selectedPath, opponent === "stockfish" ? elo : null,
-      opponent === "maia2" ? "maia2" : "stockfish", opponent === "maia2" ? maiaElo : null)
+      opponent === "maia2" ? "maia2" : "stockfish", opponent === "maia2" ? maiaElo : null,
+      game.ucis.length, recentOwnMoves)
       .then((uci) => {
         if (cancelled) return;
         setThinking(false);

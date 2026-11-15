@@ -8,6 +8,8 @@ export function requestOfflineEngineMove(
   elo: number | null = null,
   opponentEngine: "stockfish" | "maia2" = "stockfish",
   opponentElo: number | null = null,
+  plies?: number,
+  recentOwnMoves?: Array<{ from: string; to: string }>,
 ): Promise<string> {
   return invoke<string>("offline_engine_move", {
     fen,
@@ -16,6 +18,9 @@ export function requestOfflineEngineMove(
     elo,
     opponentEngine,
     opponentElo,
+    maiaContext: opponentEngine === "maia2"
+      ? { plies: plies ?? 0, recentOwnMoves: recentOwnMoves ?? [] }
+      : null,
   });
 }
 

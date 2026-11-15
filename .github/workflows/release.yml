@@ -43,6 +43,11 @@ jobs:
       winsign: ${{ steps.winsign.outputs.winsign }}
     steps:
       - uses: actions/checkout@v4
+      - name: Check shared version and release tag
+        run: |
+          args=()
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then args+=(--tag "$GITHUB_REF_NAME"); fi
+          python3 scripts/check_versions.py "${args[@]}"
       - id: read
         run: |
           set -euo pipefail

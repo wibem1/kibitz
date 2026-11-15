@@ -38,7 +38,7 @@ pub mod verify;
 
 use std::sync::Arc;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::{Emitter, Manager, State};
 use tokio::sync::Mutex;
 
@@ -123,8 +123,19 @@ async fn engine_identify(user_path: Option<String>) -> Result<uci::EngineIdentit
 fn bundled_maia2_path() -> Option<std::path::PathBuf> {
     let exe = std::env::current_exe().ok()?;
     let bin_dir = exe.parent()?;
+    bundled_maia2_path_from_bin_dir(bin_dir)
+}
+
+fn bundled_maia2_path_from_bin_dir(bin_dir: &std::path::Path) -> Option<std::path::PathBuf> {
     [
+        // macOS app bundle: Kibitz.app/Contents/MacOS -> Contents/Resources.
         bin_dir.join("../Resources/maia2-uci"),
+        // Tauri Windows/Linux bundles place declared resources under resources/.
+        bin_dir.join("resources/maia2-uci.exe"),
+        bin_dir.join("resources/maia2-uci"),
+        // Keep compatibility with existing preview bundles and manual installs.
+        bin_dir.join("../Resources/maia2-uci.exe"),
+        bin_dir.join("maia2-uci.exe"),
         bin_dir.join("maia2-uci"),
     ]
     .into_iter()
@@ -134,6 +145,13 @@ fn bundled_maia2_path() -> Option<std::path::PathBuf> {
 /// Request one bounded move for an explicitly chosen local engine opponent.
 /// A fresh process isolates game play from the shared analysis queue/stream.
 /// Every call has its own deadline; dropping Engine kills the subprocess.
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct MaiaMoveContext {
+    plies: Option<u32>,
+    recent_own_moves: Option<Vec<uci::MaiaPriorMove>>,
+}
+
 #[tauri::command]
 async fn offline_engine_move(
     fen: String,
@@ -142,6 +160,7 @@ async fn offline_engine_move(
     elo: Option<u32>,
     opponent_engine: Option<String>,
     opponent_elo: Option<u32>,
+    maia_context: Option<MaiaMoveContext>,
 ) -> Result<String, String> {
     use std::time::Duration;
     // Avoid sending arbitrary control sequences to the UCI subprocess.
@@ -187,9 +206,10 @@ async fn offline_engine_move(
                 .send(&format!("setoption name OppElo value {rating}"))
                 .await?;
             engine.send("setoption name Model value rapid").await?;
-            // Model policy is unchanged; avoid eight extra inference
-            // passes just to display an unused principal variation.
+            // Ask Maia for its move-probability candidates so Kibitz can apply
+            // the same human-move safeguards as Chess Studio.
             engine.send("setoption name PVDepth value 1").await?;
+            engine.send("setoption name MultiPV value 8").await?;
         } else if let Some(elo) = elo {
             engine.set_stockfish_elo(elo).await?;
         }
@@ -197,10 +217,14 @@ async fn offline_engine_move(
         // Its wrapper may silently fall back to a random legal move if the
         // neural network fails to load. Require a real scored info line.
         let mut scored = false;
+        let mut maia_infos = Vec::new();
         let response = engine
-            .analyze(&UciPosition::Fen(fen), Some(count), |info| {
+            .analyze(&UciPosition::Fen(fen.clone()), Some(count), |info| {
                 if info.has_score() {
                     scored = true;
+                }
+                if kind == "maia2" && info.move_probability.is_some() {
+                    maia_infos.push(info.clone());
                 }
             })
             .await?;
@@ -210,6 +234,20 @@ async fn offline_engine_move(
         }
         if response.bestmove == "(none)" || response.bestmove == "0000" {
             return Err("Die Engine hat keinen Zug geliefert.".to_owned());
+        }
+        if kind == "maia2" {
+            return uci::select_maia_move(
+                &fen,
+                &maia_infos,
+                maia_context
+                    .as_ref()
+                    .and_then(|context| context.plies)
+                    .unwrap_or(0) as usize,
+                maia_context
+                    .as_ref()
+                    .and_then(|context| context.recent_own_moves.as_deref())
+                    .unwrap_or(&[]),
+            );
         }
         Ok(response.bestmove)
     })
@@ -466,6 +504,17 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bundled_maia2_resolves_from_a_windows_resources_directory() {
+        let dir = tempfile::tempdir().unwrap();
+        let resources = dir.path().join("resources");
+        std::fs::create_dir_all(&resources).unwrap();
+        let engine = resources.join("maia2-uci.exe");
+        std::fs::write(&engine, b"test executable path marker").unwrap();
+
+        assert_eq!(bundled_maia2_path_from_bin_dir(dir.path()), Some(engine));
+    }
 
     /// Audit 2026-07 #5: every streamed info carries the searched FEN so
     /// the frontend can attribute the (side-to-move POV) score to the

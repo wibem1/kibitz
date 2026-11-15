@@ -9,6 +9,14 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  version-sync:
+    name: Shared app version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check all platform manifests use one version
+        run: python3 scripts/check_versions.py
+
   rust:
     strategy:
       fail-fast: false
@@ -77,3 +85,71 @@ jobs:
           cargo fmt --check
           cargo clippy --all-targets -- -D warnings
           cargo test
+
+  windows:
+    name: Windows x64 app and installers
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Frontend install, tests and build
+        working-directory: app
+        run: |
+          npm ci
+          npx vitest run
+          npm run build
+      - name: Tauri Rust checks
+        working-directory: app/src-tauri
+        run: |
+          cargo fmt --check
+          cargo clippy --all-targets -- -D warnings
+          cargo test
+      - name: Build Windows x64 MSI and NSIS installers
+        working-directory: app
+        run: npm run tauri build -- --bundles msi,nsis
+      - name: Verify Windows x64 build outputs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $release = 'app/src-tauri/target/release'
+          $exe = Join-Path $release 'kibitz-app.exe'
+          $msi = @(Get-ChildItem (Join-Path $release 'bundle/msi') -Filter '*.msi' -File)
+          $nsis = @(Get-ChildItem (Join-Path $release 'bundle/nsis') -Filter '*-setup.exe' -File)
+          if (-not (Test-Path $exe -PathType Leaf)) { throw 'Missing Windows application executable.' }
+          if ($msi.Count -ne 1) { throw "Expected one MSI installer; found $($msi.Count)." }
+          if ($nsis.Count -ne 1) { throw "Expected one NSIS setup installer; found $($nsis.Count)." }
+          foreach ($file in @((Get-Item $exe), $msi[0], $nsis[0])) {
+            if ($file.Length -le 0) { throw "Build output is empty: $($file.FullName)" }
+            Write-Host "$($file.Name): $($file.Length) bytes"
+          }
+          $stream = [System.IO.File]::OpenRead($exe)
+          try {
+            $reader = [System.IO.BinaryReader]::new($stream)
+            $stream.Position = 0x3c
+            $peOffset = $reader.ReadInt32()
+            $stream.Position = $peOffset + 4
+            $machine = $reader.ReadUInt16()
+            if ($machine -ne 0x8664) { throw ('Expected x64 PE executable; found machine 0x{0:X4}.' -f $machine) }
+          } finally {
+            $stream.Dispose()
+          }
+          'Verified x64 application executable and both Windows installers.' | Add-Content $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kibitz-de-windows-x64-test-installers
+          path: |
+            app/src-tauri/target/release/bundle/msi/*.msi
+            app/src-tauri/target/release/bundle/nsis/*-setup.exe
+          if-no-files-found: error
+          retention-days: 7

@@ -1,3 +1,47 @@
+# Kibitz DE 0.1.6 – gemeinsamer Versions- und Funktionsstand (15.11.2026)
+
+**Neue Versionsregel umgesetzt:** Der aktuelle Entwicklungsstand führt die gemeinsame Versionsnummer **0.1.6**. Sie steht in den fünf App-Manifesten und in beiden Cargo-Lockfiles. macOS und Windows verwenden weiterhin denselben Quellstand; kein separater Plattformversionszweig.
+
+**Enthalten:** Wiederherstellung der letzten Ansicht einschließlich der zuvor gespeicherten Offline-Partie bzw. Datenbankpartie; Sitzungslesen wird vor dem nächsten Speichern abgeschlossen. Maia-Zugauswahl wie in Chess Studio, Unterdrückung des Windows-Konsolenfensters und Produktname „Kibitz DE“ sind ebenfalls Bestandteil dieses Entwicklungsstands.
+
+**Prüfstatus:** CI-Lauf [43725396953](https://github.com/wibem1/kibitz/actions/runs/43725396953) erfolgreich: Versionsabgleich, Frontend, Rust, macOS/Linux/Windows und Windows-MSI-/NSIS-Paketprüfung. Testartefakt ohne eingebündelte Maia-Ressourcen: [14165209736](https://github.com/wibem1/kibitz/actions/runs/43725396953/artifacts/14165209736), befristet bis 22.11.2026. Der Maia-gebündelte Windows-Preview-Lauf [43725397008](https://github.com/wibem1/kibitz/actions/runs/43725397008) ist noch in Arbeit.
+
+**Freigabe:** Kein Tag und kein offizielles Release. Eine reale Windows-11-Installation mit Neustart wurde noch nicht bestätigt. Ausführliche Änderungsübersicht: [docs/KIBITZ_DE_0.1.6_RELEASE_NOTES.md](docs/KIBITZ_DE_0.1.6_RELEASE_NOTES.md).
+
+---
+
+# Kibitz DE – 15.11.2026: Mac-/Windows-Versionen gemeinsam abgesichert
+
+**Verbindliche Plattformregel:** macOS und Windows verwenden dieselbe App-Quelle, denselben Versionsstand und denselben Release-Tag. Es gibt keine getrennten Feature-Versionen. Die gemeinsame Release-Matrix baut alle deklarierten Zielplattformen und blockiert die Freigabe, wenn ein erforderliches Paket fehlt.
+
+**Automatisierte Versionsprüfung:** scripts/check_versions.py vergleicht Root-Cargo.toml, app/src-tauri/Cargo.toml, app/src-tauri/tauri.conf.json, app/package.json und app/package-lock.json. Die CI prüft die Gleichheit; die Release-Planung vergleicht zusätzlich den Tag v<version> mit dem gemeinsamen Wert. Die Release-Dokumentation nennt jetzt alle tatsächlich deklarierten Ziele: macOS Apple Silicon/Intel, Windows x64 und Linux x64.
+
+**Prüfstatus:** Die Versionsschranke und Dokumentation sind auf dem Windows-/Mac-Paritäts-PR-Branch ergänzt. Die zuvor erfolgreichen Windows-/Maia-Builds belegen den Anwendungscode vor dieser Schranke. Neue CI-Läufe für diesen Commit stehen noch aus. Kein Versionssprung und kein Release.
+
+**Nächster Schritt:** Die CI-Läufe für diesen Commit abwarten; vor einem regulären Windows-Download bleibt der reale Windows-11-Installations- und Bedienungstest erforderlich.
+
+---
+
+# Kibitz DE – 15.11.2026: Windows-x64-Prüfpfad ergänzt
+
+**Ziel dieses Schritts:** Die vorhandene Windows-Installer-Konfiguration als regelmäßigen Windows-x64-Build mit prüfbaren MSI-/NSIS-Ausgaben absichern; keine neue Version und kein Release.
+
+**Implementiert:** `.github/workflows/ci.yml` enthält jetzt einen `windows-latest`-Job. Er führt die bestehenden Frontend-Tests und den Frontend-Build sowie `cargo fmt`, `cargo clippy` und `cargo test` für die Tauri-App auf Windows aus. Danach erzeugt Tauri MSI- und NSIS-Installer. Ein PowerShell-Schritt prüft, dass genau ein Installer je Format und ein nichtleeres x64-PE-Anwendungsprogramm vorliegen. Die beiden Installationspakete werden als kurzlebiges GitHub-Actions-Testartefakt bereitgestellt. Die bestehende Release-Matrix und Plattformliste wurden nicht verändert.
+
+**Maia-2-Windows-Preview ergänzt:** `.github/workflows/windows-maia2-preview.yml` nimmt jetzt das offizielle Windows-x64-CPU-Paket aus dem Upstream-Release v1.0.3, prüft dessen SHA-256 gegen GitHub (`bb6df2c…608e414`), kontrolliert Engine, Lizenz und mitgelieferte Windows-DLLs, führt UCI-/CPU-Inferenz aus und erzeugt MSI/NSIS mit diesen Ressourcen. `app/src-tauri/src/lib.rs` sucht Maia nun auch im Tauri-`resources`-Verzeichnis unter Windows; ein Pfadauflösungstest deckt diese Ablage ab. `docs/LICENSES.md` dokumentiert die mitgelieferten Komponenten.
+
+**Upstream-Builddiagnose:** Zwei Quellbuildläufe (`43699216684`, `43699440708`) fanden erst fehlende MSVC-C11-Flags und danach einen `ort-sys`-Fehler beim automatischen Kopieren der ONNX-DLLs. Der Maia-2-Maintainer stellt ein passendes Windows-CPU-Paket aus genau dem gepinnten v1.0.3-Quellcommit bereit. Die Preview nutzt dieses geprüfte Release-Artefakt statt die fragile lokale ONNX-Verpackung erneut zu bauen.
+
+**Korrektur und erfolgreiche CI:** Im ersten Lauf `43697130249` schlugen zwei vorhandene UCI-Testfixtures fehl, weil sie POSIX-Shellskripte bzw. `/usr/bin/true` voraussetzten. Die Shellfixture ist jetzt auf Unix beschränkt; der Negativtest nutzt auf Windows `where.exe`. Der Folgelauf `43697760489` ist vollständig **grün**: Frontendtests/-Build, Tauri-Rust-Formatierung/Clippy/Tests, Windows-x64-Tauri-Build, Installerprüfung sowie Linux/macOS-Matrix. Die MSI- und NSIS-Installer liegen als befristetes Actions-Artefakt [`kibitz-de-windows-x64-test-installers`](https://github.com/wibem1/kibitz/actions/runs/43697760489) (Ablauf 22.11.2026). Dies bestätigt CI-Build und Paketstruktur, keine echte Installation oder Funktionsabnahme.
+
+**Maia-2-Preview erfolgreich gebaut:** Workflow [43700408039](https://github.com/wibem1/kibitz/actions/runs/43700408039) ist vollständig grün. Erfolgreich: SHA-256-Prüfung des offiziellen Upstream-Pakets, Maia-2-UCI-/CPU-Inferenz-Smoke-Test, Windows-x64-App-Build, Ressourcen- und MSI/NSIS-Prüfung. Befristetes Installer-Artefakt `kibitz-de-windows-x64-maia2-preview` (ID `14155899679`, Ablauf 22.11.2026; ca. 396 MB für beide Installer).
+
+**Noch nicht abgenommen:** Ein realer Windows-11-x64-Installations- und Bedienungstest bleibt erforderlich. Die grüne Maia-Preview bestätigt Build, UCI-Inferenz und enthaltene Ressourcen, nicht die Installation oder das Zusammenspiel im laufenden Kibitz-Fenster. Stockfish bleibt eine externe Engine, die der Nutzer in den Einstellungen auswählt.
+
+**Nächster einzelner Schritt:** Den befristeten Maia-2-MSI/NSIS-Installer auf echtem Windows 11 installieren und prüfen: Start, Dateidialoge und Speicherpfade, Datenbank, PGN-Rundreise, Stockfish-UCI-Handschlag und Spielzug sowie Maia-Zug mit Modellbewertung. Erst nach dieser realen Abnahme Windows als geprüften Download anbieten.
+
+---
+
 # Kibitz DE – 13.11.2026: Version 0.1.5 in main übernommen; offizieller Download noch offen
 
 **Neuer verbindlicher Stand:** PR [#2](https://github.com/wibem1/kibitz/pull/2) mit dem vollständig versionierten 0.1.5-Release-Branch wurde erfolgreich nach `main` gemergt; Merge-Commit `3c8ac23bdb74d690e04164159e093ba69a73d0d6`. `app/src-tauri/tauri.conf.json` in `main` nach dem Merge mit Version `0.1.5` geprüft.
