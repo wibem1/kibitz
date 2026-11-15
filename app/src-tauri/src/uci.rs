@@ -12,8 +12,10 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
+use std::{collections::HashMap, hash::{BuildHasher, Hasher}, time::{SystemTime, UNIX_EPOCH}};
 
-use serde::Serialize;
+use cozy_chess::{Board, Move, Piece};
+use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, Lines};
 use tokio::process::{Child, ChildStdin, ChildStdout, Command};
 use tokio::sync::Mutex;
@@ -26,7 +28,7 @@ const REPO_ENGINE_RELPATH: &str = "tools/stockfish/stockfish-macos-m1-apple-sili
 
 /// One parsed UCI `info` line. Field names are serialized in camelCase to
 /// match the TypeScript `EngineInfo` interface (app/src/lib/engineView.ts).
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UciInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -50,6 +52,9 @@ pub struct UciInfo {
     /// Principal variation as UCI move strings.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pv: Option<Vec<String>>,
+    /// Maia-2 probability for the first move in this PV, when supplied by the engine.
+    #[serde(skip)]
+    pub move_probability: Option<f64>,
 }
 
 impl UciInfo {
@@ -110,19 +115,135 @@ pub fn parse_info_line(line: &str) -> Option<UciInfo> {
             "nps" => info.nps = tokens.next().and_then(|v| v.parse().ok()),
             "time" => info.time_ms = tokens.next().and_then(|v| v.parse().ok()),
             "pv" => {
-                info.pv = Some(tokens.map(str::to_owned).collect());
+                let mut pv = Vec::new();
+                while let Some(value) = tokens.next() {
+                    if value == "string" {
+                        info.move_probability = parse_move_probability(&mut tokens);
+                        break;
+                    }
+                    pv.push(value.to_owned());
+                }
+                info.pv = Some(pv);
+                saw_field = true;
                 break;
             }
-            "string" => return None, // `info string ...`: engine chatter, skip
-            _ => continue,           // unknown/valueless token (lowerbound, currmove val, ...)
+            "string" => {
+                info.move_probability = parse_move_probability(&mut tokens);
+                saw_field |= info.move_probability.is_some();
+                break;
+            }
+            _ => continue,
         }
         saw_field = true;
     }
-    if saw_field {
-        Some(info)
-    } else {
-        None
+    if saw_field { Some(info) } else { None }
+}
+
+fn parse_move_probability(tokens: &mut std::str::SplitWhitespace<'_>) -> Option<f64> {
+    while let Some(token) = tokens.next() {
+        if token == "move_prob" {
+            return tokens.next().and_then(|value| value.parse().ok());
+        }
     }
+    None
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MaiaPriorMove {
+    pub from: String,
+    pub to: String,
+}
+
+#[derive(Debug, Clone)]
+struct MaiaCandidate {
+    uci: String,
+    probability: f64,
+    mv: Move,
+}
+
+pub fn select_maia_move(
+    fen: &str,
+    infos: &[UciInfo],
+    plies: usize,
+    recent_own_moves: &[MaiaPriorMove],
+) -> Result<String, String> {
+    let board: Board = fen.parse().map_err(|_| "Maia-Zugauswahl: ungültige FEN".to_owned())?;
+    let mut by_uci: HashMap<String, MaiaCandidate> = HashMap::new();
+    for info in infos {
+        let Some(probability) = info.move_probability else { continue };
+        if !probability.is_finite() || probability <= 0.0 { continue; }
+        let Some(uci) = info.pv.as_ref().and_then(|pv| pv.first()) else { continue };
+        let Ok(mv) = uci.parse::<Move>() else { continue };
+        if !board.is_legal(mv) { continue; }
+        by_uci.insert(uci.clone(), MaiaCandidate { uci: uci.clone(), probability, mv });
+    }
+    let mut ranked: Vec<MaiaCandidate> = by_uci.into_values().collect();
+    ranked.sort_by(|left, right| right.probability.total_cmp(&left.probability));
+    if ranked.is_empty() {
+        return Err("Maia 2 hat keine gültigen Zugkandidaten mit Modellwahrscheinlichkeit geliefert.".to_owned());
+    }
+    let in_check = !board.checkers().is_empty();
+    let eligible: Vec<MaiaCandidate> = if in_check {
+        ranked.clone()
+    } else {
+        ranked.iter().filter(|candidate| {
+            let from = candidate.mv.from.to_string();
+            let to = candidate.mv.to.to_string();
+            let reverses_piece = recent_own_moves.iter().rev()
+                .find(|previous| previous.to == from)
+                .is_some_and(|previous| previous.from == to);
+            !reverses_piece || has_tactical_reason(&board, candidate.mv)
+        }).cloned().collect()
+    };
+    let alternatives = if eligible.first().is_some_and(|first| first.probability >= 0.015) {
+        &eligible
+    } else {
+        &ranked
+    };
+    let early = plies < 30;
+    let probability_floor = if early { 0.18 } else { 0.08 };
+    let limit = if early { 4 } else { 8 };
+    let best = alternatives[0].probability;
+    let shortlist: Vec<&MaiaCandidate> = alternatives.iter()
+        .filter(|candidate| candidate.probability >= best * probability_floor)
+        .take(limit).collect();
+    let total: f64 = shortlist.iter().map(|candidate| candidate.probability).sum();
+    let mut roll = random_unit_sample() * total;
+    for candidate in &shortlist {
+        if roll < candidate.probability { return Ok(candidate.uci.clone()); }
+        roll -= candidate.probability;
+    }
+    Ok(shortlist.last().expect("non-empty Maia shortlist").uci.clone())
+}
+
+fn has_tactical_reason(board: &Board, mv: Move) -> bool {
+    let opponent = !board.side_to_move();
+    let capture = board.colors(opponent).contains(mv.to)
+        || (board.piece_on(mv.from) == Some(Piece::Pawn)
+            && board.en_passant() == Some(mv.to.file())
+            && mv.from.file() != mv.to.file());
+    let mut after = board.clone();
+    after.play(mv);
+    capture || !after.checkers().is_empty() || square_attacked_by_opponent(board, mv.from)
+}
+
+fn square_attacked_by_opponent(board: &Board, square: cozy_chess::Square) -> bool {
+    let Some(opponent_board) = board.null_move() else { return false };
+    let mut legal_moves = Vec::new();
+    opponent_board.generate_moves(|moves| {
+        legal_moves.extend(moves);
+        false
+    });
+    legal_moves.iter().any(|mv| mv.to == square)
+}
+
+fn random_unit_sample() -> f64 {
+    let state = std::collections::hash_map::RandomState::new();
+    let mut hasher = state.build_hasher();
+    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_nanos();
+    hasher.write(&nanos.to_le_bytes());
+    (hasher.finish() as f64 / (u64::MAX as f64 + 1.0)).clamp(0.0, 1.0 - f64::EPSILON)
 }
 
 /// Parse a UCI `id name <name>` handshake line. Returns `None` for
@@ -145,11 +266,18 @@ pub struct EngineIdentity {
     pub name: Option<String>,
 }
 
+fn engine_command(path: &Path) -> Command {
+    let mut command = Command::new(path);
+    #[cfg(windows)]
+    command.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
+    command
+}
+
 /// Spawn `path`, run the `uci` → `uciok` handshake capturing the `id name`
 /// line, then quit. This validates a user-picked binary WITHOUT starting
 /// any search — an explicit Settings action, not a background engine run.
 pub async fn identify(path: &Path) -> Result<EngineIdentity, String> {
-    let mut child = Command::new(path)
+    let mut child = engine_command(path)
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::null())
@@ -338,7 +466,7 @@ impl Engine {
     /// Spawn `path`, perform the `uci` → `uciok` and `isready` → `readyok`
     /// handshake (10s timeout), and return a ready engine.
     pub async fn spawn(path: &Path) -> Result<Self, String> {
-        let mut child = Command::new(path)
+        let mut child = engine_command(path)
             .stdin(std::process::Stdio::piped())
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::null())
@@ -488,6 +616,62 @@ mod tests {
             Some(&["e2e4".to_owned(), "e7e5".to_owned(), "g1f3".to_owned()][..])
         );
         assert!(info.has_score());
+    }
+
+    #[test]
+    fn parses_maia_probability_after_principal_variation() {
+        let info = parse_info_line("info depth 8 multipv 2 score cp 41 nodes 8 pv d1e2 d8e7 string move_prob 0.1305 winprob 0.5590").unwrap();
+        assert_eq!(info.multipv, Some(2));
+        assert_eq!(info.move_probability, Some(0.1305));
+        assert_eq!(info.pv.as_deref(), Some(&["d1e2".to_owned(), "d8e7".to_owned()][..]));
+    }
+
+    fn maia_candidate(uci: &str, probability: f64) -> UciInfo {
+        UciInfo {
+            pv: Some(vec![uci.to_owned()]),
+            move_probability: Some(probability),
+            ..UciInfo::default()
+        }
+    }
+
+    #[test]
+    fn maia_opening_filter_rejects_very_rare_candidate() {
+        let fen = "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1";
+        let candidates = [
+            maia_candidate("g8f6", 0.461576),
+            maia_candidate("b8c6", 0.124565),
+            maia_candidate("d7d5", 0.092104),
+            maia_candidate("b8a6", 0.012652),
+        ];
+        for _ in 0..30 {
+            assert_ne!(select_maia_move(fen, &candidates, 1, &[]).unwrap(), "b8a6");
+        }
+    }
+
+    #[test]
+    fn maia_policy_avoids_unmotivated_piece_reversal() {
+        let fen = "r1bqkbnr/pppppppp/2n5/8/3P4/4P3/PPP2PPP/RNBQKBNR b KQkq - 0 2";
+        let candidates = [
+            maia_candidate("c6b8", 0.87),
+            maia_candidate("g8f6", 0.053),
+            maia_candidate("d7d5", 0.032),
+            maia_candidate("e7e6", 0.007),
+        ];
+        let history = [MaiaPriorMove { from: "b8".into(), to: "c6".into() }];
+        for _ in 0..30 {
+            assert_ne!(select_maia_move(fen, &candidates, 4, &history).unwrap(), "c6b8");
+        }
+    }
+
+    #[test]
+    fn maia_policy_keeps_tactically_motivated_reversal() {
+        let fen = "r1bqkbnr/pppppppp/2n5/1B6/3P4/4P3/PPP2PPP/RN1QKBNR b KQkq - 0 2";
+        let candidates = [
+            maia_candidate("c6b8", 0.90),
+            maia_candidate("g8f6", 0.10),
+        ];
+        let history = [MaiaPriorMove { from: "b8".into(), to: "c6".into() }];
+        assert_eq!(select_maia_move(fen, &candidates, 4, &history).unwrap(), "c6b8");
     }
 
     #[test]

@@ -1,3 +1,13 @@
+# Kibitz DE – Maia- und Windows-Korrekturen (15.11.2026)
+
+**Implementiert, CI ausstehend:** Maia 2 nutzt jetzt dieselbe Auswahlidee wie Chess Studio: Maia-Kandidaten werden anhand ihrer Modellwahrscheinlichkeit gefiltert und gewichtet gezogen; seltene Eröffnungszüge und unmotivierte sofortige Figurenrückzüge werden vermieden. Rückzüge mit taktischem Grund bleiben möglich. Die Maia-Historie wird je Seite über die vorherigen zwölf eigenen Züge weitergereicht. Die Windows-Vorschau prüft zusätzlich, ob Maia MultiPV und move_prob liefert.
+
+**Windows/UI:** Der Anwendungsname, Fenstertitel und sichtbare Navigations-Schriftzug lauten „Kibitz DE“. UCI-Prozesse starten unter Windows mit CREATE_NO_WINDOW, damit kein Konsolenfenster aufblitzt.
+
+**Prüfstatus:** Rust-Unit-Tests für Wahrscheinlichkeits-Parsing, seltene Eröffnungszüge und taktisch notwendige Rückzüge ergänzt. GitHub Actions müssen diesen Commit noch bauen. Echte Installation und Spielprüfung auf Windows 11 steht weiterhin aus; kein Release.
+
+---
+
 # Kibitz DE – 15.11.2026: Mac-/Windows-Versionen gemeinsam abgesichert
 
 **Verbindliche Plattformregel:** macOS und Windows verwenden dieselbe App-Quelle, denselben Versionsstand und denselben Release-Tag. Es gibt keine getrennten Feature-Versionen. Die gemeinsame Release-Matrix baut alle deklarierten Zielplattformen und blockiert die Freigabe, wenn ein erforderliches Paket fehlt.

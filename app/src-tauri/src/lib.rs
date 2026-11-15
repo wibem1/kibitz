@@ -153,6 +153,8 @@ async fn offline_engine_move(
     elo: Option<u32>,
     opponent_engine: Option<String>,
     opponent_elo: Option<u32>,
+    plies: Option<u32>,
+    recent_own_moves: Option<Vec<uci::MaiaPriorMove>>,
 ) -> Result<String, String> {
     use std::time::Duration;
     // Avoid sending arbitrary control sequences to the UCI subprocess.
@@ -198,9 +200,10 @@ async fn offline_engine_move(
                 .send(&format!("setoption name OppElo value {rating}"))
                 .await?;
             engine.send("setoption name Model value rapid").await?;
-            // Model policy is unchanged; avoid eight extra inference
-            // passes just to display an unused principal variation.
+            // Ask Maia for its move-probability candidates so Kibitz can apply
+            // the same human-move safeguards as Chess Studio.
             engine.send("setoption name PVDepth value 1").await?;
+            engine.send("setoption name MultiPV value 8").await?;
         } else if let Some(elo) = elo {
             engine.set_stockfish_elo(elo).await?;
         }
@@ -208,10 +211,14 @@ async fn offline_engine_move(
         // Its wrapper may silently fall back to a random legal move if the
         // neural network fails to load. Require a real scored info line.
         let mut scored = false;
+        let mut maia_infos = Vec::new();
         let response = engine
-            .analyze(&UciPosition::Fen(fen), Some(count), |info| {
+            .analyze(&UciPosition::Fen(fen.clone()), Some(count), |info| {
                 if info.has_score() {
                     scored = true;
+                }
+                if kind == "maia2" && info.move_probability.is_some() {
+                    maia_infos.push(info.clone());
                 }
             })
             .await?;
@@ -221,6 +228,14 @@ async fn offline_engine_move(
         }
         if response.bestmove == "(none)" || response.bestmove == "0000" {
             return Err("Die Engine hat keinen Zug geliefert.".to_owned());
+        }
+        if kind == "maia2" {
+            return uci::select_maia_move(
+                &fen,
+                &maia_infos,
+                plies.unwrap_or(0) as usize,
+                recent_own_moves.as_deref().unwrap_or(&[]),
+            );
         }
         Ok(response.bestmove)
     })

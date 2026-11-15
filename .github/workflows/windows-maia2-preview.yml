@@ -8,6 +8,10 @@ on:
     paths:
       - .github/workflows/windows-maia2-preview.yml
       - app/src-tauri/src/lib.rs
+      - app/src-tauri/src/uci.rs
+      - app/src-tauri/tauri.conf.json
+      - app/src/OfflinePlayView.tsx
+      - app/src/lib/offlineEngine.ts
   workflow_dispatch:
 
 permissions:
@@ -62,11 +66,11 @@ jobs:
           import subprocess, sys
           p = subprocess.run(
               [sys.argv[1]],
-              input="uci\nisready\nsetoption name PVDepth value 1\nposition startpos\ngo\nquit\n",
+              input="uci\nisready\nsetoption name PVDepth value 1\nsetoption name MultiPV value 8\nposition startpos\ngo\nquit\n",
               capture_output=True, text=True, timeout=180, check=True
           )
           out = p.stdout
-          for required in ("id name Maia2-UCI", "readyok", "info string loaded embedded:rapid on Cpu", "score cp", "bestmove "):
+          for required in ("id name Maia2-UCI", "readyok", "info string loaded embedded:rapid on Cpu", "score cp", "move_prob ", "multipv 2", "bestmove "):
               if required not in out:
                   raise SystemExit(f"Missing {required!r} in Maia 2 output:\n{out[-4000:]}")
           print("Maia 2 Windows CPU UCI smoke test passed")
