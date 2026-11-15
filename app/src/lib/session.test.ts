@@ -22,6 +22,11 @@ describe("session blob", () => {
     expect(parsed!.dbScreen).toEqual(DB_SCREEN);
   });
 
+  it("restores the offline board screen", () => {
+    const parsed = parseSession(serializeSession("offline", DB_SCREEN));
+    expect(parsed?.view).toBe("offline");
+  });
+
   it("rejects corrupt, foreign-version, and unknown-view blobs", () => {
     expect(parseSession(null)).toBeNull();
     expect(parseSession("")).toBeNull();
