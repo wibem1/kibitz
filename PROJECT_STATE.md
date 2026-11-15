@@ -1,8 +1,8 @@
 # Kibitz DE – Wiederherstellung des letzten App-Stands
 
-**Implementiert, CI ausstehend:** Beim Start wird die gespeicherte Sitzung jetzt vollständig geladen, bevor neue Ansichten gespeichert werden. Damit kann der anfängliche Startbildschirm den letzten Stand nicht mehr überschreiben. „Offline spielen“ wird als gültige gespeicherte Ansicht wiederhergestellt; der bestehende Autospeicher lädt dazu Partie, Spielseite, Brettausrichtung und Enginewahl. Die bestehende Wiederherstellung von letzter Datenbank, Datenbankfiltern, letzter Partie, Zug und Brettausrichtung bleibt eingebunden. Ein Ansichtwechsel wird sofort gespeichert; Filteränderungen bleiben entprellt.
+**Implementiert:** Beim Start wird die gespeicherte Sitzung vollständig geladen, bevor neue Ansichten gespeichert werden. Damit kann der anfängliche Startbildschirm den letzten Stand nicht mehr überschreiben. „Offline spielen“ wird als gültige gespeicherte Ansicht wiederhergestellt; der bestehende Autospeicher lädt dazu Partie, Spielseite, Brettausrichtung und Enginewahl. Die bestehende Wiederherstellung von letzter Datenbank, Datenbankfiltern, letzter Partie, Zug und Brettausrichtung bleibt eingebunden. Ein Ansichtwechsel wird sofort gespeichert; Filteränderungen bleiben entprellt.
 
-**Prüfstatus:** Ein Frontend-Test für die Offline-Ansicht ist ergänzt. CI muss den geänderten Stand noch prüfen. Kein Versionssprung und kein Release.
+**Prüfstatus:** Frontend-Tests/-Build, Rust fmt/Clippy/Tests, Plattformversionen sowie Windows-x64-Installerprüfung sind mit GitHub Actions Lauf `43716158532` erfolgreich. Windows-Testinstaller (ohne eingebündelte Maia-Ressourcen) liegen im kurzlebigen Artefakt `14162567489` bis 22.11.2026. Der separate Maia-gebündelte Installer-Lauf `43716158530` ist noch in Arbeit. Kein Versionssprung und kein Release; reale interaktive Abnahme bleibt aus.
 
 ---
 
