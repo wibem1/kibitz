@@ -9,6 +9,14 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  version-sync:
+    name: Shared app version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check all platform manifests use one version
+        run: python3 scripts/check_versions.py
+
   rust:
     strategy:
       fail-fast: false
