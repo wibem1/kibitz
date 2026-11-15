@@ -40,14 +40,19 @@ next silent gap.
 
 ## Versions
 
-`0.1.0` is set in four places; keep them in lockstep:
+macOS and Windows packages are built from the same source commit with one shared Kibitz version and one release tag. There are no separate platform feature versions. Update all version fields together; CI checks them, and the release workflow verifies the tag before producing packages. A release is blocked if any declared platform artifact is missing.
+
+The version is repeated in these five files:
 
 | File | Field |
 |---|---|
-| `Cargo.toml` (repo root) | `workspace.package.version` (all BSD crates + kibitz-db inherit) |
-| `app/src-tauri/Cargo.toml` | `package.version` (standalone GPL package) |
-| `app/src-tauri/tauri.conf.json` | `version` (what the bundles and the updater report) |
-| `app/package.json` | `version` (run `npm install --package-lock-only` after bumping so `npm ci` stays green) |
+| Cargo.toml (repo root) | workspace.package.version |
+| app/src-tauri/Cargo.toml | package.version |
+| app/src-tauri/tauri.conf.json | version |
+| app/package.json | version |
+| app/package-lock.json | version and packages[""].version |
+
+Run scripts/check_versions.py before a release. A tag such as v0.1.5 must match every listed field.
 
 ## Identity
 
@@ -59,26 +64,16 @@ checklist item. Project contact: `contact@kibitzchess.org`.
 
 ## Bundle targets
 
-| Platform | Targets | Config |
+.github/release-targets.json is the source of truth for supported release packages. The release matrix is generated from it and verifies every required artifact.
+
+| Platform | Packages | Architecture |
 |---|---|---|
-| macOS | `.app`, `.dmg` | `app/src-tauri/tauri.conf.json` → `bundle.targets` |
-| Linux | AppImage, `.deb` | `app/src-tauri/tauri.linux.conf.json` (platform-merged override) |
+| macOS · Apple Silicon | .app, .dmg | aarch64-apple-darwin |
+| macOS · Intel | .app, .dmg | x86_64-apple-darwin |
+| Windows · 64-bit | .msi, NSIS .exe | x86_64-pc-windows-msvc |
+| Linux · 64-bit | AppImage, .deb | x86_64-unknown-linux-gnu |
 
-The Linux targets live in a platform-specific config file so each OS
-builds exactly its own list — no reliance on the bundler filtering out
-foreign targets.
-
-### macOS: arm64-first (deliberate)
-
-Release bundles are built `aarch64-apple-darwin` only, on Apple Silicon
-(local M1 Max, `macos-latest` runners in CI). Universal binaries are
-**not** produced yet because a universal build needs the `x86_64`
-toolchain target plus an Intel machine (or Rosetta) to actually verify
-the slice we'd be shipping — an unverified slice is worse than an honest
-"Apple Silicon only" label. Intel Mac users build from source (the
-`from-source` CI job keeps those instructions honest). Revisit at 1.0;
-the updater feed already understands a `darwin-universal` key when we
-get there.
+The Mac builds use separate Apple Silicon and Intel DMGs, not a universal binary. All listed platforms share the same source version and release tag.
 
 ### Icon
 
@@ -192,24 +187,14 @@ out of the checked-in config because enabling it makes builds **fail**
 when `TAURI_SIGNING_PRIVATE_KEY` is absent (i.e. every local/pre-key
 build).
 
-## CI release workflow (`.github/workflows/release.yml`)
+## CI release workflow (.github/workflows/release.yml)
 
-- **Trigger**: tag `v*` → full run; `workflow_dispatch` → dry-run
-  (bundles + workflow artifacts, no release). Main `ci.yml` is
-  deliberately untouched — no bundle job there, it stays fast.
-- **`bundle` matrix**: macOS aarch64 + Linux x86_64. Signing steps are
-  conditional on secrets and skip with a note in the job summary when
-  absent.
-- **`release` job** (tag pushes only): downloads all bundles, generates
-  `latest.json` when the updater key exists, and creates a **draft**
-  GitHub release — with signed artifacts + feed when secrets exist,
-  otherwise with the unsigned artifacts and a notes stub that says
-  UNSIGNED in bold. Publishing the draft is always a human act
-  (checklist item 4).
-- **`from-source` job**: ubuntu + macOS, executes the README's literal
-  fresh-clone commands (`rustup default stable`, `npm ci` in `app/`,
-  `cargo test --workspace`, `npm run tauri build`) so the published
-  build-from-source story can't rot silently.
+- Trigger: a v* tag builds all release targets; workflow_dispatch creates test artifacts without publishing.
+- Bundle matrix: generated from .github/release-targets.json. It includes Apple Silicon Mac, Intel Mac, Windows x64, and Linux x64.
+- Version gate: CI compares the five manifest versions; release planning also requires the tag to match the shared version.
+- Artifact gate: the release refuses to proceed when any required target package is missing. Signing is reported separately and does not change the shared version.
+- Release job: tag pushes create a draft GitHub release. Publishing the draft remains a human action.
+- from-source job: Ubuntu and macOS execute the documented fresh-clone build commands.
 
 ### Secrets (exact names)
 

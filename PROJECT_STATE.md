@@ -1,3 +1,15 @@
+# Kibitz DE – 15.11.2026: Mac-/Windows-Versionen gemeinsam abgesichert
+
+**Verbindliche Plattformregel:** macOS und Windows verwenden dieselbe App-Quelle, denselben Versionsstand und denselben Release-Tag. Es gibt keine getrennten Feature-Versionen. Die gemeinsame Release-Matrix baut alle deklarierten Zielplattformen und blockiert die Freigabe, wenn ein erforderliches Paket fehlt.
+
+**Automatisierte Versionsprüfung:** scripts/check_versions.py vergleicht Root-Cargo.toml, app/src-tauri/Cargo.toml, app/src-tauri/tauri.conf.json, app/package.json und app/package-lock.json. Die CI prüft die Gleichheit; die Release-Planung vergleicht zusätzlich den Tag v<version> mit dem gemeinsamen Wert. Die Release-Dokumentation nennt jetzt alle tatsächlich deklarierten Ziele: macOS Apple Silicon/Intel, Windows x64 und Linux x64.
+
+**Prüfstatus:** Die Versionsschranke und Dokumentation sind auf dem Windows-/Mac-Paritäts-PR-Branch ergänzt. Die zuvor erfolgreichen Windows-/Maia-Builds belegen den Anwendungscode vor dieser Schranke. Neue CI-Läufe für diesen Commit stehen noch aus. Kein Versionssprung und kein Release.
+
+**Nächster Schritt:** Die CI-Läufe für diesen Commit abwarten; vor einem regulären Windows-Download bleibt der reale Windows-11-Installations- und Bedienungstest erforderlich.
+
+---
+
 # Kibitz DE – 15.11.2026: Windows-x64-Prüfpfad ergänzt
 
 **Ziel dieses Schritts:** Die vorhandene Windows-Installer-Konfiguration als regelmäßigen Windows-x64-Build mit prüfbaren MSI-/NSIS-Ausgaben absichern; keine neue Version und kein Release.
