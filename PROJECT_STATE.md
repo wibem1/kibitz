@@ -4,7 +4,9 @@
 
 **Implementiert:** `.github/workflows/ci.yml` enthält jetzt einen `windows-latest`-Job. Er führt die bestehenden Frontend-Tests und den Frontend-Build sowie `cargo fmt`, `cargo clippy` und `cargo test` für die Tauri-App auf Windows aus. Danach erzeugt Tauri MSI- und NSIS-Installer. Ein PowerShell-Schritt prüft, dass genau ein Installer je Format und ein nichtleeres x64-PE-Anwendungsprogramm vorliegen. Die beiden Installationspakete werden als kurzlebiges GitHub-Actions-Testartefakt bereitgestellt. Die bestehende Release-Matrix und Plattformliste wurden nicht verändert.
 
-**Prüfstatus:** Workflow statisch ergänzt, **noch nicht auf GitHub ausgeführt**. Es gibt deshalb keinen nachgewiesenen Windows-Build, keine Installer-Artefakte und keine Aussage über grüne Windows-Tests. Ein realer Windows-11-x64-Installations- und Bedienungstest bleibt erforderlich. Maia 2/ONNX Runtime und Stockfish wurden in diesem Schritt nicht als Windows-Binärdateien gebündelt oder praktisch getestet.
+**Erster GitHub-Lauf:** CI `43697130249` führte auf Windows Frontend-Tests und -Build erfolgreich aus. 106 Rust-Tests bestanden; zwei bisherige UCI-Testfixtures schlugen fehl, weil sie POSIX-Shellskripte bzw. `/usr/bin/true` voraussetzten. Die Unix-Shellfixture ist nun auf Unix beschränkt; der Negativtest verwendet unter Windows `where.exe`. Linux- und macOS-Prüfungen liefen im selben PR-Lauf grün. **Der neue Stand mit der Testkorrektur ist noch nicht erneut ausgeführt; Windows-Installer wurden im ersten Lauf noch nicht gebaut.**
+
+**Noch nicht abgenommen:** Ein realer Windows-11-x64-Installations- und Bedienungstest bleibt erforderlich. Maia 2/ONNX Runtime und Stockfish wurden in diesem Schritt nicht als Windows-Binärdateien gebündelt oder praktisch getestet.
 
 **Nächster einzelner Schritt:** Windows-CI auf einem PR ausführen und Fehlermeldungen gezielt beheben. Nach erfolgreicher CI einen befristeten Installer herunterladen und auf Windows 11 prüfen: Start, Dateidialoge und Speicherpfade, Datenbank, PGN-Rundreise, Stockfish-UCI-Handschlag und Spielzug sowie Maia-2-Paket/Modellbewertung. Erst nach realer Abnahme Windows als geprüften Download anbieten.
 

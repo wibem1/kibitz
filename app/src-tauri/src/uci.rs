@@ -576,7 +576,10 @@ mod tests {
     }
 
     /// `identify` against a fake shell "engine": the handshake captures
-    /// `id name` and completes without ever starting a search.
+    /// `id name` and completes without ever starting a search. The script
+    /// fixture is Unix-specific; Windows engine handshakes need a native UCI
+    /// test binary and remain part of real-machine acceptance.
+    #[cfg(unix)]
     #[tokio::test]
     async fn identify_reads_the_handshake_of_a_scripted_engine() {
         let dir = tempfile::tempdir().unwrap();
@@ -653,7 +656,12 @@ done
     /// exits immediately, so this returns fast).
     #[tokio::test]
     async fn identify_rejects_a_non_engine_binary() {
-        let err = identify(Path::new("/usr/bin/true")).await.unwrap_err();
+        let non_engine = if cfg!(windows) {
+            Path::new(r"C:\Windows\System32\where.exe")
+        } else {
+            Path::new("/usr/bin/true")
+        };
+        let err = identify(non_engine).await.unwrap_err();
         assert!(err.contains("not a UCI engine"), "{err}");
     }
 }
