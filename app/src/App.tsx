@@ -223,6 +223,8 @@ const VIEW_TITLES: Record<ViewId, string> = {
 export default function App() {
   // Home is the startup screen (round-2 maintainer ruling: Direction A).
   const [view, setView] = useState<ViewId>("home");
+  const [sessionReady, setSessionReady] = useState(false);
+  const sessionReadyRef = useRef(false);
   const [exerciseGame, setExerciseGame] = useState<LoadedGame | null>(null);
   const [exercisePly, setExercisePly] = useState(0);
   const [exerciseSerial, setExerciseSerial] = useState(0);
@@ -405,60 +407,65 @@ export default function App() {
     const tbDir = getSavedTbDir();
     if (tbDir !== "") setTablebaseDir(tbDir).catch(() => {});
     (async () => {
-      const remembered = dbOverride || (await lastDatabase().catch(() => null));
-      const s = await openDatabase(remembered || getSavedDbPath());
-      setDbSummary(s);
-      refreshCounts();
-      getNarrationVoice()
-        .then((v) => dispatch({ type: "setVoice", voice: v }))
-        .catch(() => {});
-      // TWIC auto-download hook: new issues first, then the gaps behind
-      // them, only when the user enabled the toggle (netops.rs).
-      twicAutoSyncCheck().catch(() => {});
-      // Hydrate the last-built self profile ("why isn't that saving?" —
-      // it was; nothing read it back). Also doubles as the stale-backend
-      // probe: a hot-reloaded frontend calling a command the running
-      // binary predates fails with "not found" — say so LOUDLY instead
-      // of silently looking broken (this bit us three times).
-      // Connect linked-account handles to the self identity (the app
-      // knows both names — it should connect its own dots; 2026-07-30
-      // field report: thousands of chess.com games missing from triage
-      // because the alias was never manually declared).
-      autoLinkIdentities()
-        .then((linked) => {
-          if (linked.length > 0) {
-            setStatus(
-              `Linked your account name${linked.length === 1 ? "" : "s"} ${linked.join(", ")} ` +
-                `to your identity — profile, triage and the lab now include those games ` +
-                `(see Profile → INCLUDES to review).`,
-            );
-          }
-        })
-        .catch(() => {});
-      cachedProfile()
-        .then((c) => {
-          if (c) setProfile(c.profile);
-        })
-        .catch((e) => {
-          if (String(e).toLowerCase().includes("not found")) {
-            setStatus(
-              "⚠ The app backend is older than the UI — fully quit and restart the dev app " +
-                "(Rust changes need a rebuild; hot reload only updates the frontend).",
-            );
-          }
-        });
-      if (deepLinked) return; // deep links own the destination
-      const session = parseSession(await uiSessionGet().catch(() => null));
-      if (!session) return;
-      hydrateDbScreenState(session.dbScreen);
-      if (session.view === "game") {
-        const lg = await lastGameGet().catch(() => null);
-        // Exact restore: the saved ply, not the resume heuristic.
-        if (lg)
-          await loadDbGameAtRef.current(lg.gameId, lg.ply, lg.flipped, false);
-        else setView("home");
-      } else {
-        setView(session.view);
+      try {
+        const remembered = dbOverride || (await lastDatabase().catch(() => null));
+        const s = await openDatabase(remembered || getSavedDbPath());
+        setDbSummary(s);
+        refreshCounts();
+        getNarrationVoice()
+          .then((v) => dispatch({ type: "setVoice", voice: v }))
+          .catch(() => {});
+        // TWIC auto-download hook: new issues first, then the gaps behind
+        // them, only when the user enabled the toggle (netops.rs).
+        twicAutoSyncCheck().catch(() => {});
+        // Hydrate the last-built self profile ("why isn't that saving?" —
+        // it was; nothing read it back). Also doubles as the stale-backend
+        // probe: a hot-reloaded frontend calling a command the running
+        // binary predates fails with "not found" — say so LOUDLY instead
+        // of silently looking broken (this bit us three times).
+        // Connect linked-account handles to the self identity (the app
+        // knows both names — it should connect its own dots; 2026-07-30
+        // field report: thousands of chess.com games missing from triage
+        // because the alias was never manually declared).
+        autoLinkIdentities()
+          .then((linked) => {
+            if (linked.length > 0) {
+              setStatus(
+                `Linked your account name${linked.length === 1 ? "" : "s"} ${linked.join(", ")} ` +
+                  `to your identity — profile, triage and the lab now include those games ` +
+                  `(see Profile → INCLUDES to review).`,
+              );
+            }
+          })
+          .catch(() => {});
+        cachedProfile()
+          .then((c) => {
+            if (c) setProfile(c.profile);
+          })
+          .catch((e) => {
+            if (String(e).toLowerCase().includes("not found")) {
+              setStatus(
+                "⚠ The app backend is older than the UI — fully quit and restart the dev app " +
+                  "(Rust changes need a rebuild; hot reload only updates the frontend).",
+              );
+            }
+          });
+        if (deepLinked) return; // deep links own the destination
+        const session = parseSession(await uiSessionGet().catch(() => null));
+        if (!session) return;
+        hydrateDbScreenState(session.dbScreen);
+        if (session.view === "game") {
+          const lg = await lastGameGet().catch(() => null);
+          // Exact restore: the saved ply, not the resume heuristic.
+          if (lg)
+            await loadDbGameAtRef.current(lg.gameId, lg.ply, lg.flipped, false);
+          else setView("home");
+        } else {
+          setView(session.view);
+        }
+      } finally {
+        sessionReadyRef.current = true;
+        setSessionReady(true);
       }
     })().catch(() => {}); // no database yet — badges stay empty
   }, [refreshCounts]);
@@ -468,15 +475,19 @@ export default function App() {
   const viewRef = useRef(view);
   viewRef.current = view;
   const sessionWriteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const persistSession = useCallback((v: ViewId) => {
+  const persistSession = useCallback((v: ViewId, immediate = false) => {
+    if (!sessionReadyRef.current) return;
     if (sessionWriteTimer.current) clearTimeout(sessionWriteTimer.current);
-    sessionWriteTimer.current = setTimeout(() => {
+    const write = () => {
+      sessionWriteTimer.current = null;
       uiSessionSet(serializeSession(v, dbScreenState())).catch(() => {});
-    }, 600);
+    };
+    if (immediate) write();
+    else sessionWriteTimer.current = setTimeout(write, 600);
   }, []);
   useEffect(() => {
-    if (dbSummary) persistSession(view);
-  }, [view, dbSummary, persistSession]);
+    if (dbSummary && sessionReady) persistSession(view, true);
+  }, [view, dbSummary, sessionReady, persistSession]);
   useEffect(() => {
     const unsub = subscribeDbScreenState(() => persistSession(viewRef.current));
     return unsub;
