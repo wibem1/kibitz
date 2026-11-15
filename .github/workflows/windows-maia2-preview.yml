@@ -54,6 +54,9 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          # fathom-syzygy-sys uses C11 atomics; recent MSVC defaults to an
+          # older C dialect unless the standard is selected explicitly.
+          $env:CFLAGS = '/std:c11'
           cargo build --manifest-path "$env:MAIA_SOURCE/Cargo.toml" --release --features embed-weights
           $engineDir = Join-Path $env:MAIA_SOURCE 'target/release'
           $engine = Join-Path $engineDir 'maia2-uci.exe'
