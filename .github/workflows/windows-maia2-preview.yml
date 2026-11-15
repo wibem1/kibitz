@@ -49,7 +49,8 @@ jobs:
           if ($engines.Count -ne 1) { throw "Expected one Maia 2 executable; found $($engines.Count)." }
           $engineDir = $engines[0].Directory.FullName
           if (-not (Test-Path (Join-Path $engineDir 'LICENSE') -PathType Leaf)) { throw 'Upstream Maia 2 license is missing.' }
-          if (-not (Test-Path (Join-Path $engineDir 'onnxruntime.dll') -PathType Leaf)) { throw 'Upstream ONNX Runtime CPU DLL is missing.' }
+          $runtimeDlls = @(Get-ChildItem $engineDir -Filter '*.dll' -File)
+          if ($runtimeDlls.Count -eq 0) { throw 'Upstream Windows CPU runtime DLL is missing.' }
           "MAIA_ENGINE_DIR=$engineDir" | Add-Content $env:GITHUB_ENV
 
       - name: Smoke-test Maia 2 UCI and CPU inference
@@ -98,7 +99,7 @@ jobs:
           $nsis = @(Get-ChildItem 'app/src-tauri/target/release/bundle/nsis' -Filter '*-setup.exe' -File)
           if (-not (Test-Path $exe -PathType Leaf)) { throw 'Windows application executable is missing.' }
           if ($msi.Count -ne 1 -or $nsis.Count -ne 1) { throw 'Expected exactly one MSI and one NSIS setup installer.' }
-          foreach ($name in @('maia2-uci.exe', 'maia2-LICENSE', 'onnxruntime.dll')) {
+          foreach ($name in @('maia2-uci.exe', 'maia2-LICENSE', 'DirectML.dll')) {
             if (-not (Test-Path "app/src-tauri/resources/$name" -PathType Leaf)) { throw "Bundled Maia resource missing: $name" }
           }
           $stream = [System.IO.File]::OpenRead($exe)
