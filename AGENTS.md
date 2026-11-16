@@ -6,3 +6,5 @@
 4. Seltene Funktionen zuerst in einer erweiterten Navigation zugänglich halten, nicht Code oder gespeicherte Daten vorschnell entfernen. Bestehende Werkzeuge und Importpfade dürfen nicht kaputtgehen.
 5. Original-Lizenzen und Attribution bewahren. `app/` unter GPL-3.0, die BSD-Crates getrennt halten, wie in `CLAUDE.md` beschrieben. Keine unauthorisierten Releases oder Builds.
 6. Nach einer Änderung Tests dokumentieren und den Stand in `PROJECT_STATE.md` aktualisieren. Niemals einen statischen Test als vollständige Laufzeitabnahme ausgeben.
+
+7. Bei einer KI-Provider-Anbindung die dynamische Modellauswahl gemäß zentralen Standards 17–22 verwenden; bestehende lokale Analyse, Stockfish/Maia und Offlinebetrieb bleiben unangetastet. Erst feststellen, ob und wo bereits ein Modellanbieter eingebunden ist; keine unnötigen Änderungen am Rust-/Datenbankkern.
