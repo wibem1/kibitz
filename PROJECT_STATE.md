@@ -1,5 +1,10 @@
 # Kibitz DE – 13.11.2026: Version 0.1.5 in main übernommen; offizieller Download noch offen
 
+## Architekturentscheidung vom 16.11.2026 – dynamische Modellauswahl
+- Zentrale Standards v1.1, Regeln 17–22, gelten für jede zukünftige externe KI-Modell-Anbindung. Vor Codeänderung prüfen, ob ein externer Provider überhaupt existiert und ob dynamische Auswahl bereits implementiert ist. Offline-Coach, Engine und Datenbank nicht unbeabsichtigt verändern.
+- **Dokumentation, keine Codeänderung, kein Test, keine neue Version.** Bisheriger Release-Stand und offene Aufgaben bleiben unverändert.
+
+
 **Neuer verbindlicher Stand:** PR [#2](https://github.com/wibem1/kibitz/pull/2) mit dem vollständig versionierten 0.1.5-Release-Branch wurde erfolgreich nach `main` gemergt; Merge-Commit `3c8ac23bdb74d690e04164159e093ba69a73d0d6`. `app/src-tauri/tauri.conf.json` in `main` nach dem Merge mit Version `0.1.5` geprüft.
 
 **Bestätigte Prüfungen:** Release-Commit `10f1c9e3365d275fa1184ef25ecfa1f33c732d21`: [CI-Lauf 43220165590](https://github.com/wibem1/kibitz/actions/runs/43220165590) vier grüne Jobs (Rust/Frontend jeweils Ubuntu und macOS). [Intel-Mac-Preview 43220165530](https://github.com/wibem1/kibitz/actions/runs/43220165530) erfolgreich, einschließlich Maia-2-x86_64-Smoke-Test, DMG-Erzeugung und Intel-Architekturkontrolle. Der Build als **unsigniertes, zeitlich begrenztes** Workflow-Artefakt `kibitz-de-intel-mac-unsigned-test` (ID 13947120749) ist kein offizieller Release.
